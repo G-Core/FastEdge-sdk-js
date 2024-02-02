@@ -1,0 +1,3 @@
+[submodule "fastedge-runtime/spidermonkey/gecko-dev"]
+	path = fastedge-runtime/spidermonkey/gecko-dev
+	url = https://github.com/bytecodealliance/gecko-dev.git

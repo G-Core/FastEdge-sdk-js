@@ -1,0 +1,25 @@
+# Integration Tests build output
+/integration-tests/**/fixtures/**/*.tar.gz
+/integration-tests/**/fixtures/**/fastly.toml
+/integration-tests/**/fixtures/**/*.wasm
+
+/bin/*
+/tests/jest-results.json
+
+node_modules/
+.DS_Store
+dist/
+integration-tests/test-files/output.wasm
+# *.o
+# *.d
+/rusturl/
+# compiler_flags
+/fastedge-runtime/cbindings/fastedge-runtime.wasm
+/fastedge-runtime/cbindings/build
+/tests/wpt-harness/wpt-test-runner.js
+wpt-runtime.wasm
+docs-app/bin/main.wasm
+docs-app/pkg/*.tar.gz
+
+*.a
+yarn-error.log
