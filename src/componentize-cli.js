@@ -38,7 +38,6 @@ if (flags.includes('--version') || flags.includes('-v')) {
 }
 
 if (inputFileName && outputFileName) {
-  console.log('TCL: inputFileName', inputFileName, 'outputFileName', outputFileName);
   validateFilePaths(inputFileName, outputFileName);
 } else {
   printHelp();

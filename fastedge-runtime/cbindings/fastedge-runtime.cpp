@@ -376,17 +376,17 @@ static void process_pending_jobs(JSContext *cx, double *total_compute) {
   auto pre_reactions = system_clock::now();
   if (debug_logging_enabled()) {
     // printf("Running promise reactions\n");
-    printf("TCL: process_pending_jobs -> Running promise reactions\n");
+    printf("process_pending_jobs -> Running promise reactions\n");
     fflush(stdout);
   }
 
   while (js::HasJobsPending(cx)) {
-    printf("TCL: process_pending_jobs -> HasJobsPending\n");
+    printf("process_pending_jobs -> HasJobsPending\n");
     fflush(stdout);
     js::RunJobs(cx);
     if (JS_IsExceptionPending(cx)) {
 
-      printf("TCL: process_pending_jobs -> abort : JS_IsExceptionPending\n");
+      printf("process_pending_jobs -> abort : JS_IsExceptionPending\n");
       abort(cx, "running Promise reactions");
     }
     fflush(stdout);
@@ -486,7 +486,7 @@ bool reactor_main(fastedge_api::Request request) {
   fastedge_api::MainResponse& mainResponse = fastedge_api::MainResponse::getInstance();
   bool waitingForResponseObject = mainResponse.status <= 99;
   if (debug_logging_enabled()) {
-    printf("TCL: reactor_main: EventLoop - mainResponse.status: %d \n", mainResponse.status);
+    printf("reactor_main: EventLoop - mainResponse.status: %d \n", mainResponse.status);
   }
   int loopCount = 0;
   int MAX_LOOP_COUNT = 50; // use this to stop the loop if it runs too long - i.e. 500 error
@@ -500,8 +500,8 @@ bool reactor_main(fastedge_api::Request request) {
     }
 
     if (debug_logging_enabled()) {
-      printf("TCL: reactor_main: Loop -> HasJobsPending: %d \n", js::HasJobsPending(cx));
-      printf("TCL: reactor_main: Loop -> waitingForResponseObject: %d \n", waitingForResponseObject);
+      printf("reactor_main: Loop -> HasJobsPending: %d \n", js::HasJobsPending(cx));
+      printf("reactor_main: Loop -> waitingForResponseObject: %d \n", waitingForResponseObject);
     }
     fflush(stdout);
 

@@ -75,7 +75,7 @@ async function process(request) {
       modifiedResponse.body,
     );
   } catch (error) {
-    console.error(`TCL: process -> error:`, error);
+    console.error(`process -> error:`, error);
   }
 }
 
