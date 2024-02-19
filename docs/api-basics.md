@@ -11,10 +11,10 @@ The Javascript code you write will look and feel very much like the
 We will continue to add examples into the [examples folder](./examples) including this
 [basic example](./examples/basic.js)
 
-The key thing to note is that the addEventListener callback has to sychronously call
+The key thing to note is that the addEventListener callback has to synchronously call
 event.respondWith() with a callback.
 
-This callback is allowed to be asychronous, and is usually where you would carry out any custom
+This callback is allowed to be asynchronous, and is usually where you would carry out any custom
 code, it **has** to return a `Response`.
 
 We are working to bring more features, but please enjoy this beta release and have a play.
