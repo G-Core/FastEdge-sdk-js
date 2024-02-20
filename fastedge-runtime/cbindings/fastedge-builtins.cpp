@@ -542,8 +542,6 @@ bool self_set(JSContext *cx, unsigned argc, Value *vp) {
 #define SCTAG_DOM_URLSEARCHPARAMS JS_SCTAG_USER_MIN
 
 
-
-
 /* GCORE INSERTS */
 
 template <bool is_error> bool logOutput(JSContext* cx, unsigned argc, JS::Value* vp) {
@@ -565,6 +563,23 @@ template <bool is_error> bool logOutput(JSContext* cx, unsigned argc, JS::Value*
   fflush(stdout);
 
   args.rval().setUndefined();
+  return true;
+}
+
+bool getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+  if (!args.requireAtLeast(cx, "getEnv", 1)) {
+    fprintf(stderr, "Error: getEnv() -> requires at least 1 argument\n");
+    return false;
+  }
+
+  auto key_chars = core::encode(cx, args[0]);
+  auto val_chars = std::getenv(std::string(key_chars).c_str());
+
+  JS::RootedString jsEnvStr(cx, JS_NewStringCopyZ(cx, std::string(val_chars).c_str()));
+  args.rval().setString(jsEnvStr);
+
   return true;
 }
 
@@ -645,7 +660,6 @@ bool sendResponse(JSContext* cx, unsigned argc, JS::Value* vp) {
     return false;
   }
 
-
   printf("fastedge.sendResponse -> status %d  \n", args[0].toInt32());
 
   auto header_chars = core::encode(cx, args[1]);
@@ -693,6 +707,7 @@ const JSFunctionSpec fastedgeMethods[] = {
     JS_FN("consoleError", logOutput<true>, 1, JSPROP_ENUMERATE),
     JS_FN("sendResponse", sendResponse, 1, JSPROP_ENUMERATE),
     JS_FN("sendRequest", sendRequest, 1, JSPROP_ENUMERATE),
+    JS_FN("getEnv", getEnv, 1, JSPROP_ENUMERATE),
     JS_FS_END};
 
 const JSPropertySpec properties[] = {JS_PSGS("self", self_get, self_set, JSPROP_ENUMERATE),

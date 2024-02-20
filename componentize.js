@@ -10,12 +10,32 @@ import { readFile } from "node:fs/promises";
 
 // src/pre-bundle.js
 import { build } from "esbuild";
+var fastedgePackagePlugin = {
+  name: "fastedge-package-plugin",
+  setup(build2) {
+    build2.onResolve({ filter: /^fastedge::.*/u }, (args) => ({
+      path: args.path.replace("fastedge::", ""),
+      namespace: "fastedge"
+    }));
+    build2.onLoad({ filter: /^.*/u, namespace: "fastedge" }, async (args) => {
+      switch (args.path) {
+        case "getenv": {
+          return { contents: `export const getEnv = globalThis.fastedge.getEnv;` };
+        }
+        default: {
+          return { contents: "" };
+        }
+      }
+    });
+  }
+};
 async function preBundle(input) {
   const contents = await build({
     entryPoints: [input],
     bundle: true,
     write: false,
-    tsconfig: void 0
+    tsconfig: void 0,
+    plugins: [fastedgePackagePlugin]
   });
   return contents.outputFiles[0].text;
 }

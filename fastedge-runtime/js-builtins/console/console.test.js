@@ -1,4 +1,4 @@
-import { injectFastEdgeConsoleLogging, _writeToRuntime } from '.';
+import { _writeToRuntime, injectFastEdgeConsoleLogging } from '.';
 
 describe('console', () => {
   describe('writeToRuntime', () => {

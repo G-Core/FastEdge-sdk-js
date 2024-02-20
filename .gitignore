@@ -5,6 +5,7 @@
 
 /bin/*
 /tests/jest-results.json
+runner.js
 
 node_modules/
 .DS_Store

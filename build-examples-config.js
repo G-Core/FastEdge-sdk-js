@@ -8,3 +8,4 @@ await componentize(
   './docs/examples/downstream-modify-response.js',
   './dist/downstream-modify-response.wasm',
 );
+await componentize('./docs/examples/headers.js', './dist/headers.wasm');

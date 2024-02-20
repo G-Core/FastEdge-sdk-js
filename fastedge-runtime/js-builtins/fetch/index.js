@@ -1,5 +1,7 @@
 import { Response } from './response';
 
+let hostApiSendRequest = () => {};
+
 function fetch(url, options = {}) {
   return new Promise((resolve) => {
     const method = options.method ?? 'GET';
@@ -19,6 +21,7 @@ function fetch(url, options = {}) {
 
 function injectFastEdgeFetch() {
   globalThis.fetch = fetch;
+  // hostApiSendRequest = globalThis.fastedge.sendRequest;
 }
 
 export { injectFastEdgeFetch, fetch };
