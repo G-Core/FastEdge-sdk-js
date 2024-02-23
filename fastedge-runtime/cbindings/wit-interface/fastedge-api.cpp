@@ -126,10 +126,11 @@ std::vector<std::array<std::string, 2>> Http::convertStringToHeaders(std::string
     std::string trimmedHeaderPair = headerPair.substr(headerPair[0] == openingSquareBracket ? 2 : 1, headerPair.length() - 1);
 
     // Split the header pair into key and value
+
     std::istringstream issPair(trimmedHeaderPair);
     std::string key, value;
     std::getline(issPair, key, ',');
-    std::getline(issPair, value, ',');
+    std::getline(issPair, value);
 
     // Remove the surrounding double quotes from key and value
     key = key.substr(1, key.length() - 2);
@@ -137,8 +138,7 @@ std::vector<std::array<std::string, 2>> Http::convertStringToHeaders(std::string
       ? value.substr(1, value.length() - 2)
       : value.substr(0, value.length() - 1);
     // Add the header pair to the vector
-		printf("TCL: key: %s \n", std::string(key).c_str());
-		printf("TCL: value: %s \n", std::string(value).c_str());
+
     headers.push_back({key, value});
   }
   return headers;

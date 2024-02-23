@@ -50,15 +50,14 @@ describe('Response', () => {
       expect(result).toStrictEqual({ foo: 'bar' });
     });
 
-    //! This is a temporary fix to return the body as a string - server does not carry through the content-type
-    // it('should return "Malformed body" if unable to parse JSON bodies', async () => {
-    //   expect.assertions(1);
-    //   const response = new Response('"foo":"bar"', {
-    //     headers: { 'content-type': 'application/json' },
-    //   });
-    //   const result = await response.json();
-    //   expect(result).toBe('Malformed body');
-    // });
+    it('should return "Malformed body" if unable to parse JSON bodies', async () => {
+      expect.assertions(1);
+      const response = new Response('"foo":"bar"', {
+        headers: { 'content-type': 'application/json' },
+      });
+      const result = await response.json();
+      expect(result).toBe('Malformed body');
+    });
 
     it('should return the body as a string for non-JSON bodies', async () => {
       expect.assertions(1);

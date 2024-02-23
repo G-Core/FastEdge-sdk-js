@@ -16,17 +16,13 @@ class Response {
   }
 
   async json() {
-    // if (this.headers.get('content-type') === 'application/json') {
-    try {
-      return JSON.parse(this.body);
-    } catch {
-      /* Do nothing - just return Malformed body */
+    if (this.headers.get('content-type') === 'application/json') {
+      try {
+        return JSON.parse(this.body);
+      } catch {
+        return 'Malformed body';
+      }
     }
-    //! This is a temporary fix to return the body as a string - server does not carry through the content-type
-    // * FIX THE TESTS TOO..
-    // ? https://github.com/G-Core/FastEdge/issues/186
-    // return 'Malformed body';
-    // }
     return this.body;
   }
 
