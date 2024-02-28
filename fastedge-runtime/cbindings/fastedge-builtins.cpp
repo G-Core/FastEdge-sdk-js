@@ -560,7 +560,7 @@ template <bool is_error> bool logOutput(JSContext* cx, unsigned argc, JS::Value*
 
   std::string_view msg_str = msg_chars;
   fprintf(is_error ? stderr : stdout, "%.*s\n", static_cast<int>(msg_str.size()), msg_str.data());
-  fflush(stdout);
+  fflush(is_error ? stderr : stdout);
 
   args.rval().setUndefined();
   return true;
@@ -584,7 +584,6 @@ bool getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
 }
 
 bool sendRequest(JSContext* cx, unsigned argc, JS::Value* vp) {
-  fprintf(stderr, "fastedge.sendRequest -> WE ARE HERE \n");
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
   if (!args.requireAtLeast(cx, "sendRequest", 1)) {
@@ -597,28 +596,24 @@ bool sendRequest(JSContext* cx, unsigned argc, JS::Value* vp) {
     fprintf(stderr, "Error: fastedge.sendRequest -> requires a method argument\n");
     return false;
   }
-  printf("fastedge.sendRequest -> method_chars: %s\n", std::string(method_chars).c_str());
 
   auto url_chars = core::encode(cx, args[1]);
   if (!url_chars) {
     fprintf(stderr, "Error: fastedge.sendRequest -> requires a url argument\n");
     return false;
   }
-  printf("fastedge.sendRequest -> url_chars: %s\n", std::string(url_chars).c_str());
 
   auto headers_chars = core::encode(cx, args[2]);
   if (!headers_chars) {
     fprintf(stderr, "Error: fastedge.sendRequest -> requires a headers argument\n");
     return false;
   }
-  printf("fastedge.sendRequest -> headers_chars: %s\n", std::string(headers_chars).c_str());
 
   auto body_chars = core::encode(cx, args[3]);
   if (!body_chars) {
     fprintf(stderr, "Error: fastedge.sendRequest -> requires a body argument\n");
     return false;
   }
-  printf("fastedge.sendRequest -> body_chars: %s\n", std::string(body_chars).c_str());
 
   fastedge_api::DownstreamResponse response = fastedge_api::sendRequest(method_chars, url_chars, headers_chars, body_chars);
 
@@ -674,7 +669,7 @@ bool sendResponse(JSContext* cx, unsigned argc, JS::Value* vp) {
     fprintf(stderr, "Error: fastedge.sendResponse -> requires a body argument\n");
     return false;
   }
-  printf("fastedge.sendResponse -> body_chars: %s\n", std::string(body_chars).c_str());
+  // printf("fastedge.sendResponse -> body_chars: %s\n", std::string(body_chars).c_str());
   fflush(stdout);
 
   fastedge_api::MainResponse& mainResponse = fastedge_api::MainResponse::getInstance();

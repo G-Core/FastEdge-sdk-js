@@ -42,38 +42,7 @@ async function process(request) {
     const { sendResponse } = fastedge;
     // Make sure we remove all the cbingings from the global scope
     const response = await dispatchFetchEvent(createFastEdgeEvent('fetch', request));
-    //! Need to clean this up after we get correct headers..
-    let body = await response.json();
-    let isBodyJson = false;
-    try {
-      // ? at present it is just cleaning the whitespace / special chars
-      JSON.parse(response.body);
-      isBodyJson = true;
-      body = JSON.stringify(body);
-    } catch {
-      /* Body is text - do nothing */
-    }
-
-    const modifiedHeaders = {};
-    for (const [key, value] of response.headers.entries()) {
-      if (key === 'content-type' && isBodyJson) {
-        modifiedHeaders[key] = 'application/json';
-        continue;
-      }
-      if (key === 'date' || key === 'content-length') continue;
-      modifiedHeaders[key] = value;
-    }
-
-    const modifiedResponse = new Response(body, {
-      status: response.status,
-      headers: modifiedHeaders,
-    });
-
-    sendResponse(
-      modifiedResponse.status,
-      stringifyHeaders(modifiedResponse.headers),
-      modifiedResponse.body,
-    );
+    sendResponse(response.status, stringifyHeaders(response.headers), response.body);
   } catch (error) {
     console.error(`process -> error:`, error);
   }
