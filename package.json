@@ -5,12 +5,13 @@
     "node": "18 - 20",
     "npm": "^8 || ^9"
   },
+  "license": "Apache-2.0",
   "main": "componentize.js",
   "types": "types/index.d.ts",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/godronus/js-sdk"
+    "url": "https://github.com/G-Core/FastEdge-sdk-js"
   },
   "files": [
     "types",
