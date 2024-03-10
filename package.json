@@ -3,7 +3,7 @@
   "version": "0.0.1-beta",
   "engines": {
     "node": "18 - 20",
-    "npm": "^8 || ^9"
+    "npm": "^8 || ^9 || ^10"
   },
   "license": "Apache-2.0",
   "main": "componentize.js",
