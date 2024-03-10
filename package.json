@@ -19,9 +19,7 @@
     "componentize-cli.js",
     "lib/*.wasm",
     "lib/*.js",
-    "src",
     "index.d.ts",
-    "package.json",
     "README.md"
   ],
   "scripts": {
