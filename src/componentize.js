@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { componentNew, preview1AdapterReactorPath } from '@bytecodealliance/jco';
@@ -19,8 +20,10 @@ async function componentize(jsInput, output, opts = {}) {
     preBundleJSInput = true,
   } = opts;
 
-  const jsPath = fileURLToPath(new URL(jsInput, import.meta.url));
-  const wasmOutputDir = fileURLToPath(new URL(output, import.meta.url));
+  const jsPath = fileURLToPath(new URL(path.resolve(process.cwd(), jsInput), import.meta.url));
+  const wasmOutputDir = fileURLToPath(
+    new URL(path.resolve(process.cwd(), output), import.meta.url),
+  );
 
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
 
