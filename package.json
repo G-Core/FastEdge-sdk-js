@@ -31,6 +31,7 @@
     "build:wasm": "node build-examples-config.js",
     "build:js": "node esbuild/js-builtins.js",
     "build:debug": "DEBUG=true make -j8 -C execution_env/fastedge-runtime && cp execution_env/fastedge-runtime/*.wasm .",
+    "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
     "generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen"
   },
   "devDependencies": {
