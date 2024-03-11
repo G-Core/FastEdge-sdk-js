@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Pull Request Requirements
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
   workflow_dispatch: # trigger manually
 
 jobs:
-  code_validation:
+  pr_verify_code:
     uses: ./.github/workflows/code-validation.yaml
 
-  unit_tests:
+  pr_run_unit_tests:
     uses: ./.github/workflows/unit-tests.yaml
