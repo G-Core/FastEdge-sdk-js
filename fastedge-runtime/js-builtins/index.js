@@ -44,6 +44,7 @@ async function process(request) {
     const response = await dispatchFetchEvent(createFastEdgeEvent('fetch', request));
     sendResponse(response.status, stringifyHeaders(response.headers), response.body);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(`process -> error:`, error);
   }
 }

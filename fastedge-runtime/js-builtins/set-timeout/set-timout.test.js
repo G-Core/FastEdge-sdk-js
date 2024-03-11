@@ -1,4 +1,4 @@
-import { injectFastEdgeSetTimeout, setInterval, setTimeout } from './index';
+import { injectFastEdgeSetTimeout, setInterval, setTimeout } from '.';
 
 describe('set-timeouts', () => {
   describe('setTimeout', () => {
