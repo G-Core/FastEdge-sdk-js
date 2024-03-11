@@ -8,8 +8,8 @@ on:
   workflow_dispatch: # trigger manually
 
 jobs:
-  pr_verify_code:
+  code_validation:
     uses: ./.github/workflows/code-validation.yaml
 
-  pr_run_unit_tests:
+  unit_tests:
     uses: ./.github/workflows/unit-tests.yaml
