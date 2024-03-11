@@ -10,12 +10,6 @@ on:
 jobs:
   code_validation:
     uses: ./.github/workflows/code-validation.yml
-    secrets:
-      gateway_url: ${{ secrets.GATEWAY_URL_STAGING }}
-      loopy_rabbit_access_token: ${{ secrets.LOOPY_RABBIT_ACCESS_TOKEN }}
 
-  setup_environment:
-    uses: ./.github/workflows/setup-environment.yml
-    secrets:
-      gateway_url: ${{ secrets.GATEWAY_URL_STAGING }}
-      loopy_rabbit_access_token: ${{ secrets.LOOPY_RABBIT_ACCESS_TOKEN }}
+  unit_tests:
+    uses: ./.github/workflows/unit-tests.yml
