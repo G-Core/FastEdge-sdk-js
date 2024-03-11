@@ -2,10 +2,10 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [npm-packaging]
 
   pull_request:
-    branches: [main]
+    branches: [npm-packaging]
 
 jobs:
   build:
