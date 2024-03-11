@@ -9,7 +9,7 @@ on:
 
 jobs:
   code_validation:
-    uses: ./.github/workflows/code-validation.yml
+    uses: ./.github/workflows/code-validation.yaml
 
   unit_tests:
-    uses: ./.github/workflows/unit-tests.yml
+    uses: ./.github/workflows/unit-tests.yaml
