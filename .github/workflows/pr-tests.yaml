@@ -1,0 +1,14 @@
+name: Pull Request Requirements
+
+on:
+  pull_request:
+    branches: [npm-packaging]
+
+  workflow_dispatch: # trigger manually
+
+jobs:
+  code_validation:
+    uses: ./.github/workflows/code-validation.yaml
+
+  unit_tests:
+    uses: ./.github/workflows/unit-tests.yaml

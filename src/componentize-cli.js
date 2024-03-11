@@ -20,6 +20,7 @@ for (const arg of args) {
   } else if (outputFileName === '') {
     outputFileName = arg;
   } else {
+    // eslint-disable-next-line no-console
     console.log(`Unexpected argument ${arg}`);
     process.exit(1);
   }

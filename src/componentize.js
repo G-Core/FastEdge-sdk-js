@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { componentNew, preview1AdapterReactorPath } from '@bytecodealliance/jco';
+import { componentNew } from '@bytecodealliance/jco';
 import wizer from '@bytecodealliance/wizer';
 
 import { getJsInputContents } from '~src/get-js-input';
@@ -63,6 +63,7 @@ async function componentize(jsInput, output, opts = {}) {
     process.exitCode = wizerProcess.status;
   } catch (error) {
     if (process.env.NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
       console.error('Error: Failed to compile JavaScript to Wasm:', error.message);
     }
     process.exit(1);
@@ -71,7 +72,6 @@ async function componentize(jsInput, output, opts = {}) {
   const adapter = fileURLToPath(
     new URL('./lib/wasi_snapshot_preview1.reactor.wasm', import.meta.url),
   );
-  // preview1AdapterReactorPath();
 
   const generatedComponent = await componentNew(coreComponent, [
     ['wasi_snapshot_preview1', await readFile(adapter)],

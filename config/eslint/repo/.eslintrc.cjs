@@ -26,6 +26,7 @@ module.exports = {
     'docs/**',
     'esbuild/**',
     'dist/**',
+    'integration-tests/test-files/**',
     'lib/**',
     '**/fastedge-runtime/cbindings/**',
     '**/fastedge-runtime/spidermonkey/**',

@@ -66,6 +66,7 @@ describe('console', () => {
     it('should call fastedge.consoleLog on console.log', () => {
       expect.assertions(1);
       injectFastEdgeConsoleLogging();
+      // eslint-disable-next-line no-console
       console.log('test');
       expect(globalThis.fastedge.consoleLog).toHaveBeenCalledWith('[LOG] test');
     });
@@ -73,6 +74,7 @@ describe('console', () => {
     it('should call fastedge.consoleError on console.error', () => {
       expect.assertions(1);
       injectFastEdgeConsoleLogging();
+      // eslint-disable-next-line no-console
       console.error('test');
       expect(globalThis.fastedge.consoleError).toHaveBeenCalledWith('[ERROR] test');
     });

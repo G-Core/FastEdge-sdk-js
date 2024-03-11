@@ -11,6 +11,7 @@ function containsSyntaxErrors(jsInput) {
   if (nodeProcess.status === 0) {
     return false;
   }
+  // eslint-disable-next-line no-console
   console.error(
     `${
       nodeProcess.stderr.split('\nSyntaxError: Invalid or unexpected token\n')[0]
@@ -37,6 +38,7 @@ async function createOutputDirectory(path) {
       recursive: true,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(`Error: Failed to create the "output" (${path}) directory`, error.message);
     process.exit(1);
   }
@@ -44,26 +46,31 @@ async function createOutputDirectory(path) {
 
 async function validateFilePaths(input, output, wasmEngine = './lib/fastedge-runtime.wasm') {
   if (!(await isFile(input))) {
+    // eslint-disable-next-line no-console
     console.error(`Error: Input "${input}" is not a file`);
     process.exit(1);
   }
   if (output.slice(-5) !== '.wasm') {
+    // eslint-disable-next-line no-console
     console.error(`Error: Output ${output} must be a .wasm file path`);
     process.exit(1);
   }
   if (!(await isFile(output))) {
     createOutputDirectory(output);
     if (!(await isFile(output, /* AllowNonexistent */ true))) {
+      // eslint-disable-next-line no-console
       console.error(`Error: "${output}" path does not exist`);
       process.exit(1);
     }
   }
   if (!(await isFile(wasmEngine))) {
+    // eslint-disable-next-line no-console
     console.error(`Error: "${wasmEngine}" is not a file`);
     process.exit(1);
   }
 
   if (containsSyntaxErrors(input)) {
+    // eslint-disable-next-line no-console
     console.error(`Error: "${input}" contains JS Errors`);
     process.exit(1);
   }

@@ -1,3 +1,3 @@
 module.exports = {
-  extends: "./config/eslint/repo/.eslintrc.cjs",
+  extends: './config/eslint/repo/.eslintrc.cjs',
 };

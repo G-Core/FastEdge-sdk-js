@@ -7,8 +7,8 @@ module.exports = {
       files: ['*.test.*', '*.spec.*'],
       rules: {
         // Enforce promises from async queries to be handled
-        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/await-async-query.md
-        'testing-library/await-async-query': 'error',
+        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/await-async-queries.md
+        'testing-library/await-async-queries': 'error',
         // Enforce promises from async utils to be awaited properly
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/await-async-utils.md
         'testing-library/await-async-utils': 'error',
@@ -26,8 +26,8 @@ module.exports = {
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-await-sync-events.md
         'testing-library/no-await-sync-events': 'error',
         // Disallow unnecessary `await` for sync queries
-        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-await-sync-query.md
-        'testing-library/no-await-sync-query': 'error',
+        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-await-sync-queries.md
+        'testing-library/no-await-sync-queries': 'error',
         // Disallow the use of `container` methods
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-container.md
         'testing-library/no-container': 'error',
@@ -59,14 +59,11 @@ module.exports = {
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-promise-in-fire-event.md
         'testing-library/no-promise-in-fire-event': 'error',
         // Disallow the use of `render` in testing frameworks setup functions
-        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-render-in-setup.md
-        'testing-library/no-render-in-setup': ['error', {}],
+        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-render-in-lifecycle.md
+        'testing-library/no-render-in-lifecycle': ['error', {}],
         // Disallow wrapping Testing Library utils or empty callbacks in `act`
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-unnecessary-act.md
         'testing-library/no-unnecessary-act': ['error', { isStrict: false }],
-        // Disallow empty callbacks for `waitFor` and `waitForElementToBeRemoved`
-        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-wait-for-empty-callback.md
-        'testing-library/no-wait-for-empty-callback': 'error',
         // Disallow the use of multiple `expect` calls inside `waitFor`
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/no-wait-for-multiple-assertions.md
         'testing-library/no-wait-for-multiple-assertions': 'error',
@@ -94,9 +91,6 @@ module.exports = {
         // Suggest using `userEvent` over `fireEvent` for simulating user interactions
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/prefer-user-event.md
         'testing-library/prefer-user-event': ['error', { allowedMethods: [] }],
-        // Use `waitFor` instead of deprecated wait methods
-        // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/prefer-wait-for.md
-        'testing-library/prefer-wait-for': 'error',
         // Enforce a valid naming for return value from `render`
         // https://github.com/testing-library/eslint-plugin-testing-library/blob/main/docs/rules/render-result-naming-convention.md
         'testing-library/render-result-naming-convention': 'error',
