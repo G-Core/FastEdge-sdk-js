@@ -3,9 +3,9 @@ name: Unit Tests
 on:
   push:
     branches: [testing-actions]
-
-  pull_request:
-    branches: [npm-packaging]
+  # pull_request:
+  #   branches: [npm-packaging]
+  workflow_dispatch: # trigger manually
 
 jobs:
   code_validation:

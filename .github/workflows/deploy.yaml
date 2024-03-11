@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   push:
-    branches: [testing-actions]
+    branches: [npm-packaging]
 
   workflow_dispatch: # trigger manually
 
