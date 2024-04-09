@@ -104,7 +104,7 @@ This will then just compile your provided code into `wasm` without trying to int
 - preBundleJSInput?: boolean
   - defaults to true
   - During the build process we bundle your `index.js` file using esbuild. If you want to provide a
-    pre-compiled js file from a different bundler. Set this to false.
+    pre-compiled js file from a different bundler, set this to false.
 
 ## API Docs
 
