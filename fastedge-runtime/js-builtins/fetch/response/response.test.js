@@ -1,4 +1,4 @@
-import { injectFastEdgeResponse, _isValidHttpStatusCode, Response } from '.';
+import { _isValidHttpStatusCode, injectFastEdgeResponse, Response } from '.';
 
 describe('Response', () => {
   describe('isValidHttpStatusCode', () => {

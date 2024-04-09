@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const PREAMBLE = ';{\n// Precompiled JS builtins\n';
 const POSTAMBLE = '}\n';
 
 const injectJSBuiltins = (contents) => {
-  const internals = readFileSync('./lib/js-builtins.js', 'utf8');
+  const jsBuiltinsPath = fileURLToPath(new URL('./lib/js-builtins.js', import.meta.url));
+  const internals = readFileSync(jsBuiltinsPath, 'utf8');
   return `${PREAMBLE}${internals}${POSTAMBLE}${contents}`;
 };
 

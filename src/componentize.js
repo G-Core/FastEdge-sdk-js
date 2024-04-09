@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { componentNew, preview1AdapterReactorPath } from '@bytecodealliance/jco';
+import { componentNew } from '@bytecodealliance/jco';
 import wizer from '@bytecodealliance/wizer';
 
 import { getJsInputContents } from '~src/get-js-input';
@@ -19,8 +20,10 @@ async function componentize(jsInput, output, opts = {}) {
     preBundleJSInput = true,
   } = opts;
 
-  const jsPath = fileURLToPath(new URL(jsInput, import.meta.url));
-  const wasmOutputDir = fileURLToPath(new URL(output, import.meta.url));
+  const jsPath = fileURLToPath(new URL(path.resolve(process.cwd(), jsInput), import.meta.url));
+  const wasmOutputDir = fileURLToPath(
+    new URL(path.resolve(process.cwd(), output), import.meta.url),
+  );
 
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
 
@@ -60,6 +63,7 @@ async function componentize(jsInput, output, opts = {}) {
     process.exitCode = wizerProcess.status;
   } catch (error) {
     if (process.env.NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
       console.error('Error: Failed to compile JavaScript to Wasm:', error.message);
     }
     process.exit(1);
@@ -68,7 +72,6 @@ async function componentize(jsInput, output, opts = {}) {
   const adapter = fileURLToPath(
     new URL('./lib/wasi_snapshot_preview1.reactor.wasm', import.meta.url),
   );
-  // preview1AdapterReactorPath();
 
   const generatedComponent = await componentNew(coreComponent, [
     ['wasi_snapshot_preview1', await readFile(adapter)],
