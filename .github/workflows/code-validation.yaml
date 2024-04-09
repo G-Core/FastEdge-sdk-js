@@ -13,8 +13,8 @@ jobs:
       - name: Setup Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
-          cache: 'npm'
+          node-version: 20.x
+          cache: 'npm-20.x'
 
       - name: Install dependencies
         run: |
