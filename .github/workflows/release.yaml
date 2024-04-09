@@ -2,6 +2,10 @@ name: Release
 
 on:
   workflow_call:
+    inputs:
+      dry_run:
+        required: true
+        type: string
     secrets:
       GH_TOKEN:
         required: true
@@ -11,9 +15,9 @@ on:
 jobs:
   release:
     name: NPM Release
-    runs-on: 'self-hosted-ubuntu-22-04-regular-x64'
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -28,8 +32,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Dry Run Status
+        id: dry_run
+        run: |
+          if [[ ${{ inputs.dry_run }} == true ]]; then
+            echo "Running NPM release in dry-run mode"
+            echo "dry_run=--dry-run" >> $GITHUB_OUTPUT
+          else
+            echo "Running NPM release in production mode"
+            echo "dry_run=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+        run: npx semantic-release ${{ steps.dry_run.outputs.dry_run }}

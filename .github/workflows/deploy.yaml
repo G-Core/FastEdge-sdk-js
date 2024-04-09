@@ -6,14 +6,22 @@ on:
     branches: ['*.*.x', '*.x', 'main', 'next', 'next-major', 'beta', 'alpha']
 
   workflow_dispatch: # trigger manually
+    inputs:
+      dry_run:
+        description: 'NPM release dry-run'
+        required: true
+        default: 'true'
 
 jobs:
   # Gihub Actions do not allow regex validation for numbers in *.*.x branch names
   validate_branch_name:
-    runs-on: 'self-hosted-ubuntu-22-04-regular-x64'
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Validate branch name
         run: |
@@ -36,6 +44,8 @@ jobs:
   npm_release:
     needs: [code_validation, unit_tests]
     uses: ./.github/workflows/release.yaml
+    with:
+      dry_run: ${{ github.event.inputs.dry_run || 'true' }}
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
