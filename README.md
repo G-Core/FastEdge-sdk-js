@@ -1,6 +1,25 @@
 # FastEdge JS SDK
 
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/G-Core/FastEdge-sdk-js/deploy.yaml)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/t/G-Core/FastEdge-sdk-js)
+![GitHub top language](https://img.shields.io/github/languages/top/G-Core/FastEdge-sdk-js)
+![GitHub License](https://img.shields.io/github/license/G-Core/FastEdge-sdk-js)
+![NPM Version](https://img.shields.io/npm/v/@gcoredev/fastedge-sdk-js)
+
 This is the Javascript SDK for building Javascript applications ready for deploying on FastEdge.
+
+## Table of Contents
+
+- [FastEdge JS SDK](#fastedge-js-sdk)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+  - [Usage](#usage)
+    - [Basic Javascript Example](#basic-javascript-example)
+  - [How to compile](#how-to-compile)
+    - [componentize-cli](#componentize-cli)
+    - [componentize](#componentize)
+      - [Options](#options)
+  - [API Docs](#api-docs)
 
 ## Getting Started
 
@@ -49,14 +68,14 @@ node ./componentize-cli.js dist/index.js dist/main.wasm
 This would take your `index.js` entrypoint file and compile it into a runtime `wasm` ready for
 loading on FastEdge Compute.
 
-Under the hood it uses esbuild to compile your `index.js` file before compiling into a wasm.
+Under the hood it uses [esbuild](https://esbuild.github.io/) to compile your `index.js` file before
+compiling into a wasm. This allows you to include multiple files into the /dist folder and import
+them as ESM modules.
 
-So including a bunch of files into the /dist folder and importing as es modules will work.
+### componentize
 
-### componentize.js
-
-This is a JS function, allowing you to build your runtime wasm within the context of a Javascript
-config file.
+This is a JS function provided by an NPM package, allowing you to build your runtime wasm within the
+context of a Javascript config file / project.
 
 ```js
 import { componentize } from "@gcoredev/fastedge-sdk-js"
