@@ -1,6 +1,6 @@
 {
-  "name": "@gcoredev/fastedge-sdk-js-test",
-  "version": "1.0.0",
+  "name": "@gcoredev/fastedge-sdk-js",
+  "version": "0.0.1",
   "engines": {
     "node": "18 - 20",
     "npm": "^8 || ^9 || ^10"
@@ -13,10 +13,16 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
+  "homepage": "https://github.com/G-Core/FastEdge-sdk-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/G-Core/FastEdge-sdk-js.git"
+  },
   "files": [
     "types",
     "componentize.js",
     "componentize-cli.js",
+    "docs/",
     "lib/*.wasm",
     "lib/*.js",
     "README.md"
