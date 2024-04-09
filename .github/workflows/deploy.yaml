@@ -1,0 +1,48 @@
+name: Deploy to NPM
+
+on:
+  push:
+    # If you add a branch here, you **MUST** create a branch rule in Github settings
+    branches: ['*.*.x', '*.x', 'main', 'next', 'next-major', 'beta', 'alpha']
+
+  workflow_dispatch: # trigger manually
+    inputs:
+      dry_run:
+        description: 'NPM release dry-run'
+        required: true
+        default: 'true'
+
+jobs:
+  # Gihub Actions do not allow regex validation for numbers in *.*.x branch names
+  validate_branch_name:
+    runs-on: 'self-hosted-ubuntu-22-04-regular-x64'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate branch name
+        run: |
+          branch_name=$(echo $GITHUB_REF | cut -d'/' -f3)
+          if [[ $branch_name =~ ^[0-9]+(\.[0-9]+)?\.x$ ]] || [[ $branch_name == "main" ]] || [[ $branch_name == "next" ]] || [[ $branch_name == "next-major" ]] || [[ $branch_name == "beta" ]] || [[ $branch_name == "alpha" ]]; then
+            echo "Branch name is valid"
+          else
+            echo "Branch name is invalid"
+            exit 1
+          fi
+
+  code_validation:
+    needs: [validate_branch_name]
+    uses: ./.github/workflows/code-validation.yaml
+
+  unit_tests:
+    needs: [validate_branch_name]
+    uses: ./.github/workflows/unit-tests.yaml
+
+  npm_release:
+    needs: [code_validation, unit_tests]
+    uses: ./.github/workflows/release.yaml
+    with:
+      dry_run: ${{ github.event.inputs.dry_run || 'true' }}
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,13 @@
+.eslintignore
+.prettierignore
+
+package-lock.json
+
+**/node_modules/
+dist/
+lib/
+/componentize.js
+/componentize-cli.js
+
+/coverage/
+
