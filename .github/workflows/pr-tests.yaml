@@ -2,7 +2,7 @@ name: Pull Request Requirements
 
 on:
   pull_request:
-    branches: [npm-packaging]
+    branches: ['*.*.x', '*.x', 'main', 'next', 'next-major', 'beta', 'alpha']
 
   workflow_dispatch: # trigger manually
 

@@ -1,6 +1,6 @@
 {
-  "name": "@FastEdge/sdk-js",
-  "version": "0.0.1-beta",
+  "name": "@gcoredev/fastedge-sdk-js-test",
+  "version": "1.0.0",
   "engines": {
     "node": "18 - 20",
     "npm": "^8 || ^9 || ^10"
@@ -9,9 +9,9 @@
   "main": "componentize.js",
   "types": "types/index.d.ts",
   "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/G-Core/FastEdge-sdk-js"
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "files": [
     "types",
@@ -19,20 +19,20 @@
     "componentize-cli.js",
     "lib/*.wasm",
     "lib/*.js",
-    "index.d.ts",
     "README.md"
   ],
   "scripts": {
-    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js",
-    "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
-    "build": "npm-run-all -p build:runtime build:js -s build:wasm",
     "build:componentize": "node esbuild/componentize.js ",
+    "build:debug": "DEBUG=true make -j8 -C execution_env/fastedge-runtime && cp execution_env/fastedge-runtime/*.wasm .",
+    "build:js": "node esbuild/js-builtins.js",
     "build:runtime": "make -j8 -C fastedge-runtime/cbindings && cp fastedge-runtime/cbindings/*.wasm ./lib",
     "build:wasm": "node build-examples-config.js",
-    "build:js": "node esbuild/js-builtins.js",
-    "build:debug": "DEBUG=true make -j8 -C execution_env/fastedge-runtime && cp execution_env/fastedge-runtime/*.wasm .",
+    "build": "npm-run-all -p build:runtime build:js -s build:wasm",
+    "generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen",
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
-    "generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen"
+    "semantic-release": "semantic-release",
+    "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
+    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.23.9",
@@ -40,6 +40,7 @@
     "@jest/transform": "^29.7.0",
     "babel-jest": "^29.7.0",
     "babel-plugin-transform-import-meta": "^2.2.1",
+    "conventional-changelog-eslint": "^5.0.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "eslint": "^8.56.0",
     "eslint-config-standard": "^17.1.0",
@@ -52,6 +53,7 @@
     "eslint-plugin-testing-library": "^6.2.0",
     "eslint-plugin-unicorn": "^50.0.1",
     "jest": "^29.7.0",
+    "semantic-release": "^23.0.7",
     "tsd": "^0.30.4",
     "typescript": "^5.0"
   },

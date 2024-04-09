@@ -45,10 +45,26 @@ describe('Fetch', () => {
       expect(data.message).toBe('response_body');
     });
 
+    it('allows providing a URL object as the resource with no headers', async () => {
+      expect.assertions(1);
+      const url = new URL('../cats', 'http://www.example.com/dogs');
+      const options = {
+        method: 'PATCH',
+        body: JSON.stringify({ key: 'value' }),
+      };
+      await fetch(url, options);
+      expect(globalThis.fastedge.sendRequest).toHaveBeenCalledWith(
+        'PATCH',
+        'http://www.example.com/cats',
+        '[]',
+        JSON.stringify({ key: 'value' }),
+      );
+    });
+
     it('handles default options correctly', async () => {
       expect.assertions(1);
       const url = 'https://example.com/api/default';
-      const response = await fetch(url);
+      await fetch(url);
       expect(globalThis.fastedge.sendRequest).toHaveBeenCalledWith('GET', url, '[]', '');
     });
   });

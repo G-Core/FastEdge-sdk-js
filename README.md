@@ -59,7 +59,7 @@ This is a JS function, allowing you to build your runtime wasm within the contex
 config file.
 
 ```js
-import { componentize } from "/componetize.js"
+import { componentize } from "@gcoredev/fastedge-sdk-js"
 
 await componentize("./dist/index.js", "./dist/main.wasm", {
   debug = false,

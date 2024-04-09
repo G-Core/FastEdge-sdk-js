@@ -5,7 +5,7 @@ function fetch(url, options = {}) {
     const method = options.method ?? 'GET';
     const headers = options.headers ?? '[]';
     const body = options.body ?? '';
-    const fastedgeRes = globalThis.fastedge.sendRequest(method, url, headers, body);
+    const fastedgeRes = globalThis.fastedge.sendRequest(method, url.toString(), headers, body);
     // Create a response object from the fastedge response
     const headersArr = JSON.parse(fastedgeRes.headers ?? '[]');
     const headersObj = Object.fromEntries(headersArr);

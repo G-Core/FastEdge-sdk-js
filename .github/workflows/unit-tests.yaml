@@ -5,14 +5,15 @@ on:
 
 jobs:
   unit_tests:
-    runs-on: ubuntu-latest
+    runs-on: 'self-hosted-ubuntu-22-04-regular-x64'
 
     strategy:
       matrix:
         node-version: [18.x, 20.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4

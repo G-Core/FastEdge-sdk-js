@@ -5,9 +5,10 @@ on:
 
 jobs:
   code_validation:
-    runs-on: ubuntu-latest
+    runs-on: 'self-hosted-ubuntu-22-04-regular-x64'
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js latest
         uses: actions/setup-node@v4
