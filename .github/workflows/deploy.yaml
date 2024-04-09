@@ -15,9 +15,9 @@ on:
 jobs:
   # Gihub Actions do not allow regex validation for numbers in *.*.x branch names
   validate_branch_name:
-    runs-on: ubuntu-latest
+    runs-on: 'self-hosted-ubuntu-22-04-regular-x64'
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
