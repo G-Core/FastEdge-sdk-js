@@ -1,3 +1,6 @@
 [submodule "fastedge-runtime/spidermonkey/gecko-dev"]
 	path = fastedge-runtime/spidermonkey/gecko-dev
 	url = https://github.com/bytecodealliance/gecko-dev.git
+[submodule "fastedge-runtime/cbindings/wit-interface/wit"]
+	path = fastedge-runtime/cbindings/wit-interface/wit
+	url = https://github.com/G-Core/FastEdge-wit.git
