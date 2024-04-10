@@ -13,7 +13,7 @@ This is the Javascript SDK for building Javascript applications ready for deploy
 - [FastEdge JS SDK](#fastedge-js-sdk)
   - [Table of Contents](#table-of-contents)
   - [Getting Started](#getting-started)
-  - [Usage](#usage)
+  - [Installation](#installation)
     - [Basic Javascript Example](#basic-javascript-example)
   - [How to compile](#how-to-compile)
     - [componentize-cli](#componentize-cli)
@@ -29,7 +29,7 @@ Please read through the documentation provided by Gcore.
 - Deploying an App:
   [Documentation](https://gcore.com/docs/fastedge/getting-started/create-fastedge-apps#stage-2-deploy-an-app)
 
-## Usage
+## Installation
 
 Required:
 
@@ -37,7 +37,7 @@ Required:
 
 Setup:
 
-- `npm install`
+- `npm install --save-dev @gcoredev/fastedge-sdk-js`
 
 ### Basic Javascript Example
 
@@ -61,7 +61,7 @@ There are two methods to build your own javascript into a runtime wasm.
 This is a command-line tool that allows you to provide the input js file and the output wasm file.
 
 ```sh
-node ./componentize-cli.js dist/index.js dist/main.wasm
+npx componentize-cli dist/index.js dist/main.wasm
 
 ```
 
@@ -69,12 +69,12 @@ This would take your `index.js` entrypoint file and compile it into a runtime `w
 loading on FastEdge Compute.
 
 Under the hood it uses [esbuild](https://esbuild.github.io/) to compile your `index.js` file before
-compiling into a wasm. This allows you to include multiple files into the /dist folder and import
-them as ESM modules.
+compiling it into a binary.wasm. This allows you to include multiple files into the /dist folder and
+import them as ES modules, `componentize-cli` will bundle them on your behalf.
 
 ### componentize
 
-This is a JS function provided by an NPM package, allowing you to build your runtime wasm within the
+This is a JS function provided by the NPM package allowing you to build your runtime.wasm within the
 context of a Javascript config file / project.
 
 ```js

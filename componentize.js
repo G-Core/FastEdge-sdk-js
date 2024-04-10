@@ -1,8 +1,9 @@
 // src/componentize.js
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { readFile as readFile2, writeFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { componentNew, preview1AdapterReactorPath } from "@bytecodealliance/jco";
+import path from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+import { componentNew } from "@bytecodealliance/jco";
 import wizer from "@bytecodealliance/wizer";
 
 // src/get-js-input.js
@@ -50,10 +51,12 @@ async function getJsInputContents(jsInput, preBundleJSInput) {
 
 // src/inject-js-builtins.js
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 var PREAMBLE = ";{\n// Precompiled JS builtins\n";
 var POSTAMBLE = "}\n";
 var injectJSBuiltins = (contents) => {
-  const internals = readFileSync("./lib/js-builtins.js", "utf8");
+  const jsBuiltinsPath = fileURLToPath(new URL("./lib/js-builtins.js", import.meta.url));
+  const internals = readFileSync(jsBuiltinsPath, "utf8");
   return `${PREAMBLE}${internals}${POSTAMBLE}${contents}`;
 };
 
@@ -77,9 +80,9 @@ SyntaxError: Invalid or unexpected token
   );
   return true;
 }
-async function isFile(path, allowNonexistent = false) {
+async function isFile(path2, allowNonexistent = false) {
   try {
-    const stats = await stat(path);
+    const stats = await stat(path2);
     return stats.isFile();
   } catch (error) {
     if (error.code === "ENOENT") {
@@ -88,13 +91,13 @@ async function isFile(path, allowNonexistent = false) {
     throw error;
   }
 }
-async function createOutputDirectory(path) {
+async function createOutputDirectory(path2) {
   try {
-    await mkdir(dirname(path), {
+    await mkdir(dirname(path2), {
       recursive: true
     });
   } catch (error) {
-    console.error(`Error: Failed to create the "output" (${path}) directory`, error.message);
+    console.error(`Error: Failed to create the "output" (${path2}) directory`, error.message);
     process.exit(1);
   }
 }
@@ -173,13 +176,15 @@ function precompile(source, filename = "<input>") {
 async function componentize(jsInput, output, opts = {}) {
   const {
     debug = false,
-    wasmEngine = fileURLToPath(new URL("./lib/fastedge-runtime.wasm", import.meta.url)),
+    wasmEngine = fileURLToPath2(new URL("./lib/fastedge-runtime.wasm", import.meta.url)),
     enableStdout = false,
     enablePBL = false,
     preBundleJSInput = true
   } = opts;
-  const jsPath = fileURLToPath(new URL(jsInput, import.meta.url));
-  const wasmOutputDir = fileURLToPath(new URL(output, import.meta.url));
+  const jsPath = fileURLToPath2(new URL(path.resolve(process.cwd(), jsInput), import.meta.url));
+  const wasmOutputDir = fileURLToPath2(
+    new URL(path.resolve(process.cwd(), output), import.meta.url)
+  );
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
   const application = precompile(injectJSBuiltins(contents));
@@ -219,7 +224,7 @@ async function componentize(jsInput, output, opts = {}) {
     process.exit(1);
   }
   const coreComponent = await readFile2(output);
-  const adapter = fileURLToPath(
+  const adapter = fileURLToPath2(
     new URL("./lib/wasi_snapshot_preview1.reactor.wasm", import.meta.url)
   );
   const generatedComponent = await componentNew(coreComponent, [
