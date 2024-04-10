@@ -18,11 +18,13 @@
     "type": "git",
     "url": "git+https://github.com/G-Core/FastEdge-sdk-js.git"
   },
+  "bin": {
+    "componentize-cli": "./componentize-cli.js"
+  },
   "files": [
     "types",
     "componentize.js",
     "componentize-cli.js",
-    "docs/",
     "lib/*.wasm",
     "lib/*.js",
     "README.md"
