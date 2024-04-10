@@ -1,4 +1,5 @@
-import { componentize } from './componentize';
+// eslint-disable-next-line import/extensions
+import { componentize } from './componentize.js';
 
 await componentize('./docs/examples/basic.js', './dist/basic.wasm');
 await componentize('./docs/examples/downstream-fetch.js', './dist/downstream-fetch.wasm');
