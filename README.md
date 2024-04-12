@@ -15,17 +15,14 @@ This is the Javascript SDK for building Javascript applications ready for deploy
   - [Getting Started](#getting-started)
   - [Installation](#installation)
     - [Basic Javascript Example](#basic-javascript-example)
-  - [How to compile](#how-to-compile)
-    - [componentize-cli](#componentize-cli)
-    - [componentize](#componentize)
-      - [Options](#options)
-  - [API Docs](#api-docs)
+  - [Home Page](#home-page)
 
 ## Getting Started
 
 Please read through the documentation provided by Gcore.
 
 - FastEdge: [Overview](https://gcore.com/fastedge)
+- User Guide: [Homepage](https://G-Core.github.io/FastEdge-sdk-js/)
 - Deploying an App:
   [Documentation](https://gcore.com/docs/fastedge/getting-started/create-fastedge-apps#stage-2-deploy-an-app)
 
@@ -52,62 +49,7 @@ addEventListener('fetch', (event) => {
 });
 ```
 
-## How to compile
+## Home Page
 
-There are two methods to build your own javascript into a runtime wasm.
-
-### componentize-cli
-
-This is a command-line tool that allows you to provide the input js file and the output wasm file.
-
-```sh
-npx componentize-cli dist/index.js dist/main.wasm
-
-```
-
-This would take your `index.js` entrypoint file and compile it into a runtime `wasm` ready for
-loading on FastEdge Compute.
-
-Under the hood it uses [esbuild](https://esbuild.github.io/) to compile your `index.js` file before
-compiling it into a binary.wasm. This allows you to include multiple files into the /dist folder and
-import them as ES modules, `componentize-cli` will bundle them on your behalf.
-
-### componentize
-
-This is a JS function provided by the NPM package allowing you to build your runtime.wasm within the
-context of a Javascript config file / project.
-
-```js
-import { componentize } from "@gcoredev/fastedge-sdk-js"
-
-await componentize("./dist/index.js", "./dist/main.wasm", {
-  debug = false,
-  preBundleJSInput = true,
-});
-```
-
-If you want to include an already bundled entrypoint `index.js` this is the preferred method. For
-instance if you want to bundle using Webpack.
-
-You can then bundle your code into a single file and use this config.js with the
-`preBundleJSInput = false`.
-
-This will then just compile your provided code into `wasm` without trying to interpret it.
-
-#### Options
-
-- debug?: boolean
-
-  - defaults to false
-  - Enables a certain amount of logging during development
-
-- preBundleJSInput?: boolean
-  - defaults to true
-  - During the build process we bundle your `index.js` file using esbuild. If you want to provide a
-    pre-compiled js file from a different bundler, set this to false.
-
-## API Docs
-
-🚧 Under Construction: Api docs online coming soon as well as Typescript typings.
-
-For now there is some basic descriptions and examples in [api-basics](./docs/api-basics.md)
+For more information on how this works please visit our user guide and
+[homepage](https://G-Core.github.io/FastEdge-sdk-js/)
