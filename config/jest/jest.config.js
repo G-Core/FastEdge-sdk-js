@@ -5,7 +5,7 @@ export default {
   },
   rootDir: process.cwd(),
   testEnvironment: 'node',
-  testPathIgnorePatterns: ['node_modules', 'dist', 'fastedge-runtime/spidermonkey/'],
+  testPathIgnorePatterns: ['node_modules', 'dist', 'docs', 'fastedge-runtime/spidermonkey/'],
   testTimeout: 7000,
   // transform: {},
   transform: {

@@ -2,9 +2,11 @@ name: Deploy Docs to Github Pages
 
 on:
   push:
-    branches: ['basic-js-functionality']
+    branches: ['main']
+    paths:
+      - 'docs/**'
 
-  workflow_dispatch:
+  workflow_dispatch: # trigger manually
 
 permissions:
   contents: read
