@@ -17,7 +17,7 @@ The preferred method to install and compile with FastEdge-sdk-js is to install i
 your javascript project.
 
 ```sh
-node install --save-dev @gcoredev/fastedge-sdk-js
+npm install --save-dev @gcoredev/fastedge-sdk-js
 ```
 
 This will install both the javascript module `componentize` as well as a command line option.
