@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, stat } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function containsSyntaxErrors(jsInput) {
   const nodeProcess = spawnSync(`"${process.execPath}"`, ['--check', jsInput], {
@@ -44,7 +45,20 @@ async function createOutputDirectory(path) {
   }
 }
 
-async function validateFilePaths(input, output, wasmEngine = './lib/fastedge-runtime.wasm') {
+const npxPackagePath = (filePath) => {
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  try {
+    return resolve(__dirname, filePath);
+  } catch {
+    return null;
+  }
+};
+
+async function validateFilePaths(
+  input,
+  output,
+  wasmEngine = npxPackagePath('./lib/fastedge-runtime.wasm'),
+) {
   if (!(await isFile(input))) {
     // eslint-disable-next-line no-console
     console.error(`Error: Input "${input}" is not a file`);
@@ -76,4 +90,4 @@ async function validateFilePaths(input, output, wasmEngine = './lib/fastedge-run
   }
 }
 
-export { containsSyntaxErrors, validateFilePaths };
+export { containsSyntaxErrors, npxPackagePath, validateFilePaths };

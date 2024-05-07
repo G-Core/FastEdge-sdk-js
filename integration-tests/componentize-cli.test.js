@@ -53,18 +53,6 @@ describe('componentize-cli', () => {
       expect(stderr[0]).toContain('Error: Input "input.js" is not a file');
       await cleanup();
     });
-    it('should error if fastedge-runtime.wasm does not exist', async () => {
-      expect.assertions(2);
-      const { execute, cleanup, writeFile } = await prepareEnvironment();
-      await writeFile('input.js', 'function() { console.log("Hello World"); }');
-      const { code, stderr, stdout } = await execute(
-        'node',
-        './componentize-cli.js input.js dist/output.wasm',
-      );
-      expect(code).toBe(1);
-      expect(stderr[0]).toContain('Error: "./lib/fastedge-runtime.wasm" is not a file');
-      await cleanup();
-    });
     it('should create the output path in the directory structure', async () => {
       expect.assertions(2);
       const { execute, cleanup, writeFile, ls } = await prepareEnvironment();

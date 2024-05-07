@@ -2,7 +2,7 @@
 import { spawnSync as spawnSync2 } from "node:child_process";
 import { readFile as readFile2, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
+import { fileURLToPath as fileURLToPath3 } from "node:url";
 import { componentNew } from "@bytecodealliance/jco";
 import wizer from "@bytecodealliance/wizer";
 
@@ -63,7 +63,8 @@ var injectJSBuiltins = (contents) => {
 // src/input-verification.js
 import { spawnSync } from "node:child_process";
 import { mkdir, stat } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 function containsSyntaxErrors(jsInput) {
   const nodeProcess = spawnSync(`"${process.execPath}"`, ["--check", jsInput], {
     stdio: [null, null, null],
@@ -101,7 +102,15 @@ async function createOutputDirectory(path2) {
     process.exit(1);
   }
 }
-async function validateFilePaths(input, output, wasmEngine = "./lib/fastedge-runtime.wasm") {
+var npxPackagePath = (filePath) => {
+  const __dirname = dirname(fileURLToPath2(import.meta.url));
+  try {
+    return resolve(__dirname, filePath);
+  } catch {
+    return null;
+  }
+};
+async function validateFilePaths(input, output, wasmEngine = npxPackagePath("./lib/fastedge-runtime.wasm")) {
   if (!await isFile(input)) {
     console.error(`Error: Input "${input}" is not a file`);
     process.exit(1);
@@ -176,13 +185,13 @@ function precompile(source, filename = "<input>") {
 async function componentize(jsInput, output, opts = {}) {
   const {
     debug = false,
-    wasmEngine = fileURLToPath2(new URL("./lib/fastedge-runtime.wasm", import.meta.url)),
+    wasmEngine = await npxPackagePath("./lib/fastedge-runtime.wasm"),
     enableStdout = false,
     enablePBL = false,
     preBundleJSInput = true
   } = opts;
-  const jsPath = fileURLToPath2(new URL(path.resolve(process.cwd(), jsInput), import.meta.url));
-  const wasmOutputDir = fileURLToPath2(
+  const jsPath = fileURLToPath3(new URL(path.resolve(process.cwd(), jsInput), import.meta.url));
+  const wasmOutputDir = fileURLToPath3(
     new URL(path.resolve(process.cwd(), output), import.meta.url)
   );
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
@@ -224,7 +233,7 @@ async function componentize(jsInput, output, opts = {}) {
     process.exit(1);
   }
   const coreComponent = await readFile2(output);
-  const adapter = fileURLToPath2(
+  const adapter = fileURLToPath3(
     new URL("./lib/wasi_snapshot_preview1.reactor.wasm", import.meta.url)
   );
   const generatedComponent = await componentNew(coreComponent, [

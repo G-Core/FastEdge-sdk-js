@@ -8,23 +8,23 @@ import wizer from '@bytecodealliance/wizer';
 
 import { getJsInputContents } from '~src/get-js-input';
 import { injectJSBuiltins } from '~src/inject-js-builtins';
-import { validateFilePaths } from '~src/input-verification';
+import { npxPackagePath, validateFilePaths } from '~src/input-verification';
 import { precompile } from '~src/precompile';
 
 async function componentize(jsInput, output, opts = {}) {
   const {
     debug = false,
-    wasmEngine = fileURLToPath(new URL('./lib/fastedge-runtime.wasm', import.meta.url)),
+    wasmEngine = await npxPackagePath('./lib/fastedge-runtime.wasm'),
     enableStdout = false,
     enablePBL = false,
     preBundleJSInput = true,
   } = opts;
 
   const jsPath = fileURLToPath(new URL(path.resolve(process.cwd(), jsInput), import.meta.url));
+
   const wasmOutputDir = fileURLToPath(
     new URL(path.resolve(process.cwd(), output), import.meta.url),
   );
-
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
 
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
