@@ -7,7 +7,7 @@ import { componentNew } from '@bytecodealliance/jco';
 import { componentize } from '~src/componentize';
 import { getJsInputContents } from '~src/get-js-input';
 import { injectJSBuiltins } from '~src/inject-js-builtins';
-import { validateFilePaths } from '~src/input-verification';
+import { npxPackagePath, validateFilePaths } from '~src/input-verification';
 import { precompile } from '~src/precompile';
 
 jest.mock('node:child_process', () => ({
@@ -24,14 +24,16 @@ jest.mock('~src/get-js-input', () => ({
 jest.mock('node:url', () => ({
   fileURLToPath: jest
     .fn()
-    .mockReturnValueOnce('./lib/fastedge-runtime.wasm')
     .mockReturnValueOnce('input.js')
     .mockReturnValueOnce('output.wasm')
     .mockReturnValue('./lib/wasi_snapshot_preview1.reactor.wasm'),
 }));
 
 // This is just mocked here.. Integration tests from componentize-cli will test this in detail
-jest.mock('~src/input-verification');
+jest.mock('~src/input-verification', () => ({
+  npxPackagePath: jest.fn().mockReturnValue('./lib/fastedge-runtime.wasm'),
+  validateFilePaths: jest.fn().mockResolvedValue(),
+}));
 
 jest.mock('~src/precompile', () => ({
   precompile: jest.fn().mockReturnValue('{_precompiled_application_}'),
@@ -59,9 +61,7 @@ describe('componentize', () => {
     expect.assertions(10);
     await componentize('input.js', 'output.wasm');
 
-    validateFilePaths.mockResolvedValueOnce();
-
-    expect(fileURLToPath).toHaveBeenCalledTimes(4);
+    expect(fileURLToPath).toHaveBeenCalledTimes(3);
     expect(validateFilePaths).toHaveBeenCalledWith(
       'input.js',
       'output.wasm',
@@ -108,7 +108,6 @@ describe('componentize', () => {
     expect.assertions(2);
     const mockProcessExit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
     await componentize('input.js', 'output.wasm');
-    validateFilePaths.mockResolvedValueOnce();
 
     expect(spawnSync).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything());
     expect(mockProcessExit).toHaveBeenCalledWith(1);
