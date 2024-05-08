@@ -8,15 +8,6 @@
 
 This is the Javascript SDK for building Javascript applications ready for deploying on FastEdge.
 
-## Table of Contents
-
-- [FastEdge JS SDK](#fastedge-js-sdk)
-  - [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-  - [Installation](#installation)
-    - [Basic Javascript Example](#basic-javascript-example)
-  - [Home Page](#home-page)
-
 ## Getting Started
 
 Please read through the documentation provided by Gcore.
