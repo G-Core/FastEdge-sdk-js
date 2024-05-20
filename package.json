@@ -36,6 +36,10 @@
     "build:runtime": "make -j8 -C fastedge-runtime/cbindings && cp fastedge-runtime/cbindings/*.wasm ./lib",
     "build:wasm": "node build-examples-config.js",
     "build": "npm-run-all -p build:runtime build:js -s build:wasm",
+    "build:monkey": "./runtime/fastedge/build.sh --debug",
+    "build:monkey:release": "./runtime/fastedge/build.sh",
+    "create:monkey": "node ./componentize-cli.js ./dist/test.js ./dist/test.wasm",
+    "start:monkey": "MY_ENV_VAR=hekki wasmtime serve -S common ./dist/test.wasm",
     "generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen",
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
     "semantic-release": "semantic-release",
@@ -67,7 +71,7 @@
     "typescript": "^5.0"
   },
   "dependencies": {
-    "@bytecodealliance/jco": "^0.10.0",
+    "@bytecodealliance/jco": "^1.2.4",
     "@bytecodealliance/wizer": "^3.0.1",
     "acorn": "^8.8.2",
     "acorn-walk": "^8.2.0",

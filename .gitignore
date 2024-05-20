@@ -15,12 +15,7 @@ integration-tests/test-files/output.wasm
 # *.d
 /rusturl/
 # compiler_flags
-/fastedge-runtime/cbindings/fastedge-runtime.wasm
-/fastedge-runtime/cbindings/build
-/tests/wpt-harness/wpt-test-runner.js
-wpt-runtime.wasm
-docs-app/bin/main.wasm
-docs-app/pkg/*.tar.gz
 
+/runtime/fastedge/build-*
 *.a
 yarn-error.log

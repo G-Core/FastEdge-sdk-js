@@ -1,7 +1,0 @@
-# clangd state
-/compile_commands.json
-/.cache
-
-!/wit-interface/reactor.o
-/fastedge-runtime.wasm*
-/build

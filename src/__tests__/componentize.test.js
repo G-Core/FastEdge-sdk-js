@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 
 import { componentNew } from '@bytecodealliance/jco';
 
+import { addWasmMetadata } from '~src/add-wasm-metadata';
 import { componentize } from '~src/componentize';
 import { getJsInputContents } from '~src/get-js-input';
-import { injectJSBuiltins } from '~src/inject-js-builtins';
 import { npxPackagePath, validateFilePaths } from '~src/input-verification';
 import { precompile } from '~src/precompile';
 
@@ -16,6 +16,7 @@ jest.mock('node:child_process', () => ({
 jest.mock('node:fs/promises', () => ({
   readFile: jest.fn().mockReturnValueOnce('generated_binary').mockReturnValueOnce('preview_wasm'),
   writeFile: jest.fn(),
+  unlink: jest.fn(),
 }));
 jest.mock('~src/get-js-input', () => ({
   getJsInputContents: jest.fn().mockReturnValue('{_user_provided_js_content_}'),
@@ -38,8 +39,9 @@ jest.mock('~src/input-verification', () => ({
 jest.mock('~src/precompile', () => ({
   precompile: jest.fn().mockReturnValue('{_precompiled_application_}'),
 }));
-jest.mock('~src/inject-js-builtins', () => ({
-  injectJSBuiltins: jest.fn().mockReturnValue('{_js_builtins_}'),
+
+jest.mock('~src/add-wasm-metadata', () => ({
+  addWasmMetadata: jest.fn(),
 }));
 
 jest.mock('@bytecodealliance/wizer', () => 'wizer');
@@ -58,7 +60,7 @@ describe('componentize', () => {
   });
 
   it('should handle componentization process correctly', async () => {
-    expect.assertions(10);
+    expect.assertions(9);
     await componentize('input.js', 'output.wasm');
 
     expect(fileURLToPath).toHaveBeenCalledTimes(3);
@@ -69,22 +71,21 @@ describe('componentize', () => {
     );
 
     expect(getJsInputContents).toHaveBeenCalledWith('input.js', true);
-    expect(injectJSBuiltins).toHaveBeenCalledWith('{_user_provided_js_content_}');
-    expect(precompile).toHaveBeenCalledWith('{_js_builtins_}');
+    expect(precompile).toHaveBeenCalledWith('{_user_provided_js_content_}');
     expect(spawnSync).toHaveBeenCalledWith(
       'wizer',
       [
-        '--inherit-env=true',
         '--allow-wasi',
-        '--dir=.',
         '--wasm-bulk-memory=true',
+        '--inherit-env=true',
+        '--dir=/',
         '-r _start=wizer.resume',
         '-o=output.wasm',
         './lib/fastedge-runtime.wasm',
       ],
       {
         stdio: [null, process.stdout, process.stderr],
-        input: '{_precompiled_application_}',
+        input: '/tmp/temp.bundle.js',
         shell: true,
         encoding: 'utf-8',
         env: {

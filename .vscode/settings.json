@@ -82,5 +82,6 @@
     "typeinfo": "cpp",
     "valarray": "cpp",
     "variant": "cpp"
-  }
+  },
+  "turboConsoleLog.logMessagePrefix": "Farq"
 }

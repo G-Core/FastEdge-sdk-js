@@ -1,13 +1,14 @@
 import { spawnSync } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
+import { readFile, unlink, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { componentNew } from '@bytecodealliance/jco';
 import wizer from '@bytecodealliance/wizer';
 
+import { addWasmMetadata } from '~src/add-wasm-metadata';
 import { getJsInputContents } from '~src/get-js-input';
-import { injectJSBuiltins } from '~src/inject-js-builtins';
 import { npxPackagePath, validateFilePaths } from '~src/input-verification';
 import { precompile } from '~src/precompile';
 
@@ -20,32 +21,34 @@ async function componentize(jsInput, output, opts = {}) {
     preBundleJSInput = true,
   } = opts;
 
-  const jsPath = fileURLToPath(new URL(path.resolve(process.cwd(), jsInput), import.meta.url));
+  const jsPath = fileURLToPath(new URL(resolve(process.cwd(), jsInput), import.meta.url));
 
-  const wasmOutputDir = fileURLToPath(
-    new URL(path.resolve(process.cwd(), output), import.meta.url),
-  );
+  const wasmOutputDir = fileURLToPath(new URL(resolve(process.cwd(), output), import.meta.url));
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
 
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
 
-  const application = precompile(injectJSBuiltins(contents));
+  const application = precompile(contents);
+
+  // Create a temporary file
+  const tempFile = resolve(os.tmpdir(), 'temp.bundle.js');
+  await writeFile(tempFile, application);
 
   try {
     const wizerProcess = spawnSync(
       wizer,
       [
-        '--inherit-env=true',
         '--allow-wasi',
-        `--dir=.`,
         `--wasm-bulk-memory=true`,
+        '--inherit-env=true',
+        `--dir=${resolve('/')}`,
         '-r _start=wizer.resume',
-        `-o=${output}`,
+        `-o=${wasmOutputDir}`,
         wasmEngine,
       ],
       {
         stdio: [null, process.stdout, process.stderr],
-        input: application,
+        input: resolve(tempFile),
         shell: true,
         encoding: 'utf-8',
         env: {
@@ -68,16 +71,18 @@ async function componentize(jsInput, output, opts = {}) {
     }
     process.exit(1);
   }
+  // Delete the temporary file
+  await unlink(tempFile);
+
   const coreComponent = await readFile(output);
-  const adapter = fileURLToPath(
-    new URL('./lib/wasi_snapshot_preview1.reactor.wasm', import.meta.url),
-  );
+  const adapter = fileURLToPath(new URL('./lib/preview1-adapter.wasm', import.meta.url));
 
   const generatedComponent = await componentNew(coreComponent, [
     ['wasi_snapshot_preview1', await readFile(adapter)],
   ]);
 
   await writeFile(output, generatedComponent);
+  await addWasmMetadata(output);
 }
 
 export { componentize };
