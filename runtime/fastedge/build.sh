@@ -20,10 +20,6 @@ BUILD_PATH=build-${BUILD_TYPE,,}
 # Configure the build environment using cmake
 # HOST_API=$(realpath host-api) cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
 cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-
-# cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
-# cmake --build build-debug --parallel 16
-
 # Build the StarlingMonkey runtime
 cmake --build $BUILD_PATH --parallel 16
 # Copy the built WebAssembly module to the parent directory
