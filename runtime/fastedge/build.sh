@@ -20,8 +20,11 @@ BUILD_PATH=build-${BUILD_TYPE,,}
 # Configure the build environment using cmake
 # HOST_API=$(realpath host-api) cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
 cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+# cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_BUILTIN_WEB_FETCH=0 -DENABLE_BUILTIN_WEB_FETCH_FETCH_EVENT=0
+# cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_BUILTIN_WEB_FETCH=0
 # Build the StarlingMonkey runtime
-cmake --build $BUILD_PATH --parallel 16
+# cmake --build $BUILD_PATH --parallel 16
+cmake --build $BUILD_PATH --parallel 8
 # Copy the built WebAssembly module to the parent directory
 mv $BUILD_PATH/starling.wasm/starling.wasm ../../lib/fastedge-runtime.wasm
 mv $BUILD_PATH/starling.wasm/preview1-adapter.wasm ../../lib/preview1-adapter.wasm
