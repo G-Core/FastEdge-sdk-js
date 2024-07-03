@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Called by "git merge" - THIS IS NOT YET SUPPORTED BY HUSKY - ONLY GIT HOOKS
+#
+# If this script exits with a non-zero status nothing will be merged.
+#
+# The commands below will not be allowed...
+# `git merge` whilst on a protected branch
+
+
+protected_branches='^(main|next|next-major|beta|alpha)$'  # Add the names of the branches you want to protect here
+
+policy="[Policy] (Prevented with pre-merge hook.) 🚫\n Never merge code directly to the protected branches!"
+
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+
+do_exit(){
+  echo -e $policy
+  exit 1
+}
+
+echo "current_branch: $current_branch"
+# Prevent ALL merges to protected_branches
+if [[ $current_branch =~ $protected_branches ]]; then
+  do_exit
+fi
+
+unset do_exit
+
+exit 0
