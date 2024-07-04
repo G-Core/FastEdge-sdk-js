@@ -7,7 +7,7 @@ await build({
   entryPoints: ["./src/componentize.js", "./src/componentize-cli.js"],
   bundle: true,
   outdir: "./",
-  platform: "node",
+  platform: "node", // todo: remove this - should be building for browser - i.e. Service Worker
   format: "esm",
   external: [
     "@bytecodealliance/wizer",
