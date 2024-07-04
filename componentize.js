@@ -1,8 +1,9 @@
 // src/componentize.js
 import { spawnSync as spawnSync2 } from "node:child_process";
-import { readFile as readFile3, unlink, writeFile as writeFile2 } from "node:fs/promises";
-import os from "node:os";
-import { resolve as resolve2 } from "node:path";
+import { readFile as readFile3, mkdtemp, writeFile as writeFile2 } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { rmSync } from "node:fs";
+import { dirname as dirname3, resolve as resolve2, sep, normalize } from "node:path";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 import { componentNew } from "@bytecodealliance/jco";
 import wizer from "@bytecodealliance/wizer";
@@ -40,6 +41,9 @@ var fastedgePackagePlugin = {
       switch (args.path) {
         case "getenv": {
           return { contents: `export const getEnv = globalThis.fastedge.getEnv;` };
+        }
+        case "includebytes": {
+          return { contents: `export const includeBytes = globalThis.fastedge.includeBytes;` };
         }
         default: {
           return { contents: "" };
@@ -189,6 +193,9 @@ function precompile(source, filename = "<input>") {
 }
 
 // src/componentize.js
+async function getTmpDir() {
+  return await mkdtemp(normalize(tmpdir() + sep));
+}
 async function componentize(jsInput, output, opts = {}) {
   const {
     debug = false,
@@ -198,12 +205,20 @@ async function componentize(jsInput, output, opts = {}) {
     preBundleJSInput = true
   } = opts;
   const jsPath = fileURLToPath3(new URL(resolve2(process.cwd(), jsInput), import.meta.url));
+  console.log("Farq: componentize -> jsPath", jsPath);
   const wasmOutputDir = fileURLToPath3(new URL(resolve2(process.cwd(), output), import.meta.url));
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
   const application = precompile(contents);
-  const tempFile = resolve2(os.tmpdir(), "temp.bundle.js");
-  await writeFile2(tempFile, application);
+  let cleanup = () => {
+  };
+  const tmpDir = await getTmpDir();
+  const outPath = resolve2(tmpDir, "input.js");
+  await writeFile2(outPath, application);
+  const wizerInput = outPath;
+  cleanup = () => {
+    rmSync(tmpDir, { recursive: true });
+  };
   try {
     const wizerProcess = spawnSync2(
       wizer,
@@ -211,14 +226,16 @@ async function componentize(jsInput, output, opts = {}) {
         "--allow-wasi",
         `--wasm-bulk-memory=true`,
         "--inherit-env=true",
-        `--dir=${resolve2("/")}`,
+        // `--dir=${resolve('/')}`,
+        "--dir=.",
+        `--dir=${dirname3(wizerInput)}`,
         "-r _start=wizer.resume",
         `-o=${wasmOutputDir}`,
         wasmEngine
       ],
       {
         stdio: [null, process.stdout, process.stderr],
-        input: resolve2(tempFile),
+        input: wizerInput,
         shell: true,
         encoding: "utf-8",
         env: {
@@ -238,8 +255,9 @@ async function componentize(jsInput, output, opts = {}) {
       console.error("Error: Failed to compile JavaScript to Wasm:", error.message);
     }
     process.exit(1);
+  } finally {
+    cleanup();
   }
-  await unlink(tempFile);
   const coreComponent = await readFile3(output);
   const adapter = fileURLToPath3(new URL("./lib/preview1-adapter.wasm", import.meta.url));
   const generatedComponent = await componentNew(coreComponent, [

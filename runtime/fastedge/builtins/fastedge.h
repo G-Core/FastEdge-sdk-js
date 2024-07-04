@@ -28,8 +28,9 @@ public:
   // static bool enableDebugLogging(JSContext *cx, unsigned argc, JS::Value *vp);
   // static bool getLogger(JSContext *cx, unsigned argc, JS::Value *vp);
 
-  // static bool getEnv(JSContext *cx, unsigned argc, JS::Value *vp);
-  // static bool env_get(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool includeBytes(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool getEnv(JSContext *cx, unsigned argc, JS::Value *vp);
+
 };
 
 JS::Result<std::tuple<JS::UniqueChars, size_t>> convertBodyInit(JSContext *cx,

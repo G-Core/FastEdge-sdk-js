@@ -1,7 +1,8 @@
 import { spawnSync } from 'node:child_process';
-import { readFile, unlink, writeFile } from 'node:fs/promises';
-import os from 'node:os';
-import { resolve } from 'node:path';
+import { readFile, mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
+import { dirname, resolve, sep, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { componentNew } from '@bytecodealliance/jco';
@@ -11,6 +12,10 @@ import { addWasmMetadata } from '~src/add-wasm-metadata';
 import { getJsInputContents } from '~src/get-js-input';
 import { npxPackagePath, validateFilePaths } from '~src/input-verification';
 import { precompile } from '~src/precompile';
+
+async function getTmpDir() {
+  return await mkdtemp(normalize(tmpdir() + sep));
+}
 
 async function componentize(jsInput, output, opts = {}) {
   const {
@@ -22,6 +27,7 @@ async function componentize(jsInput, output, opts = {}) {
   } = opts;
 
   const jsPath = fileURLToPath(new URL(resolve(process.cwd(), jsInput), import.meta.url));
+  console.log('Farq: componentize -> jsPath', jsPath);
 
   const wasmOutputDir = fileURLToPath(new URL(resolve(process.cwd(), output), import.meta.url));
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
@@ -30,9 +36,18 @@ async function componentize(jsInput, output, opts = {}) {
 
   const application = precompile(contents);
 
+  let cleanup = () => {};
+
   // Create a temporary file
-  const tempFile = resolve(os.tmpdir(), 'temp.bundle.js');
-  await writeFile(tempFile, application);
+  // const tempFile = resolve(os.tmpdir(), 'temp.bundle.js');
+  // await writeFile(tempFile, application);
+  const tmpDir = await getTmpDir();
+  const outPath = resolve(tmpDir, 'input.js');
+  await writeFile(outPath, application);
+  const wizerInput = outPath;
+  cleanup = () => {
+    rmSync(tmpDir, { recursive: true });
+  };
 
   try {
     const wizerProcess = spawnSync(
@@ -41,14 +56,16 @@ async function componentize(jsInput, output, opts = {}) {
         '--allow-wasi',
         `--wasm-bulk-memory=true`,
         '--inherit-env=true',
-        `--dir=${resolve('/')}`,
+        // `--dir=${resolve('/')}`,
+        '--dir=.',
+        `--dir=${dirname(wizerInput)}`,
         '-r _start=wizer.resume',
         `-o=${wasmOutputDir}`,
         wasmEngine,
       ],
       {
         stdio: [null, process.stdout, process.stderr],
-        input: resolve(tempFile),
+        input: wizerInput,
         shell: true,
         encoding: 'utf-8',
         env: {
@@ -70,9 +87,12 @@ async function componentize(jsInput, output, opts = {}) {
       console.error('Error: Failed to compile JavaScript to Wasm:', error.message);
     }
     process.exit(1);
+  } finally {
+    cleanup();
   }
-  // Delete the temporary file
-  await unlink(tempFile);
+
+  // // Delete the temporary file
+  // await unlink(tempFile);
 
   const coreComponent = await readFile(output);
   const adapter = fileURLToPath(new URL('./lib/preview1-adapter.wasm', import.meta.url));

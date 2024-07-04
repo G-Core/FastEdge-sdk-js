@@ -12,6 +12,9 @@ const fastedgePackagePlugin = {
         case 'getenv': {
           return { contents: `export const getEnv = globalThis.fastedge.getEnv;` };
         }
+        case 'includebytes': {
+          return { contents: `export const includeBytes = globalThis.fastedge.includeBytes;` };
+        }
         default: {
           return { contents: '' };
         }
