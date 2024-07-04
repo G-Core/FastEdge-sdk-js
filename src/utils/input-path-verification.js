@@ -1,7 +1,8 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, stat } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+
+import { npxPackagePath } from 'src/utils/file-system';
 
 function containsSyntaxErrors(jsInput) {
   const nodeProcess = spawnSync(`"${process.execPath}"`, ['--check', jsInput], {
@@ -45,15 +46,6 @@ async function createOutputDirectory(path) {
   }
 }
 
-const npxPackagePath = (filePath) => {
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  try {
-    return resolve(__dirname, filePath);
-  } catch {
-    return null;
-  }
-};
-
 async function validateFilePaths(
   input,
   output,
@@ -90,4 +82,4 @@ async function validateFilePaths(
   }
 }
 
-export { containsSyntaxErrors, npxPackagePath, validateFilePaths };
+export { containsSyntaxErrors, validateFilePaths };

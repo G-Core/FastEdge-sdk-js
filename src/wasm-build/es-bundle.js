@@ -23,7 +23,7 @@ const fastedgePackagePlugin = {
   },
 };
 
-async function preBundle(input) {
+async function esBundle(input) {
   const contents = await build({
     entryPoints: [input],
     bundle: true,
@@ -34,4 +34,4 @@ async function preBundle(input) {
   return contents.outputFiles[0].text;
 }
 
-export { preBundle };
+export { esBundle };

@@ -1,10 +1,10 @@
 import { readFile } from 'node:fs/promises';
 
-import { preBundle } from '~src/pre-bundle';
+import { esBundle } from './es-bundle';
 
 async function getJsInputContents(jsInput, preBundleJSInput) {
   if (preBundleJSInput) {
-    return preBundle(jsInput);
+    return esBundle(jsInput);
   }
   return readFile(jsInput, 'utf8');
 }

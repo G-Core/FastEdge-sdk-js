@@ -28,10 +28,9 @@ module.exports = {
     'dist/**',
     'types/**',
     'integration-tests/test-files/**',
+    'bin/**',
     'lib/**',
     '**/runtime/StarlingMonkey/**',
-    '/componentize.js',
-    '/componentize-cli.js',
   ],
   plugins: [
     ...ban.plugins,

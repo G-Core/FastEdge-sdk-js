@@ -1,13 +1,11 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { metadataAdd } from '@bytecodealliance/jco';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { npxPackagePath } from 'src/utils/file-system';
 
 export async function addWasmMetadata(wasmPath) {
-  const packageJson = await readFile(join(__dirname, './package.json'), {
+  const packageJson = await readFile(npxPackagePath('./package.json'), {
     encoding: 'utf-8',
   });
   const { name, version } = JSON.parse(packageJson);

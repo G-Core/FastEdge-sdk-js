@@ -1,21 +1,18 @@
 import { spawnSync } from 'node:child_process';
-import { readFile, mkdtemp, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
 import { rmSync } from 'node:fs';
-import { dirname, resolve, sep, normalize } from 'node:path';
+import { readFile, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { componentNew } from '@bytecodealliance/jco';
 import wizer from '@bytecodealliance/wizer';
 
-import { addWasmMetadata } from '~src/add-wasm-metadata';
-import { getJsInputContents } from '~src/get-js-input';
-import { npxPackagePath, validateFilePaths } from '~src/input-verification';
-import { precompile } from '~src/precompile';
+import { getTmpDir, npxPackagePath, resolveTmpDir } from 'src/utils/file-system';
+import { validateFilePaths } from 'src/utils/input-path-verification';
 
-async function getTmpDir() {
-  return await mkdtemp(normalize(tmpdir() + sep));
-}
+import { addWasmMetadata } from './add-wasm-metadata';
+import { getJsInputContents } from './get-js-input';
+import { precompile } from './precompile';
 
 async function componentize(jsInput, output, opts = {}) {
   const {
@@ -27,25 +24,21 @@ async function componentize(jsInput, output, opts = {}) {
   } = opts;
 
   const jsPath = fileURLToPath(new URL(resolve(process.cwd(), jsInput), import.meta.url));
-  console.log('Farq: componentize -> jsPath', jsPath);
 
   const wasmOutputDir = fileURLToPath(new URL(resolve(process.cwd(), output), import.meta.url));
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
 
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
 
+  //  todo: farq: Can I remove this step?? regex collection?
   const application = precompile(contents);
 
-  let cleanup = () => {};
-
   // Create a temporary file
-  // const tempFile = resolve(os.tmpdir(), 'temp.bundle.js');
-  // await writeFile(tempFile, application);
   const tmpDir = await getTmpDir();
-  const outPath = resolve(tmpDir, 'input.js');
+  const outPath = resolveTmpDir(tmpDir);
   await writeFile(outPath, application);
   const wizerInput = outPath;
-  cleanup = () => {
+  const cleanup = () => {
     rmSync(tmpDir, { recursive: true });
   };
 
@@ -56,7 +49,6 @@ async function componentize(jsInput, output, opts = {}) {
         '--allow-wasi',
         `--wasm-bulk-memory=true`,
         '--inherit-env=true',
-        // `--dir=${resolve('/')}`,
         '--dir=.',
         `--dir=${dirname(wizerInput)}`,
         '-r _start=wizer.resume',
@@ -90,9 +82,6 @@ async function componentize(jsInput, output, opts = {}) {
   } finally {
     cleanup();
   }
-
-  // // Delete the temporary file
-  // await unlink(tempFile);
 
   const coreComponent = await readFile(output);
   const adapter = fileURLToPath(new URL('./lib/preview1-adapter.wasm', import.meta.url));

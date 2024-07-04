@@ -19,10 +19,12 @@
     "url": "git+https://github.com/G-Core/FastEdge-sdk-js.git"
   },
   "bin": {
+    "fastedge-build": "./bin/fastedge-build.js",
     "componentize-cli": "./componentize-cli.js"
   },
   "files": [
     "types",
+    "bin/fastedge-build.js",
     "componentize.js",
     "componentize-cli.js",
     "lib/*.wasm",
@@ -30,7 +32,7 @@
     "README.md"
   ],
   "scripts": {
-    "build:componentize": "node esbuild/componentize.js ",
+    "build:componentize": "node esbuild/cli-binaries.js ",
     "build:debug": "DEBUG=true make -j8 -C execution_env/fastedge-runtime && cp execution_env/fastedge-runtime/*.wasm .",
     "build:js": "node esbuild/js-builtins.js",
     "build:runtime": "make -j8 -C fastedge-runtime/cbindings && cp fastedge-runtime/cbindings/*.wasm ./lib",

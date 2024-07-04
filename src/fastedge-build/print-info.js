@@ -11,7 +11,7 @@ Options:
 async function printVersion() {
   const { version } = JSON.parse(readFileSync('./package.json', 'utf8'));
   // eslint-disable-next-line no-console
-  console.log(`FastEdge/js-sdk: ${version}`);
+  console.log(`@gcoredev/fastedge-sdk-js: ${version}`);
 }
 
 function printHelp() {

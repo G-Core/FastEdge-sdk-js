@@ -20,9 +20,9 @@ describe('Confirm it creates an output file', () => {
     const outputExists = existsSync(OUTPUT_PATH);
     expect(outputExists).toBeFalsy();
   });
-  it('should confirm that output.wasm does gets created', async () => {
+  it('should confirm that output.wasm gets created', async () => {
     expect.assertions(1);
-    spawnSync('node', ['./componentize-cli.js', INPUT_PATH, OUTPUT_PATH], {
+    spawnSync('node', ['./fastedge-build.js', INPUT_PATH, OUTPUT_PATH], {
       env: { ...process.env, NODE_ENV: 'production' },
     });
     const outputExists = existsSync(OUTPUT_PATH);

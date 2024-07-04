@@ -1,6 +1,7 @@
-import { componentize } from '~src/componentize';
-import { validateFilePaths } from '~src/input-verification';
-import { printHelp, printVersion } from '~src/print-info';
+import { validateFilePaths } from 'src/utils/input-path-verification';
+import { componentize } from 'src/wasm-build/componentize';
+
+import { printHelp, printVersion } from './print-info';
 
 const args = process.argv.slice(2);
 const flags = [];

@@ -1,6 +1,7 @@
 /*
   This source code is licensed under the Apache License 2.0.
-  It comes from here: https://github.com/fastly/js-compute-runtime/blob/main/src/precompile.js
+  It comes from here: https://github.com/fastly/js-compute-runtime
+  There are no modifications made to this source code.
 */
 
 import { parse } from 'acorn';

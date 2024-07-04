@@ -1,15 +1,21 @@
 import { spawnSync } from 'node:child_process';
+import { rmSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { componentNew } from '@bytecodealliance/jco';
 
-import { addWasmMetadata } from '~src/add-wasm-metadata';
-import { componentize } from '~src/componentize';
-import { getJsInputContents } from '~src/get-js-input';
-import { npxPackagePath, validateFilePaths } from '~src/input-verification';
-import { precompile } from '~src/precompile';
+import { validateFilePaths } from 'src/utils/input-path-verification';
 
+import { addWasmMetadata } from './add-wasm-metadata';
+import { componentize } from './componentize';
+import { getJsInputContents } from './get-js-input';
+import { precompile } from './precompile';
+
+jest.mock('src/utils/file-system');
+jest.mock('node:fs', () => ({
+  rmSync: jest.fn(),
+}));
 jest.mock('node:child_process', () => ({
   spawnSync: jest.fn().mockReturnValueOnce({ status: 0 }).mockReturnValue({ status: 1 }),
 }));
@@ -18,7 +24,7 @@ jest.mock('node:fs/promises', () => ({
   writeFile: jest.fn(),
   unlink: jest.fn(),
 }));
-jest.mock('~src/get-js-input', () => ({
+jest.mock('./get-js-input', () => ({
   getJsInputContents: jest.fn().mockReturnValue('{_user_provided_js_content_}'),
 }));
 
@@ -30,17 +36,16 @@ jest.mock('node:url', () => ({
     .mockReturnValue('./lib/wasi_snapshot_preview1.reactor.wasm'),
 }));
 
-// This is just mocked here.. Integration tests from componentize-cli will test this in detail
-jest.mock('~src/input-verification', () => ({
-  npxPackagePath: jest.fn().mockReturnValue('./lib/fastedge-runtime.wasm'),
+// This is just mocked here.. Integration tests from fastedge-build will test this in detail
+jest.mock('src/utils/input-path-verification', () => ({
   validateFilePaths: jest.fn().mockResolvedValue(),
 }));
 
-jest.mock('~src/precompile', () => ({
+jest.mock('./precompile', () => ({
   precompile: jest.fn().mockReturnValue('{_precompiled_application_}'),
 }));
 
-jest.mock('~src/add-wasm-metadata', () => ({
+jest.mock('./add-wasm-metadata', () => ({
   addWasmMetadata: jest.fn(),
 }));
 
@@ -60,14 +65,14 @@ describe('componentize', () => {
   });
 
   it('should handle componentization process correctly', async () => {
-    expect.assertions(9);
+    expect.assertions(11);
     await componentize('input.js', 'output.wasm');
 
     expect(fileURLToPath).toHaveBeenCalledTimes(3);
     expect(validateFilePaths).toHaveBeenCalledWith(
       'input.js',
       'output.wasm',
-      './lib/fastedge-runtime.wasm',
+      'root_dir/lib/fastedge-runtime.wasm',
     );
 
     expect(getJsInputContents).toHaveBeenCalledWith('input.js', true);
@@ -78,14 +83,15 @@ describe('componentize', () => {
         '--allow-wasi',
         '--wasm-bulk-memory=true',
         '--inherit-env=true',
-        '--dir=/',
+        '--dir=.',
+        '--dir=temp_root',
         '-r _start=wizer.resume',
         '-o=output.wasm',
-        './lib/fastedge-runtime.wasm',
+        'root_dir/lib/fastedge-runtime.wasm',
       ],
       {
         stdio: [null, process.stdout, process.stderr],
-        input: '/tmp/temp.bundle.js',
+        input: 'temp_root/temp.bundle.js',
         shell: true,
         encoding: 'utf-8',
         env: {
@@ -95,6 +101,7 @@ describe('componentize', () => {
       },
     );
 
+    expect(rmSync).toHaveBeenCalledWith('tmp_dir', { recursive: true });
     expect(readFile).toHaveBeenNthCalledWith(1, 'output.wasm');
     expect(readFile).toHaveBeenNthCalledWith(2, './lib/wasi_snapshot_preview1.reactor.wasm');
 
@@ -103,6 +110,7 @@ describe('componentize', () => {
     ]);
 
     expect(writeFile).toHaveBeenCalledWith('output.wasm', 'complete_generated_component_wasm');
+    expect(addWasmMetadata).toHaveBeenCalledTimes(1);
   });
 
   it('should exit process if wizer fails during process', async () => {
