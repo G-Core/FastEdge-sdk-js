@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 
-const USAGE_TEXT = `Usage: componentize [options] <input-file> <output-file>
+import { npxPackagePath } from 'src/utils/file-system';
+
+const USAGE_TEXT = `Usage: fastedge-build [options] <input-file> <output-file>
 
 Options:
 
@@ -9,7 +11,7 @@ Options:
 `;
 
 async function printVersion() {
-  const { version } = JSON.parse(readFileSync('./package.json', 'utf8'));
+  const { version } = JSON.parse(readFileSync(npxPackagePath('./package.json'), 'utf8'));
   // eslint-disable-next-line no-console
   console.log(`@gcoredev/fastedge-sdk-js: ${version}`);
 }

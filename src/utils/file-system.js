@@ -4,7 +4,7 @@ import { dirname, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const npxPackagePath = (filePath) => {
-  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const __dirname = dirname(fileURLToPath(import.meta.url)).replace(/\/bin([^/]*)$/u, '');
   try {
     return resolve(__dirname, filePath);
   } catch {

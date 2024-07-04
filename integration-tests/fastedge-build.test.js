@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 import { prepareEnvironment } from '@gmrchk/cli-testing-library';
 
-import { USAGE_TEXT } from '~src/print-info';
+import { USAGE_TEXT } from 'src/fastedge-build/print-info';
+import { npxPackagePath } from 'src/utils/file-system';
 
 const helpInfo = USAGE_TEXT.split('\n')
   .filter(Boolean)
@@ -17,7 +18,7 @@ const packageJson = readFileSync(join(__dirname, '../package.json'), {
 });
 const { version } = JSON.parse(packageJson);
 
-describe('componentize-cli', () => {
+describe('fastedge-build', () => {
   describe('prints information to console', () => {
     it.each([
       ['NO arguments', '', 1],
@@ -26,7 +27,7 @@ describe('componentize-cli', () => {
     ])('should print help and exit if %s are provided', async (_, args, exitCode) => {
       expect.assertions(2);
       const { execute, cleanup } = await prepareEnvironment();
-      const { code, stdout } = await execute('node', `./componentize-cli.js ${args}`);
+      const { code, stdout } = await execute('node', `./bin/fastedge-build.js ${args}`);
       expect(code).toBe(exitCode);
       expect(stdout).toStrictEqual(helpInfo);
       await cleanup();
@@ -35,9 +36,9 @@ describe('componentize-cli', () => {
       expect.assertions(2);
       const { execute, cleanup, writeFile } = await prepareEnvironment();
       await writeFile('./package.json', packageJson);
-      const { code, stdout } = await execute('node', './componentize-cli.js --version');
+      const { code, stdout } = await execute('node', './bin/fastedge-build.js --version');
       expect(code).toBe(0);
-      expect(stdout).toStrictEqual([`FastEdge/js-sdk: ${version}`]);
+      expect(stdout).toStrictEqual([`@gcoredev/fastedge-sdk-js: ${version}`]);
       await cleanup();
     });
   });
@@ -47,7 +48,7 @@ describe('componentize-cli', () => {
       const { execute, cleanup, writeFile } = await prepareEnvironment();
       const { code, stderr, stdout } = await execute(
         'node',
-        './componentize-cli.js input.js dist/output.wasm',
+        './bin/fastedge-build.js input.js dist/output.wasm',
       );
       expect(code).toBe(1);
       expect(stderr[0]).toContain('Error: Input "input.js" is not a file');
@@ -58,7 +59,7 @@ describe('componentize-cli', () => {
       const { execute, cleanup, writeFile, ls } = await prepareEnvironment();
       await writeFile('input.js', 'function Hello() { console.log("Hello World"); }');
       await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
-      const { code } = await execute('node', './componentize-cli.js input.js dist/output.wasm');
+      const { code } = await execute('node', './bin/fastedge-build.js input.js dist/output.wasm');
       const folderList = await ls('./');
       const distFolderExists = folderList.includes('dist');
       expect(code).toBe(0);
@@ -72,7 +73,7 @@ describe('componentize-cli', () => {
       await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
       const { code, stderr } = await execute(
         'node',
-        './componentize-cli.js input.js dist/output.wasm',
+        './bin/fastedge-build.js input.js dist/output.wasm',
       );
       expect(code).toBe(1);
       expect(stderr[1]).toContain('function() { console.log("Hello World"); }');

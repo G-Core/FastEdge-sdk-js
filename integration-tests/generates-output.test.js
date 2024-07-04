@@ -22,7 +22,7 @@ describe('Confirm it creates an output file', () => {
   });
   it('should confirm that output.wasm gets created', async () => {
     expect.assertions(1);
-    spawnSync('node', ['./fastedge-build.js', INPUT_PATH, OUTPUT_PATH], {
+    spawnSync('node', ['./bin/fastedge-build.js', INPUT_PATH, OUTPUT_PATH], {
       env: { ...process.env, NODE_ENV: 'production' },
     });
     const outputExists = existsSync(OUTPUT_PATH);

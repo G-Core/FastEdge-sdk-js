@@ -84,7 +84,9 @@ async function componentize(jsInput, output, opts = {}) {
   }
 
   const coreComponent = await readFile(output);
-  const adapter = fileURLToPath(new URL('./lib/preview1-adapter.wasm', import.meta.url));
+  const adapter = fileURLToPath(
+    new URL(npxPackagePath('./lib/preview1-adapter.wasm'), import.meta.url),
+  );
 
   const generatedComponent = await componentNew(coreComponent, [
     ['wasi_snapshot_preview1', await readFile(adapter)],
