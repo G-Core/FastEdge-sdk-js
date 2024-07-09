@@ -6,7 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "src/*": ["./src/*"]
-    }
+    },
+    "typeRoots": ["src/customTypings", "node_modules/@types"]
   },
   "include": ["src/static-server/*"],
   "exclude": ["node_modules"]

@@ -50,6 +50,7 @@ async function componentize(jsInput, output, opts = {}) {
         `--wasm-bulk-memory=true`,
         '--inherit-env=true',
         '--dir=.',
+        // '--dir=../', // todo: Farq: NEED to iterate config file and add these paths for static building...
         `--dir=${dirname(wizerInput)}`,
         '-r _start=wizer.resume',
         `-o=${wasmOutputDir}`,

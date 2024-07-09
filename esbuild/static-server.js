@@ -3,10 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const entryPoints = [
-  { src: "./src/componentize/index.js", dest: "./bin/componentize.js" },
-  { src: "./src/fastedge-build/index.js", dest: "./bin/fastedge-build.js" },
-];
+const entryPoints = [{ src: "./src/static-server/index.js", dest: "./build/static-server.js" }];
 
 async function buildAll() {
   for (const { src, dest } of entryPoints) {
@@ -14,17 +11,17 @@ async function buildAll() {
       entryPoints: [src],
       bundle: true,
       outfile: dest,
-      platform: "node",
       format: "esm",
-      external: [
-        "@bytecodealliance/wizer",
-        "@bytecodealliance/jco",
-        "esbuild",
-        "regexpu-core",
-        "acorn",
-        "magic-string",
-        "acorn-walk",
-      ],
+      // external: [
+      //   "@bytecodealliance/wizer",
+      //   "@bytecodealliance/jco",
+      //   "esbuild",
+      //   "regexpu-core",
+      //   "acorn",
+      //   "magic-string",
+      //   "acorn-walk",
+      // ],
+      // sourcemap: true,
       logLevel: "info",
     });
   }

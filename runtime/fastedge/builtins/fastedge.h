@@ -1,6 +1,11 @@
 #ifndef FASTEDGE_H
 #define FASTEDGE_H
 
+#include <iostream>
+#include <fstream>
+#include <string>
+
+
 #include "../../StarlingMonkey/runtime/encode.h"
 #include "extension-api.h"
 
@@ -29,6 +34,7 @@ public:
   // static bool getLogger(JSContext *cx, unsigned argc, JS::Value *vp);
 
   static bool includeBytes(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool readFileSync(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool getEnv(JSContext *cx, unsigned argc, JS::Value *vp);
 
 };

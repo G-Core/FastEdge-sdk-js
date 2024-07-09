@@ -1,5 +1,5 @@
+import { componentize } from 'src/componentize';
 import { validateFilePaths } from 'src/utils/input-path-verification';
-import { componentize } from 'src/wasm-build/componentize';
 
 import { printHelp, printVersion } from './print-info';
 
@@ -9,6 +9,8 @@ let inputFileName = '';
 let outputFileName = '';
 
 if (args.length === 0) {
+  // try build from config @ .fastedge
+  // ELSE
   printHelp();
   process.exit(1);
 }
@@ -37,6 +39,14 @@ if (flags.includes('--version') || flags.includes('-v')) {
   if (!inputFileName || !outputFileName) {
     process.exit(0);
   }
+}
+
+if (flags.includes('--config') || flags.includes('-c')) {
+  if (!inputFileName || outputFileName) {
+    printHelp();
+    process.exit(1);
+  }
+  console.log('Farq: config file', inputFileName);
 }
 
 if (inputFileName && outputFileName) {

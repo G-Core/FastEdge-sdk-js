@@ -1,10 +1,4 @@
-// TODO: remove these once the warnings are fixed
-
 #include "fastedge.h"
-
-// getcwd and list contents of directory
-#include <unistd.h>
-#include <dirent.h>
 
 using fastedge::fastedge::FastEdge;
 
@@ -88,13 +82,11 @@ bool FastEdge::getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
   return true;
 }
 
-bool FastEdge::includeBytes(JSContext *cx, unsigned argc, JS::Value *vp) {
+bool FastEdge::readFileSync(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = CallArgsFromVp(argc, vp);
-  fprintf(stdout, "includeBytes() -> Running in C++ \n");
-  fflush(stdout);
 
-  // INIT_ONLY("fastedge.includeBytes");
-  if (!args.requireAtLeast(cx, "fastedge.includeBytes", 1))
+  INIT_ONLY("fastedge.readFileSync");
+  if (!args.requireAtLeast(cx, "fastedge.readFileSync", 1))
     return false;
 
   auto path = core::encode(cx, args[0]);
@@ -102,33 +94,49 @@ bool FastEdge::includeBytes(JSContext *cx, unsigned argc, JS::Value *vp) {
     return false;
   }
 
-  // Print the current working directory
-  char cwd[1024];
-  if (getcwd(cwd, sizeof(cwd)) != NULL) {
-    fprintf(stdout, "Current working directory: %s\n", cwd);
-  } else {
-    fprintf(stdout, "getcwd() error\n");
+  std::ifstream file(std::string(path), std::ios::binary | std::ios::ate);
+  if (!file) {
+    JS_ReportErrorUTF8(cx, "Error opening file: %s", path.begin());
+    return false;
   }
-  fflush(stdout);
 
-  // How do I print the file list of of the cwd to stdout?
-// Print the file list of the cwd to stdout
-  DIR *dir;
-  struct dirent *ent;
-  if ((dir = opendir(cwd)) != NULL) {
-    while ((ent = readdir(dir)) != NULL) {
-      fprintf(stdout, "%s\n", ent->d_name);
-    }
-    closedir(dir);
-  } else {
-    fprintf(stdout, "Could not open directory\n");
+  size_t file_size = file.tellg();
+  file.seekg(0, std::ios::beg);
+
+  std::vector<char> buffer(file_size);
+  if (!file.read(buffer.data(), file_size)) {
+    JS_ReportErrorUTF8(cx, "Error reading contents of file: %s", path.begin());
+    return false;
   }
-  fflush(stdout);
+
+  JS::RootedObject byte_array(cx, JS_NewUint8Array(cx, file_size));
+  if (!byte_array)
+    return false;
+
+  {
+    JS::AutoCheckCannotGC noGC(cx);
+    bool is_shared;
+    void *array_buffer = JS_GetArrayBufferViewData(byte_array, &is_shared, noGC);
+    memcpy(array_buffer, buffer.data(), file_size);
+  }
+
+  args.rval().setObject(*byte_array);
+  return true;
+}
 
 
 
-  fprintf(stdout, "includeBytes() -> path: %s \n", std::string(path).c_str());
-  fflush(stdout);
+bool FastEdge::includeBytes(JSContext *cx, unsigned argc, JS::Value *vp) {
+  JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+  INIT_ONLY("fastedge.includeBytes");
+  if (!args.requireAtLeast(cx, "fastedge.includeBytes", 1))
+    return false;
+
+  auto path = core::encode(cx, args[0]);
+  if (!path) {
+    return false;
+  }
 
   FILE *fp = fopen(path.begin(), "r");
   if (!fp) {
@@ -188,6 +196,7 @@ bool install(api::Engine *engine) {
       // JS_FN("enableDebugLogging", enableDebugLogging, 1, JSPROP_ENUMERATE),
       // JS_FN("getGeolocationForIpAddress", Fastly::getGeolocationForIpAddress, 1, JSPROP_ENUMERATE),
       JS_FN("includeBytes", FastEdge::includeBytes, 1, JSPROP_ENUMERATE),
+      JS_FN("readFileSync", FastEdge::readFileSync, 1, JSPROP_ENUMERATE),
       ENABLE_EXPERIMENTAL_HIGH_RESOLUTION_TIME_METHODS ? nowfn : end, end};
 
   if (!JS_DefineFunctions(engine->cx(), fastedge, methods) ||
@@ -208,18 +217,21 @@ bool install(api::Engine *engine) {
   // }
 
   // fastly:experimental
-  RootedObject experimental(engine->cx(), JS_NewObject(engine->cx(), nullptr));
-  RootedValue experimental_val(engine->cx(), JS::ObjectValue(*experimental));
-  RootedValue include_bytes_val(engine->cx());
-  if (!JS_GetProperty(engine->cx(), fastedge, "includeBytes", &include_bytes_val)) {
-    return false;
-  }
-  if (!JS_SetProperty(engine->cx(), experimental, "includeBytes", include_bytes_val)) {
-    return false;
-  }
-  if (!engine->define_builtin_module("fastly:experimental", experimental_val)) {
-    return false;
-  }
+  // RootedObject experimental(engine->cx(), JS_NewObject(engine->cx(), nullptr));
+  // RootedValue experimental_val(engine->cx(), JS::ObjectValue(*experimental));
+  // RootedValue include_bytes_val(engine->cx());
+  // if (!JS_GetProperty(engine->cx(), fastedge, "includeBytes", &include_bytes_val)) {
+  //   return false;
+  // }
+  // if (!JS_GetProperty(engine->cx(), fastedge, "readFileSync", &include_bytes_val)) {
+  //   return false;
+  // }
+  // if (!JS_SetProperty(engine->cx(), experimental, "includeBytes", include_bytes_val)) {
+  //   return false;
+  // }
+  // if (!engine->define_builtin_module("fastly:experimental", experimental_val)) {
+  //   return false;
+  // }
 
 
   return true;

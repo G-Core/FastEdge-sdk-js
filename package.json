@@ -6,7 +6,7 @@
     "npm": "^8 || ^9 || ^10"
   },
   "license": "Apache-2.0",
-  "main": "componentize.js",
+  "main": "build/static-server.js",
   "types": "types/index.d.ts",
   "type": "module",
   "publishConfig": {
@@ -33,11 +33,9 @@
   ],
   "scripts": {
     "build:componentize": "node esbuild/cli-binaries.js ",
-    "build:debug": "DEBUG=true make -j8 -C execution_env/fastedge-runtime && cp execution_env/fastedge-runtime/*.wasm .",
-    "build:js": "node esbuild/js-builtins.js",
-    "build:runtime": "make -j8 -C fastedge-runtime/cbindings && cp fastedge-runtime/cbindings/*.wasm ./lib",
+    "build:static-server": "node esbuild/static-server.js ",
     "build:wasm": "node build-examples-config.js",
-    "build": "npm-run-all -p build:runtime build:js -s build:wasm",
+    "build:all": "npm-run-all -p build:componentize build:static-server build:monkey:release -s build:wasm",
     "build:monkey": "./runtime/fastedge/build.sh --debug",
     "build:monkey:release": "./runtime/fastedge/build.sh",
     "create:monkey": "node ./componentize-cli.js ./dist/test.js ./dist/test.wasm",
@@ -72,7 +70,8 @@
     "jest": "^29.7.0",
     "semantic-release": "^23.0.7",
     "tsd": "^0.30.4",
-    "typescript": "^5.0"
+    "tsd-jsdoc": "^2.5.0",
+    "typescript": "^5.5.3"
   },
   "dependencies": {
     "@bytecodealliance/jco": "^1.2.4",

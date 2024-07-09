@@ -15,6 +15,9 @@ const fastedgePackagePlugin = {
         case 'includebytes': {
           return { contents: `export const includeBytes = globalThis.fastedge.includeBytes;` };
         }
+        case 'fs': {
+          return { contents: `export const readFileSync = globalThis.fastedge.readFileSync;` };
+        }
         default: {
           return { contents: '' };
         }

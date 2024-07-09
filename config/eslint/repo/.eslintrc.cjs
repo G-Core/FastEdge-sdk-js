@@ -26,6 +26,7 @@ module.exports = {
     'docs/**',
     'esbuild/**',
     'dist/**',
+    'build/**',
     'types/**',
     'integration-tests/test-files/**',
     'bin/**',
