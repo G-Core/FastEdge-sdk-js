@@ -64,7 +64,7 @@ const JSPropertySpec FastEdge::properties[] = {
 
 bool FastEdge::getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-  fprintf(stdout, "getEnv() -> invoked\n");
+  fprintf(stdout, "farq: getEnv() -> invoked\n");
 
   if (!args.requireAtLeast(cx, "getEnv", 1)) {
     fprintf(stderr, "Error: getEnv() -> requires at least 1 argument\n");
@@ -74,7 +74,7 @@ bool FastEdge::getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
   auto key_chars = core::encode(cx, args[0]);
   auto val_chars = std::getenv(std::string(key_chars).c_str());
 
-  fprintf(stdout, "getEnv() -> %s\n", std::string(val_chars).c_str());
+  fprintf(stdout, "farq: getEnv() -> %s\n", std::string(val_chars).c_str());
 
   JS::RootedString jsEnvStr(cx, JS_NewStringCopyZ(cx, std::string(val_chars).c_str()));
   args.rval().setString(jsEnvStr);

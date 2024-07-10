@@ -1,4 +1,4 @@
-declare module 'feastedge::getenv' {
+declare module 'feastedge::env' {
   /**
    * Function to get the value for the provided environment variable name.
    *
@@ -8,7 +8,7 @@ declare module 'feastedge::getenv' {
    * @param name The name of the environment variable
    *
    * /// <reference types="@gcoredev/fastedge-sdk-js" />
-   * import { getEnv } from "fastedge::getenv";
+   * import { getEnv } from "fastedge::env";
    *
    * function app(event) {
    *   console.log("HOSTNAME:", getEnv("HOSTNAME"));

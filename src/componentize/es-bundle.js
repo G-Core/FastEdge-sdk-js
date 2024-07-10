@@ -9,9 +9,10 @@ const fastedgePackagePlugin = {
     }));
     build.onLoad({ filter: /^.*/u, namespace: 'fastedge' }, async (args) => {
       switch (args.path) {
-        case 'getenv': {
+        case 'env': {
           return { contents: `export const getEnv = globalThis.fastedge.getEnv;` };
         }
+        // todo: farq: remove this includebytes here and in runtime.cpp
         case 'includebytes': {
           return { contents: `export const includeBytes = globalThis.fastedge.includeBytes;` };
         }

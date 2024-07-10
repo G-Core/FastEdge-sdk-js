@@ -60,25 +60,27 @@ const createWasmInlineAsset = (metadata) => {
     return createEmbeddedStoreEntry(source, contentEncoding, hash, size);
   };
 
-  const getText = () => {
-    if (!_metadata.text) {
-      throw new Error("Can't getText() for non-text content");
-    }
-    return decoder.decode(_sourceAndInfo.source);
-  };
+  // const getText = () => {
+  //   if (!_metadata.text) {
+  //     throw new Error("Can't getText() for non-text content");
+  //   }
+  //   return decoder.decode(_sourceAndInfo.source);
+  // };
 
-  const getJson = () => {
-    const text = getText();
-    return JSON.parse(text);
-  };
+  // const getJson = () => {
+  //   const text = getText();
+  //   return JSON.parse(text);
+  // };
 
   return {
-    isLocal: () => true,
     assetKey: () => _metadata.assetKey,
     getStoreEntry,
-    getBytes: () => _sourceAndInfo.source,
-    getText,
-    getJson,
+    // farq: I think we can remove these, everything is being inlined at present.
+    // text/json/bytes etc comes from kvStore implementation
+    // isLocal: () => true,
+    // getBytes: () => _sourceAndInfo.source,
+    // getText,
+    // getJson,
     getMetadata: () => _metadata,
   };
 };

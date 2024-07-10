@@ -14,15 +14,15 @@ export type StaticAssetMetadata = {
 
 export interface StaticAsset {
   readonly type: string;
-  readonly isLocal: boolean;
+  // farq: I think we can remove these, everything is being inlined at present.
+  // text/json/bytes etc comes from kvStore implementation
+  // readonly isLocal: boolean;
+  // getBytes(): Uint8Array;
+  // getText(): string;
+  // getJson<T = unknown>(): T;
   readonly assetKey: string;
   getMetadata(): StaticAssetMetadata;
-  getStoreEntry(
-    acceptEncodingsGroups?: ContentCompressionTypes[][]
-  ): Promise<StoreEntry>;
-  getBytes(): Uint8Array;
-  getText(): string;
-  getJson<T = unknown>(): T;
+  getStoreEntry(acceptEncodingsGroups?: ContentCompressionTypes[][]): Promise<StoreEntry>;
 }
 
 export type AssetBuilderContext = any;

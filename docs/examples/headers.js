@@ -1,4 +1,4 @@
-import { getEnv } from 'fastedge::getenv';
+import { getEnv } from 'fastedge::env';
 
 async function eventHandler(event) {
   const request = event.request;

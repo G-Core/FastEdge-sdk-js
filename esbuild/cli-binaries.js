@@ -6,10 +6,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 const entryPoints = [
   { src: "./src/componentize/index.js", dest: "./bin/componentize.js" },
   { src: "./src/fastedge-build/index.js", dest: "./bin/fastedge-build.js" },
+  { src: "./src/fastedge-init/index.js", dest: "./bin/fastedge-init.js" },
 ];
 
 async function buildAll() {
   for (const { src, dest } of entryPoints) {
+    console.log("Farq: buildAll -> dest", dest);
     await build({
       entryPoints: [src],
       bundle: true,
@@ -20,6 +22,7 @@ async function buildAll() {
         "@bytecodealliance/wizer",
         "@bytecodealliance/jco",
         "esbuild",
+        "enquirer",
         "regexpu-core",
         "acorn",
         "magic-string",
@@ -45,3 +48,4 @@ const prependNodeShebangToFile = (relativeFilePath) => {
 };
 
 prependNodeShebangToFile("./bin/fastedge-build.js");
+prependNodeShebangToFile("./bin/fastedge-init.js");

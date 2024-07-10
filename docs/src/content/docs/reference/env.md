@@ -1,5 +1,5 @@
 ---
-title: FastEdge::getenv
+title: FastEdge::env
 description: How to use FastEdge environment variables.
 ---
 
@@ -8,7 +8,7 @@ description: How to use FastEdge environment variables.
 To access environment variables, set during deployment on the FastEdge network.
 
 ```js
-import { getEnv } from 'fastedge::getenv';
+import { getEnv } from 'fastedge::env';
 
 async function eventHandler(event) {
   const customEnvVariable = getEnv('MY_CUSTOM_ENV_VAR');
