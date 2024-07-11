@@ -2,7 +2,7 @@ const decoder = new TextDecoder();
 
 /**
  * @param {Uint8Array} array
- * @returns {import('./inline-store-entry-types.d.ts').ByteReadableStream} ByteReadableStream
+ * @returns {import('./embedded-store-types.d.ts').ByteReadableStream} ByteReadableStream
  */
 const createReadableStreamForBytes = (array) => {
   // Track if the stream has been read or cancelled
@@ -53,8 +53,15 @@ const createReadableStreamForBytes = (array) => {
   });
 };
 
-// Provides a Body-style interface to Uint8Array.
-// The is for files that have been embedded using readFileSync
+/**
+ * Provides a Body-style interface to Uint8Array.
+ * The is for files that have been embedded using readFileSync
+ * @param {Uint8Array} array
+ * @param {string | null} contentEncoding
+ * @param {string} hash
+ * @param {number} size
+ * @returns {import('./embedded-store-types.d.ts').EmbeddedStoreEntry} EmbeddedStoreEntry
+ */
 const createEmbeddedStoreEntry = (array, contentEncoding, hash, size) => {
   let _consumed = false;
   const _contentEncoding = contentEncoding;
@@ -97,22 +104,23 @@ const createEmbeddedStoreEntry = (array, contentEncoding, hash, size) => {
     }
   };
 
-  const text = async () => {
-    const data = await arrayBuffer();
-    return decoder.decode(data);
-  };
+  // KvStore Implementation ??
+  // const text = async () => {
+  //   const data = await arrayBuffer();
+  //   return decoder.decode(data);
+  // };
 
-  const json = async () => {
-    const _text = await text();
-    return JSON.parse(_text);
-  };
+  // const json = async () => {
+  //   const _text = await text();
+  //   return JSON.parse(_text);
+  // };
 
   return {
     body: () => _body,
     bodyUsed: () => _consumed,
     arrayBuffer,
-    text,
-    json,
+    // text,
+    // json,
     contentEncoding: () => _contentEncoding,
     hash: () => _hash,
     size: () => _size,

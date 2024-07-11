@@ -1,5 +1,6 @@
 import type { StaticAsset } from './assets/static-asset-types.d.ts';
-import type { ContentCompressionTypes } from '../constants/compression.js';
+
+type ContentCompressionTypes = 'br' | 'gzip';
 
 export type AssetInit = {
   status?: number;
@@ -21,4 +22,3 @@ export interface StaticServer {
 }
 
 export type { ContentCompressionTypes, StaticAsset };
-export type { PublisherServerConfigNormalized } from '../types/config-normalized.js';

@@ -30,7 +30,7 @@ function requestAcceptsTextHtml(req) {
 
 /**
  * @param {Request} request
- * @param {import('./static-server.d.ts').StaticAsset} asset
+ * @param {import('./static-server-types.d.ts').StaticAsset} asset
  * @param {Record<string, string>} responseHeaders
  * @returns {Response | null}
  */
@@ -95,16 +95,17 @@ const handlePreconditions = (request, asset, responseHeaders) => {
   return null;
 };
 
+// todo: fix: serverconfig
 /**
  * The server able to serve static assets.
- * @param {import('./static-server.d.ts').PublisherServerConfigNormalized} serverConfig
- * @param {import('./assets/asset-cache.d.ts').AssetCache} assetCache
- * @returns {import('./static-server.d.ts').StaticServer} StaticServer
+ * @param {unknown} serverConfig
+ * @param {import('./assets/asset-cache-types.d.ts').AssetCache} assetCache
+ * @returns {import('./static-server-types.d.ts').StaticServer} StaticServer
  */
 const getStaticServer = (serverConfig, assetCache) => {
   const _serverConfig = serverConfig;
-  const _assetCache = assetCache;
-  const _staticItems = serverConfig.staticItems
+  const _assetCache = assetCache; // @ts-ignore
+  const _staticItems = serverConfig.staticItems // @ts-ignore
     .map((x, i) => {
       if (x.startsWith('re:')) {
         // eslint-disable-next-line require-unicode-regexp
@@ -117,14 +118,15 @@ const getStaticServer = (serverConfig, assetCache) => {
         return new RegExp(fragments[1], fragments[2] || '');
       }
       return x;
-    })
+    }) // @ts-ignore
     .filter((x) => Boolean(x));
 
   /**
    * @param {string} path
-   * @returns {import('./static-server.d.ts').StaticAsset | null}
+   * @returns {import('./static-server-types.d.ts').StaticAsset | null}
    */
   const getMatchingAsset = (path) => {
+    // @ts-ignore
     const assetKey = _serverConfig.publicDirPrefix + path;
 
     if (!assetKey.endsWith('/')) {
@@ -136,6 +138,7 @@ const getStaticServer = (serverConfig, assetCache) => {
 
       // ... or, we can try auto-ext:
       // looks for an asset that has the specified suffix (usually extension, such as .html)
+      // @ts-ignore
       for (const extEntry of _serverConfig.autoExt) {
         const assetKeyWithExt = assetKey + extEntry;
         const asset = _assetCache.getAsset(assetKeyWithExt);
@@ -145,6 +148,7 @@ const getStaticServer = (serverConfig, assetCache) => {
       }
     }
 
+    // @ts-ignore
     if (_serverConfig.autoIndex.length > 0) {
       // Try auto-index:
       // treats the path as a directory, and looks for an asset with the specified
@@ -155,6 +159,7 @@ const getStaticServer = (serverConfig, assetCache) => {
         assetNameAsDir = assetNameAsDir.slice(0, -1);
       }
       assetNameAsDir += '/';
+      // @ts-ignore
       for (const indexEntry of _serverConfig.autoIndex) {
         const assetKeyIndex = assetNameAsDir + indexEntry;
         const asset = _assetCache.getAsset(assetKeyIndex);
@@ -168,9 +173,10 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @returns {import('./static-server.d.ts').ContentCompressionTypes[][]}
+   * @returns {import('./static-server-types.d.ts').ContentCompressionTypes[][]}
    */
   const findAcceptEncodings = (request) => {
+    // @ts-ignore
     if (_serverConfig.compression.length === 0) {
       return [];
     }
@@ -197,6 +203,7 @@ const getStaticServer = (serverConfig, assetCache) => {
         }
         return [encodingValue.trim(), qValue];
       })
+      // @ts-ignore
       .filter(([encoding]) => _serverConfig.compression.includes(encoding));
 
     const priorityMap = new Map();
@@ -221,6 +228,7 @@ const getStaticServer = (serverConfig, assetCache) => {
    * @returns {boolean}
    */
   const testExtendedCache = (pathname) =>
+    // @ts-ignore
     _staticItems.some((x) => {
       if (x instanceof RegExp) {
         return x.test(pathname);
@@ -233,8 +241,8 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @param {import('./static-server.d.ts').StaticAsset} asset
-   * @param {import('./static-server.d.ts').AssetInit} init
+   * @param {import('./static-server-types.d.ts').StaticAsset} asset
+   * @param {import('./static-server-types.d.ts').AssetInit} init
    * @returns {Promise<Response>}
    */
   const serveAsset = async (request, asset, init) => {
@@ -265,8 +273,9 @@ const getStaticServer = (serverConfig, assetCache) => {
 
     const acceptEncodings = findAcceptEncodings(request);
     const storeEntry = await asset.getStoreEntry(acceptEncodings);
-    if (storeEntry.contentEncoding() != null) {
-      headers['Content-Encoding'] = storeEntry.contentEncoding();
+    const contentEncoding = storeEntry.contentEncoding();
+    if (contentEncoding != null) {
+      headers['Content-Encoding'] = contentEncoding;
     }
 
     headers.ETag = `"${storeEntry.hash()}"`;
@@ -308,6 +317,7 @@ const getStaticServer = (serverConfig, assetCache) => {
     // Fallback HTML responses, like SPA and "not found" pages
     if (requestAcceptsTextHtml(request)) {
       // These are raw asset paths, not relative to public path
+      // @ts-ignore
       const { spaFile } = _serverConfig;
 
       if (spaFile != null) {
@@ -319,6 +329,7 @@ const getStaticServer = (serverConfig, assetCache) => {
         }
       }
 
+      // @ts-ignore
       const { notFoundPageFile } = _serverConfig;
       if (notFoundPageFile != null) {
         const asset = _assetCache.getAsset(notFoundPageFile);

@@ -61,7 +61,7 @@ const getIfModifiedSinceHeader = (request) => {
 
 /**
  * https://httpwg.org/specs/rfc9110.html#field.if-modified-since
- * @param {import('../assets/static-asset.d.ts').StaticAsset} asset
+ * @param {import('../assets/static-asset-types.d.ts').StaticAsset} asset
  * @param {number} ifModifiedSince
  * @returns {boolean}
  */
@@ -82,6 +82,9 @@ const checkIfModifiedSince = (asset, ifModifiedSince) => {
  * @returns {Record<string, string>}
  */
 const buildHeadersSubset = (responseHeaders, keys) => {
+  /**
+   * @type {Record<string, string>}
+   */
   const resultHeaders = {};
   for (const value of keys) {
     if (value in responseHeaders) {

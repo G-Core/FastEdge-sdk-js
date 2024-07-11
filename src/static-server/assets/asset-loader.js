@@ -1,9 +1,22 @@
+// / <reference types="@gcoredev/fastedge-sdk-js" />
+
+// todo: farq: fix this types for the project
+// @ts-ignore
 import { readFileSync } from 'fastedge::fs';
 
 import { createEmbeddedStoreEntry } from './embedded-store-entry';
 
 const decoder = new TextDecoder();
 
+// todo: farq: fix this along with compression
+/**
+ * Used to change out the sourceAndInfo object for the correct encoded version
+ * @template SourceAndInfo
+ * @param {Array<'br' | 'gzip'> | null} acceptEncodingsGroups
+ * @param {SourceAndInfo} defaultSourceAndInfo
+ * @param {unknown} sourceAndInfoForEncodingFn
+ * @returns {{ sourceAndInfo: SourceAndInfo, contentEncoding: string | null }}
+ */
 const findMatchingSourceAndInfo = (
   acceptEncodingsGroups,
   defaultSourceAndInfo,
@@ -42,6 +55,11 @@ const findMatchingSourceAndInfo = (
   return { sourceAndInfo, contentEncoding };
 };
 
+/**
+ *
+ * @param {import('./static-asset-types.d.ts').StaticAssetMetadata} metadata
+ * @returns
+ */
 const createWasmInlineAsset = (metadata) => {
   const _metadata = { ...metadata };
   const _sourceAndInfo = {
