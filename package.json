@@ -24,6 +24,7 @@
   },
   "files": [
     "types",
+    "build",
     "bin/fastedge-build.js",
     "bin/fastedge-init.js",
     "componentize.js",
@@ -32,7 +33,7 @@
     "README.md"
   ],
   "scripts": {
-    "build:componentize": "node esbuild/cli-binaries.js",
+    "build:cli": "node esbuild/cli-binaries.js",
     "build:static-server": "node esbuild/static-server.js",
     "build:wasm": "node build-examples-config.js",
     "build:all": "npm-run-all -p build:componentize build:static-server build:monkey:release -s build:wasm",
@@ -45,7 +46,8 @@
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
     "semantic-release": "semantic-release",
     "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
-    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js"
+    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js",
+    "types": "tsc -p ./src/static-server/tsconfig.json"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.23.9",

@@ -5,14 +5,10 @@
     "allowJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "./test-types",
+    "outFile": "../../types/static-server.d.ts",
     "strict": true,
-    "checkJs": true,
-    "baseUrl": ".",
-    "paths": {
-      "src/*": ["./src/*"]
-    }
+    "checkJs": true
   },
-  "include": ["src/static-server/**/*.js"],
+  "include": ["**/*.js"],
   "exclude": ["./node_modules"]
 }

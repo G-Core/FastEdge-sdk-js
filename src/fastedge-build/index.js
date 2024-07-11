@@ -1,10 +1,10 @@
 import arg from 'arg';
 
-import { CONFIG_FILE_PATH } from 'src/constants';
+import { CONFIG_FILE_PATH } from 'src/constants/index';
 import { buildWasm } from 'src/fastedge-build/config-build/build-wasm';
+import { buildFromConfigFiles } from 'src/fastedge-build/config-build/index';
 import { colorLog } from 'src/utils/prompts';
 
-import { buildFromConfigFiles } from './config-build';
 import { printHelp, printVersion } from './print-info';
 
 let inputFileName = '';

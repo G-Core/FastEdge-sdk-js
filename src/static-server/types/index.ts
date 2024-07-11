@@ -1,6 +1,8 @@
-import type { StaticAsset } from './assets/static-asset-types.d.ts';
+import { StaticAsset } from './assets';
 
-type ContentCompressionTypes = 'br' | 'gzip';
+export type HeadersType = Record<string, string>;
+
+export type ContentCompressionTypes = 'br' | 'gzip';
 
 export type AssetInit = {
   status?: number;
@@ -10,7 +12,7 @@ export type AssetInit = {
 
 export interface StaticServer {
   getMatchingAsset(pathname: string): StaticAsset | null;
-  findAcceptEncodings(request: Request): ContentCompressionTypes[][];
+  findAcceptEncodings(request: Request): Array<ContentCompressionTypes>;
   testExtendedCache(pathname: string): boolean;
   handlePreconditions(
     request: Request,
@@ -21,4 +23,4 @@ export interface StaticServer {
   serveRequest(request: Request): Promise<Response | null>;
 }
 
-export type { ContentCompressionTypes, StaticAsset };
+export * from './assets';

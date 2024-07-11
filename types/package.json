@@ -1,0 +1,9 @@
+{
+  "name": "@types/fastedge-sdk-js",
+  "version": "0.0.1",
+  "description": "TypeScript definitions for fastedge-sdk-js",
+  "main": "",
+  "types": "index.d.ts",
+  "author": "G-Core Labs S.A.",
+  "license": "Apache-2.0"
+}

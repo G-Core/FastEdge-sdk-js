@@ -2,7 +2,7 @@ const decoder = new TextDecoder();
 
 /**
  * @param {Uint8Array} array
- * @returns {import('./embedded-store-types.d.ts').ByteReadableStream} ByteReadableStream
+ * @returns {import('../types/').ByteReadableStream} ByteReadableStream
  */
 const createReadableStreamForBytes = (array) => {
   // Track if the stream has been read or cancelled
@@ -60,7 +60,7 @@ const createReadableStreamForBytes = (array) => {
  * @param {string | null} contentEncoding
  * @param {string} hash
  * @param {number} size
- * @returns {import('./embedded-store-types.d.ts').EmbeddedStoreEntry} EmbeddedStoreEntry
+ * @returns {import('../types/').EmbeddedStoreEntry} EmbeddedStoreEntry
  */
 const createEmbeddedStoreEntry = (array, contentEncoding, hash, size) => {
   let _consumed = false;

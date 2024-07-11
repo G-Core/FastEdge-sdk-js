@@ -1,4 +1,4 @@
-import { CONFIG_FILE_PATH } from 'src/constants';
+import { CONFIG_FILE_PATH } from 'src/constants/index';
 import { isFile } from 'src/utils/file-system';
 import { colorLog, confirmPrompt, selectPrompt } from 'src/utils/prompts';
 
@@ -39,11 +39,13 @@ const initType = await selectPrompt(
 
 switch (initType) {
   case 'http':
-    setupHttpApp();
+    await setupHttpApp();
     break;
   case 'static':
-    setupStaticApp();
+    await setupStaticApp();
     break;
   default:
     process.exit(1);
 }
+
+colorLog('green', 'FastEdge initialization completed successfully');

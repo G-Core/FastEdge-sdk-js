@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    // "module": "ESNext",
+    // "moduleDetection": "force",
+    // "target": "ESNext",
+    "target": "ES2018",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowJs": true,
+    "declaration": true,
+    "noEmit": true,
+    "strict": true,
+    "checkJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "~src/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.js"]
+  // "exclude": ["./node_modules"]
+}

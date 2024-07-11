@@ -1,10 +1,12 @@
 import { writeFile } from 'node:fs/promises';
 
-import { CONFIG_FILE_PATH } from 'src/constants';
+import { CONFIG_FILE_PATH } from 'src/constants/index';
 
 import { createOutputDirectory } from 'src/utils/file-system';
 
 const defaultConfig = {
+  http: {},
+  next: {},
   static: {
     input: '.fastedge/static-index.js',
     ignoreDotFiles: true,
@@ -15,7 +17,7 @@ const defaultConfig = {
 
 /**
  *
- * @param {'http' | 'static' | 'next'} type
+ * @param {'http'|'static'|'next'} type
  * @param {Object} providedConfig
  */
 async function createConfigFile(type, providedConfig = {}) {

@@ -5,7 +5,7 @@ export interface ByteReadableStream extends ReadableStream<Uint8Array> {
 }
 
 export interface EmbeddedStoreEntry {
-  body(): ReadableStream<Uint8Array> | null;
+  body(): ByteReadableStream | null;
   bodyUsed(): boolean;
   arrayBuffer(): Promise<ArrayBuffer>;
   // json(): Promise<any>;

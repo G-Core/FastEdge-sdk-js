@@ -1,4 +1,4 @@
-import { EmbeddedStoreEntry } from 'src/static-server/assets/embedded-store-types';
+import { EmbeddedStoreEntry } from './embedded-store-entry';
 
 export type FileInfo = {
   hash: string; // same as hash of file
@@ -30,5 +30,3 @@ export interface StaticAsset {
   // getStoreEntry(acceptEncodingsGroups?: ContentCompressionTypes[][]): Promise<StoreEntry>;
   getStoreEntry(acceptEncodingsGroups?: unknown): Promise<EmbeddedStoreEntry>;
 }
-
-export type AssetBuilderContext = any;

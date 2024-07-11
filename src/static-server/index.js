@@ -30,7 +30,7 @@ function requestAcceptsTextHtml(req) {
 
 /**
  * @param {Request} request
- * @param {import('./static-server-types.d.ts').StaticAsset} asset
+ * @param {import('./types/').StaticAsset} asset
  * @param {Record<string, string>} responseHeaders
  * @returns {Response | null}
  */
@@ -99,8 +99,8 @@ const handlePreconditions = (request, asset, responseHeaders) => {
 /**
  * The server able to serve static assets.
  * @param {unknown} serverConfig
- * @param {import('./assets/asset-cache-types.d.ts').AssetCache} assetCache
- * @returns {import('./static-server-types.d.ts').StaticServer} StaticServer
+ * @param {import('./types/').AssetCache} assetCache
+ * @returns {import('./types/').StaticServer} StaticServer
  */
 const getStaticServer = (serverConfig, assetCache) => {
   const _serverConfig = serverConfig;
@@ -123,7 +123,7 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {string} path
-   * @returns {import('./static-server-types.d.ts').StaticAsset | null}
+   * @returns {import('./types/').StaticAsset | null}
    */
   const getMatchingAsset = (path) => {
     // @ts-ignore
@@ -173,7 +173,7 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @returns {import('./static-server-types.d.ts').ContentCompressionTypes[][]}
+   * @returns {Array<import('./types/').ContentCompressionTypes>}
    */
   const findAcceptEncodings = (request) => {
     // @ts-ignore
@@ -241,8 +241,8 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @param {import('./static-server-types.d.ts').StaticAsset} asset
-   * @param {import('./static-server-types.d.ts').AssetInit} init
+   * @param {import('./types/').StaticAsset} asset
+   * @param {import('./types/').AssetInit} init
    * @returns {Promise<Response>}
    */
   const serveAsset = async (request, asset, init) => {
@@ -356,3 +356,4 @@ const getStaticServer = (serverConfig, assetCache) => {
 };
 
 export { getStaticServer };
+export { createStaticAssetsCache } from './assets/static-assets';

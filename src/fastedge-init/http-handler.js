@@ -1,5 +1,5 @@
-import { isFile } from 'src/utils/file-system';
-import { colorLog, inputPrompt } from 'src/utils/prompts';
+import { isFile } from '~src/utils/file-system';
+import { colorLog, inputPrompt } from '~src/utils/prompts';
 
 import { createConfigFile } from './create-config';
 
