@@ -1,6 +1,7 @@
 /// <reference types="@gcoredev/fastedge-sdk-js" />
-import { getServer } from './build/static-server.js';
-const staticServer = getServer();
+
+import { getStaticServer } from '@gcoredev/fastedge-sdk-js';
+const staticServer = getStaticServer();
 
 addEventListener('fetch', (event) => event.respondWith(handleRequest(event)));
 
