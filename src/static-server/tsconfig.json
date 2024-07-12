@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2018",
-    "module": "commonjs",
+    "module": "ES6",
+    "moduleResolution": "Node",
     "allowJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,

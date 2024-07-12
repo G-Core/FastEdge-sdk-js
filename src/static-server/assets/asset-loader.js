@@ -12,7 +12,7 @@ const decoder = new TextDecoder();
 /**
  * Used to change out the sourceAndInfo object for the correct encoded version
  * @template SourceAndInfo
- * @param {Array<import('../types/').ContentCompressionTypes> | null} acceptEncodingsGroups
+ * @param {Array<import('../types/index.js').ContentCompressionTypes> | null} acceptEncodingsGroups
  * @param {SourceAndInfo} defaultSourceAndInfo
  * @param {unknown} sourceAndInfoForEncodingFn
  * @returns {{ sourceAndInfo: SourceAndInfo, contentEncoding: string | null }}
@@ -57,7 +57,7 @@ const findMatchingSourceAndInfo = (
 
 /**
  *
- * @param {import('../types/').StaticAssetMetadata} metadata
+ * @param {import('../types/assets/static-asset.js').StaticAssetMetadata} metadata
  * @returns
  */
 const createWasmInlineAsset = (metadata) => {

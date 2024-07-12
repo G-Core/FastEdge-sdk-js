@@ -18,6 +18,6 @@
       "~constants/*": ["./src/constants/*"]
     }
   },
-  "include": ["src/**/*.js"],
+  "include": ["src/**/*.js", "**/*.ts", "**/*.d.ts"],
   "exclude": ["./node_modules"]
 }
