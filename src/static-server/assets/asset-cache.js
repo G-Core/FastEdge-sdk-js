@@ -2,7 +2,7 @@
  * Creates an asset cache.
  * @template AssetType
  * @param {Object.<string, AssetType>} [assets={}] - Initial assets to populate the cache.
- * @returns {import('../types/assets/asset-cache.js').AssetCache} AssetCache
+ * @returns {import('../types/').AssetCache} AssetCache
  */
 const createAssetCache = (assets = {}) => {
   /**

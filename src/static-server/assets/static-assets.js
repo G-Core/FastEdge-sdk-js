@@ -5,13 +5,13 @@ import { createWasmInlineAsset } from './asset-loader.js';
  * Create an object that contains all static assets in memory, with setters and getters for each asset/metadata
  * This StaticAssetCache will be stored in the binary during wizer proccessing.
  *
- * @param {import('../types/assets/static-asset.js').StaticAssetManifest} staticAssetManifest
- * @returns {import('../types/assets/asset-cache.js').AssetCache} AssetCache
+ * @param {import('../types/').StaticAssetManifest} staticAssetManifest
+ * @returns {import('../types/').AssetCache} AssetCache
  */
 
 function createStaticAssetsCache(staticAssetManifest) {
   /**
-   * @type {Record<string, (metadata: import('../types/assets/static-asset.js').StaticAssetMetadata) => import('../types/assets/asset-cache.js').AssetCache>}
+   * @type {Record<string, (metadata: import('../types/').StaticAssetMetadata) => import('../types/').AssetCache>}
    */
   const assetLoaders = {
     // @ts-ignore

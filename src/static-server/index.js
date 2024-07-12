@@ -30,7 +30,7 @@ function requestAcceptsTextHtml(req) {
 
 /**
  * @param {Request} request
- * @param {import('./types/assets/static-asset.ts').StaticAsset} asset
+ * @param {import('./types/').StaticAsset} asset
  * @param {Record<string, string>} responseHeaders
  * @returns {Response | null}
  */
@@ -99,8 +99,8 @@ const handlePreconditions = (request, asset, responseHeaders) => {
 /**
  * The server able to serve static assets.
  * @param {unknown} serverConfig
- * @param {import('./types/assets/asset-cache.ts').AssetCache} assetCache
- * @returns {import('./types/index.ts').StaticServer} StaticServer
+ * @param {import('./types/').AssetCache} assetCache
+ * @returns {import('./types/').StaticServer} StaticServer
  */
 const getStaticServer = (serverConfig, assetCache) => {
   const _serverConfig = serverConfig;
@@ -123,7 +123,7 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {string} path
-   * @returns {import('./types/assets/static-asset.ts').StaticAsset | null}
+   * @returns {import('./types/').StaticAsset | null}
    */
   const getMatchingAsset = (path) => {
     // @ts-ignore
@@ -173,7 +173,7 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @returns {Array<import('./types/index.ts').ContentCompressionTypes>}
+   * @returns {Array<import('./types/').ContentCompressionTypes>}
    */
   const findAcceptEncodings = (request) => {
     // @ts-ignore
@@ -241,8 +241,8 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @param {import('./types/assets/static-asset.ts').StaticAsset} asset
-   * @param {import('./types/index.ts').AssetInit} init
+   * @param {import('./types/').StaticAsset} asset
+   * @param {import('./types/').AssetInit} init
    * @returns {Promise<Response>}
    */
   const serveAsset = async (request, asset, init) => {
