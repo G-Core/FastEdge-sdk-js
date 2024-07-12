@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2018",
-    "module": "ES6",
-    "moduleResolution": "Node",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "allowJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outFile": "../../types/static-server.d.ts",
+    "outDir": "../../types/static-server/",
     "strict": true,
     "checkJs": true
   },

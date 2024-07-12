@@ -6,6 +6,31 @@ import {
   getIfNoneMatchHeader,
 } from './utils/headers.js';
 
+/**
+ * @typedef {Object.<string, string>} HeadersType
+ */
+
+/**
+ * @typedef {'br' | 'gzip'} ContentCompressionTypes
+ */
+
+/**
+ * @typedef {Object} AssetInit
+ * @property {number} [status]
+ * @property {Object.<string, string>} [headers]
+ * @property {'extended' | 'never' | null} [cache]
+ */
+
+/**
+ * @typedef {Object} StaticServer
+ * @property {function(string): (import('./assets/static-assets.js').StaticAsset | null)} getMatchingAsset
+ * @property {function(Request): Array<ContentCompressionTypes>} findAcceptEncodings
+ * @property {function(string): boolean} testExtendedCache
+ * @property {function(Request, import('./assets/static-assets.js').StaticAsset, Object.<string, string>): (Response | null)} handlePreconditions
+ * @property {function(Request, import('./assets/static-assets.js').StaticAsset, AssetInit): Promise<Response>} serveAsset
+ * @property {function(Request): Promise<(Response | null)>} serveRequest
+ */
+
 // https://httpwg.org/specs/rfc9110.html#rfc.section.15.4.5
 // The server generating a 304 response MUST generate any of the following header fields that would have been sent in
 // a 200 (OK) response to the same request:
@@ -30,7 +55,7 @@ function requestAcceptsTextHtml(req) {
 
 /**
  * @param {Request} request
- * @param {import('./types/').StaticAsset} asset
+ * @param {import('./assets/static-assets.js').StaticAsset} asset
  * @param {Record<string, string>} responseHeaders
  * @returns {Response | null}
  */
@@ -99,8 +124,8 @@ const handlePreconditions = (request, asset, responseHeaders) => {
 /**
  * The server able to serve static assets.
  * @param {unknown} serverConfig
- * @param {import('./types/').AssetCache} assetCache
- * @returns {import('./types/').StaticServer} StaticServer
+ * @param {import('./assets/asset-cache.js').AssetCache} assetCache
+ * @returns {StaticServer} StaticServer
  */
 const getStaticServer = (serverConfig, assetCache) => {
   const _serverConfig = serverConfig;
@@ -123,7 +148,7 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {string} path
-   * @returns {import('./types/').StaticAsset | null}
+   * @returns {import('./assets/static-assets.js').StaticAsset | null}
    */
   const getMatchingAsset = (path) => {
     // @ts-ignore
@@ -173,7 +198,7 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @returns {Array<import('./types/').ContentCompressionTypes>}
+   * @returns {Array<ContentCompressionTypes>}
    */
   const findAcceptEncodings = (request) => {
     // @ts-ignore
@@ -241,14 +266,14 @@ const getStaticServer = (serverConfig, assetCache) => {
 
   /**
    * @param {Request} request
-   * @param {import('./types/').StaticAsset} asset
-   * @param {import('./types/').AssetInit} init
+   * @param {import('./assets/static-assets.js').StaticAsset} asset
+   * @param {AssetInit=} init
    * @returns {Promise<Response>}
    */
   const serveAsset = async (request, asset, init) => {
     const metadata = asset.getMetadata();
     /**
-     * @type {Record<string, string>}
+     * @type {HeadersType}
      */
     const headers = {
       'Content-Type': metadata.contentType,

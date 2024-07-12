@@ -1,18 +1,15 @@
 /// <reference path="globals.d.ts" />
 /// <reference path="fastedge:fs.d.ts" />
 /// <reference path="fastedge:env.d.ts" />
-/// <reference path="static-server.d.ts" />
 
-import { AssetCache } from 'types/assets/asset-cache';
-// import { StaticAssetManifest } from 'types/assets/static-asset';
-// import { StaticServer } from 'types/index';
-
+import { AssetCache } from './static-server/assets/asset-cache.d.ts';
+import { StaticAssetManifest } from './static-server/assets/static-assets.d.ts';
+import { StaticServer } from './static-server/index.d.ts';
 declare module '@gcoredev/fastedge-sdk-js' {
-  // export { AssetCache } from 'types/assets/asset-cache';
-  // export { StaticAssetManifest } from 'types/assets/static-asset';
-  // export { StaticServer } from 'types/index';
-  export { AssetCache };
   export function createStaticAssetsCache(staticAssetManifest: StaticAssetManifest): AssetCache;
-  // todo: fix this unknown
   export function getStaticServer(serverConfig: unknown, assetCache: AssetCache): StaticServer;
 }
+
+export * from './fastedge:env.d.ts';
+export * from './fastedge:fs.d.ts';
+export * from './globals.d.ts';

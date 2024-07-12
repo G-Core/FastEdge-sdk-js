@@ -1,8 +1,25 @@
-const decoder = new TextDecoder();
+/**
+ * @typedef {Object} ByteReadableStream
+ * @property {function(): ReadableStreamDefaultReader<Uint8Array>} getReader - Gets a reader for the stream.
+ * @property {function(): boolean} isLocked - Checks if the stream is locked.
+ * @property {function(): boolean} isDisturbed - Checks if the stream is disturbed.
+ */
 
 /**
+ * @typedef {Object} EmbeddedStoreEntry
+ * @property {function(): (ReadableStream<Uint8Array> & ByteReadableStream | null)} body - Returns the body as a ByteReadableStream or null.
+ * @property {function(): boolean} bodyUsed - Checks if the body has been used.
+ * @property {function(): Promise<ArrayBuffer>} arrayBuffer - Returns a promise that resolves with an ArrayBuffer.
+ * @property {function(): (string | null)} contentEncoding - Returns the content encoding or null.
+ * @property {function(): string} hash - Returns the hash of the entry.
+ * @property {function(): number} size - Returns the size of the entry.
+ */
+
+/**
+ * Creates a readable stream for a Uint8Array.
+ *
  * @param {Uint8Array} array
- * @returns {import('../types/').ByteReadableStream} ByteReadableStream
+ * @returns {ReadableStream<Uint8Array> & ByteReadableStream} ByteReadableStream
  */
 const createReadableStreamForBytes = (array) => {
   // Track if the stream has been read or cancelled
@@ -60,7 +77,7 @@ const createReadableStreamForBytes = (array) => {
  * @param {string | null} contentEncoding
  * @param {string} hash
  * @param {number} size
- * @returns {import('../types/').EmbeddedStoreEntry} EmbeddedStoreEntry
+ * @returns {EmbeddedStoreEntry} EmbeddedStoreEntry
  */
 const createEmbeddedStoreEntry = (array, contentEncoding, hash, size) => {
   let _consumed = false;

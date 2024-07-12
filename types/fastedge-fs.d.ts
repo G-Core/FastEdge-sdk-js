@@ -1,4 +1,4 @@
-declare module 'feastedge::fs' {
+declare module 'fastedge::fs' {
   /**
    * Function to read a file at a given path synchronously.
    * Used for embedding file contents into the wasm binary.

@@ -6,13 +6,11 @@ import { readFileSync } from 'fastedge::fs';
 
 import { createEmbeddedStoreEntry } from './embedded-store-entry.js';
 
-const decoder = new TextDecoder();
-
 // todo: farq: fix this along with compression
 /**
  * Used to change out the sourceAndInfo object for the correct encoded version
  * @template SourceAndInfo
- * @param {Array<import('../types/').ContentCompressionTypes> | null} acceptEncodingsGroups
+ * @param {Array<import('../index.js').ContentCompressionTypes> | null} acceptEncodingsGroups
  * @param {SourceAndInfo} defaultSourceAndInfo
  * @param {unknown} sourceAndInfoForEncodingFn
  * @returns {{ sourceAndInfo: SourceAndInfo, contentEncoding: string | null }}
@@ -57,7 +55,7 @@ const findMatchingSourceAndInfo = (
 
 /**
  *
- * @param {import('../types/').StaticAssetMetadata} metadata
+ * @param {import('./static-assets.js').StaticAssetMetadata} metadata
  * @returns
  */
 const createWasmInlineAsset = (metadata) => {

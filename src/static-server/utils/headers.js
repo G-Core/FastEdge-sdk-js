@@ -61,7 +61,7 @@ const getIfModifiedSinceHeader = (request) => {
 
 /**
  * https://httpwg.org/specs/rfc9110.html#field.if-modified-since
- * @param {import('../types/').StaticAsset} asset
+ * @param {import('../assets/static-assets.js').StaticAsset} asset
  * @param {number} ifModifiedSince
  * @returns {boolean}
  */
