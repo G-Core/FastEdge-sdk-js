@@ -5,7 +5,8 @@ declare module 'fastedge::fs' {
    *
    * **Note**: This can only be invoked during build-time initialization.
    *
-   * @param path The path to the file
+   * @param {string} path The path to the file
+   * @returns {Uint8Array} Byte array of the file contents
    *
    */
   export function readFileSync(path: string): Uint8Array;
