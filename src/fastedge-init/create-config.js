@@ -1,10 +1,9 @@
 import { writeFile } from 'node:fs/promises';
 
-import { CONFIG_FILE_PATH } from 'src/constants/index';
+import { CONFIG_FILE_PATH } from '~constants/index.js';
+import { createOutputDirectory } from '~utils/file-system.js';
 
-import { createOutputDirectory } from 'src/utils/file-system';
-
-const defaultConfig = {
+const buildTypeConfig = {
   http: {},
   next: {},
   static: {
@@ -23,7 +22,7 @@ const defaultConfig = {
 async function createConfigFile(type, providedConfig = {}) {
   const config = {
     type,
-    ...defaultConfig[type],
+    ...buildTypeConfig[type],
     ...providedConfig,
   };
 

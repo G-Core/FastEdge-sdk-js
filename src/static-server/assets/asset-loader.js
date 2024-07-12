@@ -4,7 +4,7 @@
 // @ts-ignore
 import { readFileSync } from 'fastedge::fs';
 
-import { createEmbeddedStoreEntry } from './embedded-store-entry';
+import { createEmbeddedStoreEntry } from './embedded-store-entry.js';
 
 const decoder = new TextDecoder();
 

@@ -1,5 +1,6 @@
-import { componentize } from 'src/componentize';
-import { validateFilePaths } from 'src/utils/input-path-verification';
+import { componentize } from 'src/componentize/index.js';
+
+import { validateFilePaths } from '~utils/input-path-verification.js';
 
 async function buildWasm({ input, output }) {
   validateFilePaths(input, output);

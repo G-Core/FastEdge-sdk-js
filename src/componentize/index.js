@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url';
 import { componentNew } from '@bytecodealliance/jco';
 import wizer from '@bytecodealliance/wizer';
 
-import { getTmpDir, npxPackagePath, resolveTmpDir } from 'src/utils/file-system';
-import { validateFilePaths } from 'src/utils/input-path-verification';
+import { addWasmMetadata } from './add-wasm-metadata.js';
+import { getJsInputContents } from './get-js-input.js';
+import { precompile } from './precompile.js';
 
-import { addWasmMetadata } from './add-wasm-metadata';
-import { getJsInputContents } from './get-js-input';
-import { precompile } from './precompile';
+import { getTmpDir, npxPackagePath, resolveTmpDir } from '~utils/file-system.js';
+import { validateFilePaths } from '~utils/input-path-verification.js';
 
 async function componentize(jsInput, output, opts = {}) {
   const {

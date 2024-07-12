@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 
-import { npxPackagePath } from 'src/utils/file-system';
-import { colorLog } from 'src/utils/prompts';
+import { npxPackagePath } from '~utils/file-system.js';
+import { colorLog } from '~utils/prompts.js';
 
 const USAGE_TEXT = `\nUsage: fastedge-build [options]
 
@@ -16,11 +16,11 @@ const USAGE_TEXT = `\nUsage: fastedge-build [options]
 
 async function printVersion() {
   const { version } = JSON.parse(readFileSync(npxPackagePath('./package.json'), 'utf8'));
-  colorLog('green', `@gcoredev/fastedge-sdk-js: ${version}`);
+  colorLog('standard', `@gcoredev/fastedge-sdk-js: ${version}`);
 }
 
 function printHelp() {
-  colorLog(undefined, USAGE_TEXT);
+  colorLog('standard', USAGE_TEXT);
 }
 
 export { printHelp, printVersion, USAGE_TEXT };

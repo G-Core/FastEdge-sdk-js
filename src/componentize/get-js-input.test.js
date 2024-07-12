@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 
-import { esBundle } from './es-bundle';
-import { getJsInputContents } from './get-js-input';
+import { esBundle } from './es-bundle.js';
+import { getJsInputContents } from './get-js-input.js';
 
 jest.mock('node:fs/promises');
 

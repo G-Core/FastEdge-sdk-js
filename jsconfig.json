@@ -1,21 +1,23 @@
 {
   "compilerOptions": {
-    // "module": "ESNext",
-    // "moduleDetection": "force",
-    // "target": "ESNext",
-    "target": "ES2018",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "declaration": true,
     "noEmit": true,
-    "strict": true,
+    "strict": false,
     "checkJs": true,
     "baseUrl": ".",
     "paths": {
-      "~src/*": ["./src/*"]
+      "~utils/*": ["./src/utils/*"],
+      "~fastedge-build/*": ["./src/fastedge-build/*"],
+      "~fastedge-init/*": ["./src/fastedge-init/*"],
+      "~static-server/*": ["./src/static-server/*"],
+      "~constants/*": ["./src/constants/*"]
     }
   },
-  "include": ["src/**/*.js"]
-  // "exclude": ["./node_modules"]
+  "include": ["src/**/*.js"],
+  "exclude": ["./node_modules"]
 }

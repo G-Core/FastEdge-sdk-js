@@ -5,12 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 import { componentNew } from '@bytecodealliance/jco';
 
-import { validateFilePaths } from 'src/utils/input-path-verification';
+import { addWasmMetadata } from './add-wasm-metadata.js';
+import { getJsInputContents } from './get-js-input.js';
+import { precompile } from './precompile.js';
 
-import { addWasmMetadata } from './add-wasm-metadata';
-import { componentize } from './componentize';
-import { getJsInputContents } from './get-js-input';
-import { precompile } from './precompile';
+import { componentize } from './index.js';
+
+import { validateFilePaths } from '~utils/input-path-verification.js';
 
 jest.mock('src/utils/file-system');
 jest.mock('node:fs', () => ({

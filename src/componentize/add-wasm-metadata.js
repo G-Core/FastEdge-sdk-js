@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 import { metadataAdd } from '@bytecodealliance/jco';
 
-import { npxPackagePath } from 'src/utils/file-system';
+import { npxPackagePath } from '~utils/file-system.js';
 
 export async function addWasmMetadata(wasmPath) {
   const packageJson = await readFile(npxPackagePath('./package.json'), {

@@ -4,16 +4,17 @@ const { Confirm, Input, MultiSelect, Select } = enquirer;
 
 const NO_COLOUR = '\x1b[0m';
 const promptColors = {
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
+  error: '\x1b[31m', // red
+  success: '\x1b[32m', // green
+  warning: '\x1b[33m', // yellow
+  info: '\x1b[34m', //blue
+  caution: '\x1b[35m', //magenta
+  standard: NO_COLOUR,
 };
 
 /**
  *
- * @param {'blue'|'green'|'red'|'yellow'|'magenta'} color
+ * @param {'success'|'error'|'warning'|'caution'|'info'|'standard'} color
  * @param  {...any} restArgs
  */
 const colorLog = (color, ...restArgs) => {

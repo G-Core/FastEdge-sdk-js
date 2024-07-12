@@ -1,14 +1,14 @@
-import { CONFIG_FILE_PATH } from 'src/constants/index';
-import { isFile } from 'src/utils/file-system';
-import { colorLog, confirmPrompt, selectPrompt } from 'src/utils/prompts';
+import { setupHttpApp } from './http-handler.js';
+import { setupNextApp } from './next-app.js';
+import { setupStaticApp } from './static-site.js';
 
-import { setupHttpApp } from './http-handler';
-import { setupNextApp } from './next-app';
-import { setupStaticApp } from './static-site';
+import { CONFIG_FILE_PATH } from '~constants/index.js';
+import { isFile } from '~utils/file-system.js';
+import { colorLog, confirmPrompt, selectPrompt } from '~utils/prompts.js';
 
 const alreadyHasConfigFile = await isFile(CONFIG_FILE_PATH);
 if (alreadyHasConfigFile) {
-  colorLog('red', `Error: FastEdge config file '${CONFIG_FILE_PATH}' already exists`);
+  colorLog('error', `Error: FastEdge config file '${CONFIG_FILE_PATH}' already exists`);
   const overwrite = await confirmPrompt(
     'Do you want to overwrite the existing config file?',
     false,
@@ -48,4 +48,4 @@ switch (initType) {
     process.exit(1);
 }
 
-colorLog('green', 'FastEdge initialization completed successfully');
+colorLog('success', 'FastEdge initialization completed successfully');

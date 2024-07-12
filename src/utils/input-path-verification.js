@@ -13,10 +13,10 @@ function containsSyntaxErrors(jsInput) {
     return false;
   }
   colorLog(
-    undefined,
+    'standard',
     `${nodeProcess.stderr.split('\nSyntaxError: Invalid or unexpected token\n')[0]}\n`,
   );
-  colorLog('magenta', `SyntaxError: Invalid or unexpected token`);
+  colorLog('error', `SyntaxError: Invalid or unexpected token`);
   return true;
 }
 
@@ -26,27 +26,27 @@ async function validateFilePaths(
   wasmEngine = npxPackagePath('./lib/fastedge-runtime.wasm'),
 ) {
   if (!(await isFile(input))) {
-    colorLog('red', `Error: Input "${input}" is not a file`);
+    colorLog('error', `Error: Input "${input}" is not a file`);
     process.exit(1);
   }
   if (output.slice(-5) !== '.wasm') {
-    colorLog('red', `Error: Output ${output} must be a .wasm file path`);
+    colorLog('error', `Error: Output ${output} must be a .wasm file path`);
     process.exit(1);
   }
   if (!(await isFile(output))) {
     createOutputDirectory(output);
     if (!(await isFile(output, /* AllowNonexistent */ true))) {
-      colorLog('red', `Error: "${output}" path does not exist`);
+      colorLog('error', `Error: "${output}" path does not exist`);
       process.exit(1);
     }
   }
   if (!(await isFile(wasmEngine))) {
-    colorLog('red', `Error: "${wasmEngine}" is not a file`);
+    colorLog('error', `Error: "${wasmEngine}" is not a file`);
     process.exit(1);
   }
 
   if (containsSyntaxErrors(input)) {
-    colorLog('red', `Error: "${input}" contains JS Errors`);
+    colorLog('error', `Error: "${input}" contains JS Errors`);
     process.exit(1);
   }
 }

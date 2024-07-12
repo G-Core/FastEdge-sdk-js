@@ -1,7 +1,7 @@
-import { colorLog } from 'src/utils/prompts';
+import { colorLog } from '~utils/prompts.js';
 
 function setupNextApp() {
-  colorLog('red', 'Setting up a Next app - This has not yet been implemented!!!!');
+  colorLog('error', 'Setting up a Next app - This has not yet been implemented!!!!');
 }
 
 export { setupNextApp };

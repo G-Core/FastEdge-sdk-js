@@ -1,9 +1,12 @@
 import { EmbeddedStoreEntry } from './embedded-store-entry';
 
+// todo: create a Fastedge version of this fileInfo
 export type FileInfo = {
   hash: string; // same as hash of file
   size: number;
-  staticFilePath: string;
+  staticFilePath: string; // ? remove this - not needed
+  assetPath: string;
+  lastModifiedTime: number; // as unix time
 };
 
 export type StaticAssetManifest = Record<string, StaticAssetMetadata>;
@@ -13,7 +16,7 @@ export type StaticAssetMetadata = {
   assetKey: string;
   contentType: string;
   text: boolean;
-  lastModifiedTime: number; // as unix time
+  lastModifiedTime: number; // ? remove this - not needed
   fileInfo: FileInfo;
 };
 

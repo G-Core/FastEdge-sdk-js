@@ -46,18 +46,18 @@ function getDefaultContentTypes() {
   return defaultContentTypes;
 }
 
-function mergeContentTypes(customContentTypes) {
+function getKnownContentTypes(customContentTypes) {
   const finalContentTypes = [];
 
   if (!Array.isArray(customContentTypes)) {
-    colorLog('magenta', 'customContentTypes not an array, ignoring.');
+    colorLog('caution', 'customContentTypes not an array, ignoring.');
   } else {
     for (const [index, contentType] of customContentTypes.entries()) {
       let invalid = false;
 
       if (typeof contentType.test !== 'function' && !(contentType.test instanceof RegExp)) {
         colorLog(
-          'magenta',
+          'caution',
           `Ignoring customContentTypes[${index}]: 'test' must be a function or regular expression.`,
         );
         invalid = true;
@@ -65,7 +65,7 @@ function mergeContentTypes(customContentTypes) {
 
       if (typeof contentType.contentType !== 'string' || !contentType.contentType.includes('/')) {
         colorLog(
-          'magenta',
+          'caution',
           `Ignoring customContentTypes[${index}]: 'contentType' must be a valid string.`,
         );
         invalid = true;
@@ -95,7 +95,7 @@ function mergeContentTypes(customContentTypes) {
     }
   }
 
-  colorLog('magenta', `Applying ${finalContentTypes.length} custom content type(s).`);
+  colorLog('caution', `Applying ${finalContentTypes.length} custom content type(s).`);
 
   // Order matters, the earlier ones have higher precedence.
   // hence customContentTypes first followed by specifically ordered defaultContentTypes
@@ -122,4 +122,4 @@ function testFileContentType(contentTypes, assetKey) {
   return null;
 }
 
-export { getDefaultContentTypes, mergeContentTypes, testFileContentType };
+export { getKnownContentTypes, testFileContentType };

@@ -1,11 +1,11 @@
 import arg from 'arg';
 
-import { CONFIG_FILE_PATH } from 'src/constants/index';
-import { buildWasm } from 'src/fastedge-build/config-build/build-wasm';
-import { buildFromConfigFiles } from 'src/fastedge-build/config-build/index';
-import { colorLog } from 'src/utils/prompts';
+import { buildWasm } from './config-build/build-wasm.js';
+import { buildFromConfigFiles } from './config-build/index.js';
+import { printHelp, printVersion } from './print-info.js';
 
-import { printHelp, printVersion } from './print-info';
+import { CONFIG_FILE_PATH } from '~constants/index.js';
+import { colorLog } from '~utils/prompts.js';
 
 let inputFileName = '';
 let outputFileName = '';
@@ -83,8 +83,8 @@ if (inputFileName && outputFileName) {
     input: inputFileName,
     output: outputFileName,
   });
-  colorLog('green', `Build success!!`);
-  colorLog('magenta', `"${inputFileName}" -> "${outputFileName}"`);
+  colorLog('success', `Build success!!`);
+  colorLog('info', `"${inputFileName}" -> "${outputFileName}"`);
   process.exit(0);
 }
 

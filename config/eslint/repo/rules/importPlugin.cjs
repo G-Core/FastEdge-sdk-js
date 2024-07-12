@@ -25,7 +25,7 @@ module.exports = {
     'import/extensions': [
       'error',
       {
-        js: 'never',
+        js: 'always',
         jsx: 'never',
         ts: 'never',
         tsx: 'never',
@@ -183,7 +183,7 @@ module.exports = {
     ],
     // Prevent unnecessary path segments in import and require statements
     // https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-useless-path-segments.md
-    'import/no-useless-path-segments': ['error', { noUselessIndex: true, commonjs: true }],
+    'import/no-useless-path-segments': ['error', { noUselessIndex: false, commonjs: true }],
     // Forbid webpack loader syntax in imports
     // https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-webpack-loader-syntax.md
     'import/no-webpack-loader-syntax': 'error',

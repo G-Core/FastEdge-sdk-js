@@ -54,6 +54,7 @@
     "@gmrchk/cli-testing-library": "^0.1.2",
     "@jest/transform": "^29.7.0",
     "@semantic-release/changelog": "^6.0.3",
+    "@types/jest": "^29.5.12",
     "babel-jest": "^29.7.0",
     "babel-plugin-transform-import-meta": "^2.2.1",
     "conventional-changelog-eslint": "^5.0.0",

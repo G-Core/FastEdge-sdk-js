@@ -4,7 +4,7 @@ import {
   checkIfNoneMatch,
   getIfModifiedSinceHeader,
   getIfNoneMatchHeader,
-} from './utils/headers';
+} from './utils/headers.js';
 
 // https://httpwg.org/specs/rfc9110.html#rfc.section.15.4.5
 // The server generating a 304 response MUST generate any of the following header fields that would have been sent in
@@ -356,4 +356,4 @@ const getStaticServer = (serverConfig, assetCache) => {
 };
 
 export { getStaticServer };
-export { createStaticAssetsCache } from './assets/static-assets';
+export { createStaticAssetsCache } from './assets/static-assets.js';

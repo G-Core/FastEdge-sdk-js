@@ -1,13 +1,12 @@
-import { isFile } from '~src/utils/file-system';
-import { colorLog, inputPrompt } from '~src/utils/prompts';
+import { createConfigFile } from './create-config.js';
 
-import { createConfigFile } from './create-config';
+import { isFile } from '~utils/file-system.js';
+import { colorLog, inputPrompt } from '~utils/prompts.js';
 
 async function setupHttpApp() {
-  // todo: farq: change this to src/index.js (dist/index.js is just for testing..)
-  const inputFileName = await inputPrompt('Enter the path to your entry file:', 'dist/index.js');
+  const inputFileName = await inputPrompt('Enter the path to your entry file:', 'src/index.js');
   if (!(await isFile(inputFileName))) {
-    colorLog('red', `Error: Input "${inputFileName}" is not a file`);
+    colorLog('error', `Error: Input "${inputFileName}" is not a file`);
     process.exit(1);
   }
   const outputFileName = await inputPrompt(
@@ -15,7 +14,7 @@ async function setupHttpApp() {
     '.fastedge/dist/main.wasm',
   );
   if (outputFileName.slice(-5) !== '.wasm') {
-    colorLog('red', `Error: Output ${outputFileName} must be a .wasm file path`);
+    colorLog('error', `Error: Output ${outputFileName} must be a .wasm file path`);
     process.exit(1);
   }
 

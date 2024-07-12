@@ -1,5 +1,5 @@
-import { createAssetCache } from './asset-cache';
-import { createWasmInlineAsset } from './asset-loader';
+import { createAssetCache } from './asset-cache.js';
+import { createWasmInlineAsset } from './asset-loader.js';
 
 /**
  * Create an object that contains all static assets in memory, with setters and getters for each asset/metadata
