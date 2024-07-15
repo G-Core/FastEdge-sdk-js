@@ -9,7 +9,3 @@ declare module '@gcoredev/fastedge-sdk-js' {
   export function createStaticAssetsCache(staticAssetManifest: StaticAssetManifest): AssetCache;
   export function getStaticServer(serverConfig: unknown, assetCache: AssetCache): StaticServer;
 }
-
-export * from './fastedge:env.d.ts';
-export * from './fastedge:fs.d.ts';
-export * from './globals.d.ts';
