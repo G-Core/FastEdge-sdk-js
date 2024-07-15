@@ -1,7 +1,11 @@
 export default {
   moduleDirectories: ['node_modules'],
   moduleNameMapper: {
-    '^src/(.*)$': '<rootDir>/src/$1',
+    '^~utils/(.*)$': '<rootDir>/src/utils/$1',
+    '^~fastedge-build/(.*)$': '<rootDir>/src/fastedge-build/$1',
+    '^~fastedge-init/(.*)$': '<rootDir>/src/fastedge-init/$1',
+    '^~static-server/(.*)$': '<rootDir>/src/static-server/$1',
+    '^~constants/(.*)$': '<rootDir>/src/constants/$1',
   },
   rootDir: process.cwd(),
   testEnvironment: 'node',

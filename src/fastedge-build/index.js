@@ -52,7 +52,7 @@ const hasValidInput = hasFileInputsOnly || hasOptionsOnly;
 
 if (args['--help'] || !hasValidInput) {
   printHelp();
-  process.exit(0);
+  process.exit(hasValidInput ? 0 : 1);
 }
 
 if (args['--version']) {
@@ -88,7 +88,7 @@ if (inputFileName && outputFileName) {
   process.exit(0);
 }
 
-if (configFiles.length > 0) {
+if (configFiles.length > 0 && configFiles[0].length > 0) {
   await buildFromConfigFiles(configFiles);
   process.exit(0);
 }

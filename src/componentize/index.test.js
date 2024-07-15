@@ -13,7 +13,7 @@ import { componentize } from './index.js';
 
 import { validateFilePaths } from '~utils/input-path-verification.js';
 
-jest.mock('src/utils/file-system');
+jest.mock('~utils/file-system');
 jest.mock('node:fs', () => ({
   rmSync: jest.fn(),
 }));
@@ -38,7 +38,7 @@ jest.mock('node:url', () => ({
 }));
 
 // This is just mocked here.. Integration tests from fastedge-build will test this in detail
-jest.mock('src/utils/input-path-verification', () => ({
+jest.mock('~utils/input-path-verification', () => ({
   validateFilePaths: jest.fn().mockResolvedValue(),
 }));
 

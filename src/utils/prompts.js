@@ -18,6 +18,11 @@ const promptColors = {
  * @param  {...any} restArgs
  */
 const colorLog = (color, ...restArgs) => {
+  if (color === 'error') {
+    // eslint-disable-next-line no-console
+    console.error(promptColors[color] ?? NO_COLOUR, ...restArgs, NO_COLOUR);
+    return;
+  }
   // eslint-disable-next-line no-console
   console.info(promptColors[color] ?? NO_COLOUR, ...restArgs, NO_COLOUR);
 };

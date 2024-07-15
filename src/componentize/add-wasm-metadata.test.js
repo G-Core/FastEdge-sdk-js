@@ -4,7 +4,7 @@ import { metadataAdd } from '@bytecodealliance/jco';
 
 import { addWasmMetadata } from './add-wasm-metadata.js';
 
-jest.mock('src/utils/file-system');
+jest.mock('~utils/file-system.js');
 jest.mock('node:fs/promises', () => ({
   writeFile: jest.fn(),
   readFile: jest

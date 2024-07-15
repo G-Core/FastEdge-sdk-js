@@ -1,8 +1,9 @@
 import { readdirSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import path, { dirname, normalize, resolve, sep } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { colorLog } from './prompts.js';
 
 /**
@@ -11,9 +12,9 @@ import { colorLog } from './prompts.js';
  * @returns {string} npxPackagePath
  */
 const npxPackagePath = (filePath) => {
-  const __dirname = dirname(fileURLToPath(import.meta.url)).replace(/\/bin([^/]*)$/u, '');
+  const __dirname = path.dirname(fileURLToPath(import.meta.url)).replace(/\/bin([^/]*)$/u, '');
   try {
-    return resolve(__dirname, filePath);
+    return path.resolve(__dirname, filePath);
   } catch {
     throw new Error(`Failed to resolve the npxPackagePath: ${filePath}`);
   }
@@ -38,20 +39,24 @@ async function isDirectory(path, withContent = false) {
   }
 }
 
-async function createOutputDirectory(path) {
+async function createOutputDirectory(outputPath) {
   try {
-    await mkdir(dirname(path), {
+    await mkdir(path.dirname(outputPath), {
       recursive: true,
     });
   } catch (error) {
-    colorLog('error', `Error: Failed to create the "output" (${path}) directory`, error.message);
+    colorLog(
+      'error',
+      `Error: Failed to create the "output" (${outputPath}) directory`,
+      error.message,
+    );
     process.exit(1);
   }
 }
 
-async function isFile(path, allowNonexistent = false) {
+async function isFile(filePath, allowNonexistent = false) {
   try {
-    const stats = await stat(path);
+    const stats = await stat(filePath);
     return stats.isFile();
   } catch (error) {
     if (error.code === 'ENOENT') {
@@ -62,11 +67,11 @@ async function isFile(path, allowNonexistent = false) {
 }
 
 async function getTmpDir() {
-  return mkdtemp(normalize(tmpdir() + sep));
+  return mkdtemp(path.normalize(tmpdir() + path.sep));
 }
 
 function resolveTmpDir(filePath) {
-  return resolve(filePath, 'temp.bundle.js');
+  return path.resolve(filePath, 'temp.bundle.js');
 }
 
 /**
@@ -96,7 +101,7 @@ function getFilesRecursively(inputPath, opts) {
       // Remove ignoreDotFiles file trees (except .well-known)
       if (ignoreDotFiles && name.startsWith('.') && name !== '.well-known') continue;
 
-      const res = resolve(dir, name);
+      const res = path.resolve(dir, name);
       if (entry.isDirectory()) {
         readDir(res);
       } else {

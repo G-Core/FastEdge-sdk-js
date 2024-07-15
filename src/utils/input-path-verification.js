@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
-import { createOutputDirectory, isFile, npxPackagePath } from 'src/utils/file-system';
-import { colorLog } from 'src/utils/prompts';
+import { createOutputDirectory, isFile, npxPackagePath } from './file-system.js';
+import { colorLog } from './prompts.js';
 
 function containsSyntaxErrors(jsInput) {
   const nodeProcess = spawnSync(`"${process.execPath}"`, ['--check', jsInput], {
