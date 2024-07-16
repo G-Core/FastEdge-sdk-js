@@ -101,6 +101,7 @@ bool install(api::Engine *engine) {
   const JSFunctionSpec methods[] = {
       JS_FN("getEnv", FastEdge::getEnv, 1, JSPROP_ENUMERATE),
       JS_FN("readFileSync", FastEdge::readFileSync, 1, JSPROP_ENUMERATE),
+      JS_FS_END
   };
 
   if (!JS_DefineFunctions(engine->cx(), fastedge, methods) ||
