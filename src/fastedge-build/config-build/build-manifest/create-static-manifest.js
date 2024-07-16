@@ -7,15 +7,10 @@ import { createOutputDirectory } from '~utils/file-system.js';
 import { colorLog } from '~utils/prompts.js';
 
 async function createStaticManifest(config) {
-  const outputFile = '.fastedge/build/static-server-manifest.js'; // ? Maybe this should be configurable in config?
-  // Problem is fastedge-init creates the "import { staticAssetsManifest } from '.fastedge/build/static-manifest'"
-
+  const outputFile = '.fastedge/build/static-server-manifest.js';
   const manifestBuildOutput = path.resolve(outputFile);
 
-  console.log('Farq: createStaticManifest -> manifestBuildOutput', manifestBuildOutput);
-
   await createOutputDirectory(manifestBuildOutput);
-  console.log('Farq: createBuildManifest -> manifestBuildOutput', manifestBuildOutput);
 
   colorLog('info', `Creating build manifest in ${manifestBuildOutput}`);
 
@@ -32,21 +27,11 @@ async function createStaticManifest(config) {
     ' * It will be overwritten on the next build.',
     ' */',
     '',
-    'const serverConfig = { // todo: farq: fix this - not ours',
-    '  publicDirPrefix: "",',
-    '  staticItems: [],',
-    '  compression: ["br", "gzip"],',
-    '  spaFile: null,',
-    '  notFoundPageFile: "/404.html",',
-    '  autoExt: [],',
-    '  autoIndex: ["index.html", "index.htm"],',
-    '};',
-    '',
     'const staticAssetManifest = {',
     ...readableAssetLines,
     '};',
     '',
-    'export { serverConfig, staticAssetManifest  };',
+    'export { staticAssetManifest  };',
     '',
   ];
 

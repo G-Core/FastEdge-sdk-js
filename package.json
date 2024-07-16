@@ -6,7 +6,7 @@
     "npm": "^8 || ^9 || ^10"
   },
   "license": "Apache-2.0",
-  "main": "build/static-server.js",
+  "main": "lib/index.js",
   "types": "types/index.d.ts",
   "type": "module",
   "publishConfig": {
@@ -24,30 +24,26 @@
   },
   "files": [
     "types",
-    "build",
     "bin/fastedge-build.js",
     "bin/fastedge-init.js",
-    "componentize.js",
     "lib/*.wasm",
     "lib/*.js",
     "README.md"
   ],
   "scripts": {
+    "build:ci": "npm-run-all -p build:cli build:static-server build:types build:monkey:release",
     "build:cli": "node esbuild/cli-binaries.js",
     "build:static-server": "node esbuild/static-server.js",
-    "build:wasm": "node build-examples-config.js",
-    "build:all": "npm-run-all -p build:componentize build:static-server build:monkey:release -s build:wasm",
+    "FIX:build:wasm": "node build-examples-config.js",
+    "FIX:build:ci": "npm-run-all -p build:cli build:static-server build:monkey:release -s FIX:build:wasm",
     "build:monkey": "./runtime/fastedge/build.sh --debug",
     "build:monkey:release": "./runtime/fastedge/build.sh",
-    "create:monkey": "node ./componentize-cli.js ./dist/test.js ./dist/test.wasm",
-    "start:monkey": "MY_ENV_VAR=hekki wasmtime serve  --addr=0.0.0.0:8082 -S common ./dist/test.wasm",
-    "test:monkey": "npm-run-all -s create:monkey start:monkey",
-    "generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen",
+    "build:types": "tsc -p ./src/static-server/tsconfig.json",
+    "FIX:generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen",
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
     "semantic-release": "semantic-release",
     "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
-    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js",
-    "types": "tsc -p ./src/static-server/tsconfig.json"
+    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.23.9",

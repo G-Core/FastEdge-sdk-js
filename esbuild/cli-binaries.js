@@ -4,7 +4,6 @@ import path from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const entryPoints = [
-  { src: "./src/componentize/index.js", dest: "./bin/componentize.js" },
   { src: "./src/fastedge-build/index.js", dest: "./bin/fastedge-build.js" },
   { src: "./src/fastedge-init/index.js", dest: "./bin/fastedge-init.js" },
 ];
@@ -44,7 +43,11 @@ const prependNodeShebangToFile = (relativeFilePath) => {
     new URL(path.resolve(process.cwd(), relativeFilePath), import.meta.url),
   );
   const content = readFileSync(filePath, "utf8");
-  writeFileSync(filePath, "#!/usr/bin/env node\n\n" + content);
+  const shebang = "#!/usr/bin/env node";
+  const shebangExists = content.startsWith(shebang);
+  if (!shebangExists) {
+    writeFileSync(filePath, `${shebang}\n\n${content}`);
+  }
 };
 
 prependNodeShebangToFile("./bin/fastedge-build.js");

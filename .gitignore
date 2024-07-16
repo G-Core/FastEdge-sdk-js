@@ -1,8 +1,3 @@
-# Integration Tests build output
-/integration-tests/**/fixtures/**/*.tar.gz
-/integration-tests/**/fixtures/**/fastly.toml
-/integration-tests/**/fixtures/**/*.wasm
-
 /bin/*
 /tests/jest-results.json
 runner.js

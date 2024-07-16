@@ -31,6 +31,17 @@ import {
  * @property {function(Request): Promise<(Response | null)>} serveRequest
  */
 
+/**
+ * @typedef {Object} ServerConfig
+ * @property {string | null} spaEntrypoint
+ * @property {string | null} notFoundPage
+ * @property {string} publicDirPrefix
+ * @property {Array<string | RegExp>} staticItems
+ * @property {Array<string>} autoIndex
+ * @property {Array<string>} autoExt
+ * @property {Array<ContentCompressionTypes>} compression
+ */
+
 // https://httpwg.org/specs/rfc9110.html#rfc.section.15.4.5
 // The server generating a 304 response MUST generate any of the following header fields that would have been sent in
 // a 200 (OK) response to the same request:
@@ -123,7 +134,7 @@ const handlePreconditions = (request, asset, responseHeaders) => {
 // todo: fix: serverconfig
 /**
  * The server able to serve static assets.
- * @param {unknown} serverConfig
+ * @param {ServerConfig} serverConfig
  * @param {import('./assets/asset-cache.js').AssetCache} assetCache
  * @returns {StaticServer} StaticServer
  */
@@ -163,7 +174,6 @@ const getStaticServer = (serverConfig, assetCache) => {
 
       // ... or, we can try auto-ext:
       // looks for an asset that has the specified suffix (usually extension, such as .html)
-      // @ts-ignore
       for (const extEntry of _serverConfig.autoExt) {
         const assetKeyWithExt = assetKey + extEntry;
         const asset = _assetCache.getAsset(assetKeyWithExt);
@@ -173,7 +183,6 @@ const getStaticServer = (serverConfig, assetCache) => {
       }
     }
 
-    // @ts-ignore
     if (_serverConfig.autoIndex.length > 0) {
       // Try auto-index:
       // treats the path as a directory, and looks for an asset with the specified
@@ -184,7 +193,6 @@ const getStaticServer = (serverConfig, assetCache) => {
         assetNameAsDir = assetNameAsDir.slice(0, -1);
       }
       assetNameAsDir += '/';
-      // @ts-ignore
       for (const indexEntry of _serverConfig.autoIndex) {
         const assetKeyIndex = assetNameAsDir + indexEntry;
         const asset = _assetCache.getAsset(assetKeyIndex);
@@ -201,7 +209,6 @@ const getStaticServer = (serverConfig, assetCache) => {
    * @returns {Array<ContentCompressionTypes>}
    */
   const findAcceptEncodings = (request) => {
-    // @ts-ignore
     if (_serverConfig.compression.length === 0) {
       return [];
     }
@@ -342,11 +349,12 @@ const getStaticServer = (serverConfig, assetCache) => {
     // Fallback HTML responses, like SPA and "not found" pages
     if (requestAcceptsTextHtml(request)) {
       // These are raw asset paths, not relative to public path
-      // @ts-ignore
-      const { spaFile } = _serverConfig;
+      const { spaEntrypoint } = _serverConfig;
+      console.log('Farq: serveRequest -> _serverConfig', _serverConfig);
+      console.log('Farq: serveRequest -> spaEntrypoint', spaEntrypoint);
 
-      if (spaFile != null) {
-        const asset = _assetCache.getAsset(spaFile);
+      if (spaEntrypoint != null) {
+        const asset = _assetCache.getAsset(spaEntrypoint);
         if (asset != null) {
           return serveAsset(request, asset, {
             cache: 'never',
@@ -354,10 +362,9 @@ const getStaticServer = (serverConfig, assetCache) => {
         }
       }
 
-      // @ts-ignore
-      const { notFoundPageFile } = _serverConfig;
-      if (notFoundPageFile != null) {
-        const asset = _assetCache.getAsset(notFoundPageFile);
+      const { notFoundPage } = _serverConfig;
+      if (notFoundPage != null) {
+        const asset = _assetCache.getAsset(notFoundPage);
         if (asset != null) {
           return serveAsset(request, asset, {
             status: 404,

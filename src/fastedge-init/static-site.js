@@ -1,9 +1,11 @@
 import { writeFile } from 'node:fs/promises';
+import path from 'node:path';
 
 import { createConfigFile } from './create-config.js';
 
-import { createOutputDirectory, isDirectory } from '~utils/file-system.js';
-import { colorLog, inputPrompt } from '~utils/prompts.js';
+import { normalizePath } from '~utils/config-helpers.js';
+import { createOutputDirectory, isDirectory, isFile } from '~utils/file-system.js';
+import { colorLog, confirmPrompt, inputPrompt } from '~utils/prompts.js';
 
 const createInputFile = async (inputFileName) => {
   const fileContents = [
@@ -12,7 +14,8 @@ const createInputFile = async (inputFileName) => {
     ' */',
     '',
     'import { getStaticServer, createStaticAssetsCache } from "@gcoredev/fastedge-sdk-js";',
-    'import { serverConfig, staticAssetManifest } from "./build/static-server-manifest.js";',
+    'import { staticAssetManifest } from "./build/static-server-manifest.js";',
+    'import { serverConfig } from "./build-config.js";',
     '',
     'const staticAssets = createStaticAssetsCache(staticAssetManifest);',
     '',
@@ -46,10 +49,7 @@ async function setupStaticApp() {
     process.exit(1);
   }
 
-  const publicDirectory = await inputPrompt(
-    'Enter the path to your public directory:',
-    './build/public',
-  );
+  const publicDirectory = await inputPrompt('Enter the path to your public directory:', './build');
 
   const directoryExists = await isDirectory(publicDirectory, true);
   if (!directoryExists) {
@@ -57,11 +57,37 @@ async function setupStaticApp() {
     process.exit(1);
   }
 
-  await createConfigFile('static', {
-    input: inputFileName,
-    output: outputFileName,
-    publicDir: publicDirectory,
-  });
+  const isSpa = await confirmPrompt(
+    'Is your site a single page application? ( e.g. React )',
+    false,
+  );
+  let spaEntrypoint = null;
+  if (isSpa) {
+    const entrypoint = await inputPrompt('Enter the path to your SPA entrypoint:', './index.html');
+    const spaEntrypointExists = await isFile(
+      path.resolve(path.join(publicDirectory, './index.html')),
+    );
+    if (spaEntrypointExists) {
+      spaEntrypoint = normalizePath(entrypoint);
+    } else {
+      colorLog(
+        'warning',
+        `Error: SPA entrypoint "${entrypoint}" does not exist in the public directory. Please check the path`,
+      );
+    }
+  }
+
+  await createConfigFile(
+    'static',
+    {
+      input: inputFileName,
+      output: outputFileName,
+      publicDir: publicDirectory,
+    },
+    {
+      spaEntrypoint,
+    },
+  );
 }
 
 export { setupStaticApp };
