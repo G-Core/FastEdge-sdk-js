@@ -30,7 +30,7 @@ function prettierObjectString(obj) {
 /**
  *
  * @param {*} config
- * @returns {import('~static-server/types/assets/static-asset.js').StaticAssetManifest} staticAssetManifest
+ * @returns {import('~static-server/assets/static-assets.js').StaticAssetManifest} staticAssetManifest
  */
 function createManifestFileMap(config) {
   const publicDirPath = path.resolve(config.publicDir);
@@ -91,7 +91,7 @@ function createManifestFileMap(config) {
   });
 
   /**
-   * @typedef {import('~static-server/types/assets/static-asset.js').StaticAssetManifest} staticAssetManifest
+   * @typedef {import('~static-server/assets/static-assets.js').StaticAssetManifest} staticAssetManifest
    */
   const staticAssetManifest = {};
 

@@ -12,18 +12,10 @@ import { createOutputDirectory } from '~utils/file-system.js';
  */
 
 /**
- * @typedef {Object} StaticConfig
- * @property {string} input
- * @property {boolean} ignoreDotFiles
- * @property {string[]} ignoreDirs
- * @property {boolean} ignoreWellKnown
- */
-
-/**
  * @typedef {Object<ConfigType, Object>} ConfigTypeObject
  * @property {Object} http
  * @property {Object} next
- * @property {StaticConfig} static
+ * @property {Object} static
  */
 
 /**

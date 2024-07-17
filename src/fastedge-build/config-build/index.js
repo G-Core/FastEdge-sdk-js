@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createStaticManifest } from './build-manifest/create-static-manifest.js';
 import { buildWasm } from './build-wasm.js';
 
-import { normalizePath } from '~utils/config-helpers.js';
+import { normalizeBuildConfig } from '~utils/config-helpers.js';
 import { isFile } from '~utils/file-system.js';
 import { colorLog } from '~utils/prompts.js';
 
@@ -39,10 +39,7 @@ async function loadConfig(configPath) {
     const configFileExists = await isFile(configPath);
     if (configFileExists) {
       const { config } = await import(/* webpackChunkName: "config" */ configPath);
-      return {
-        ...config,
-        ignoreDirs: (config.ignoreDirs ?? []).map(normalizePath),
-      };
+      return normalizeBuildConfig(config);
     }
     colorLog('error', `Error: Config file not found at ${configPath}. Skipping build.`);
   } catch (error) {

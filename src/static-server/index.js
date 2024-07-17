@@ -1,3 +1,5 @@
+import { normalizeServerConfig } from '../utils/config-helpers.js';
+
 import {
   buildHeadersSubset,
   checkIfModifiedSince,
@@ -36,7 +38,7 @@ import {
  * @property {string | null} spaEntrypoint
  * @property {string | null} notFoundPage
  * @property {string} publicDirPrefix
- * @property {Array<string | RegExp>} staticItems
+ * @property {Array<string>} staticItems
  * @property {Array<string>} autoIndex
  * @property {Array<string>} autoExt
  * @property {Array<ContentCompressionTypes>} compression
@@ -131,7 +133,6 @@ const handlePreconditions = (request, asset, responseHeaders) => {
   return null;
 };
 
-// todo: fix: serverconfig
 /**
  * The server able to serve static assets.
  * @param {ServerConfig} serverConfig
@@ -139,7 +140,7 @@ const handlePreconditions = (request, asset, responseHeaders) => {
  * @returns {StaticServer} StaticServer
  */
 const getStaticServer = (serverConfig, assetCache) => {
-  const _serverConfig = serverConfig;
+  const _serverConfig = normalizeServerConfig(serverConfig);
   const _assetCache = assetCache; // @ts-ignore
   const _staticItems = serverConfig.staticItems // @ts-ignore
     .map((x, i) => {
@@ -350,9 +351,6 @@ const getStaticServer = (serverConfig, assetCache) => {
     if (requestAcceptsTextHtml(request)) {
       // These are raw asset paths, not relative to public path
       const { spaEntrypoint } = _serverConfig;
-      console.log('Farq: serveRequest -> _serverConfig', _serverConfig);
-      console.log('Farq: serveRequest -> spaEntrypoint', spaEntrypoint);
-
       if (spaEntrypoint != null) {
         const asset = _assetCache.getAsset(spaEntrypoint);
         if (asset != null) {
