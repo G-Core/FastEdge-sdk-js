@@ -12,3 +12,5 @@ jobs:
 
   unit_tests:
     uses: ./.github/workflows/unit-tests.yaml
+     with:
+      integration_tests: 'false'

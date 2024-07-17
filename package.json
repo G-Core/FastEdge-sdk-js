@@ -43,6 +43,8 @@
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
     "semantic-release": "semantic-release",
     "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
+    "test:unit": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- src/",
+    "test:integration": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- integration-tests/",
     "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js"
   },
   "devDependencies": {

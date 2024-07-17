@@ -37,6 +37,8 @@ jobs:
   unit_tests:
     needs: [validate_branch_name]
     uses: ./.github/workflows/unit-tests.yaml
+    with:
+      integration_tests: 'true'
 
   npm_release:
     needs: [code_validation, unit_tests]
