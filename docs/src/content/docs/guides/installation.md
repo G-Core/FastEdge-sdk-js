@@ -20,4 +20,4 @@ your javascript project.
 npm install --save-dev @gcoredev/fastedge-sdk-js
 ```
 
-This will install both the javascript module `componentize` as well as a command line option.
+This will install the javascript package as well as some helpful command line tools.
