@@ -1,0 +1,41 @@
+name: Deploy to NPM
+
+on:
+  push:
+    branches: ['static-server-v1']
+
+jobs:
+  build_fastedge_libs:
+    runs-on: [self-hosted, ubuntu-22-04, regular]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # - name: Import Secrets
+      #   uses: hashicorp/vault-action@v3
+      #   id: secrets
+      #   with:
+      #     url: https://puppet-vault.gc.onl
+      #     token: ${{ secrets.VAULT_TOKEN }}
+      #     secrets: |
+      #       secret/responsible_fe/harbor-credentials password | HARBOR_TOKEN ;
+      #       secret/responsible_fe/harbor-credentials name | HARBOR_LOGIN ;
+
+      # - name: Login to DockerHub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: harbor.p.gc.onl
+      #     username: ${{ steps.secrets.outputs.HARBOR_LOGIN }}
+      #     password: ${{ steps.secrets.outputs.HARBOR_TOKEN }}
+
+      - name: display contents of lib folder
+        run: ls -la lib
+
+      - name: Build docker images
+        run: docker build -t clang-monkey .
+
+      - name: Build fastedge libs
+        run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey
+
+      - name: display contents of lib folder
+        run: ls -la lib
