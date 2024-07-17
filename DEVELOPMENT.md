@@ -35,8 +35,8 @@ Software that needs installing to work with this library:
   ```sh
   cargo install cbindgen
   ```
-- [wasi-sdk, version 20](https://github.com/WebAssembly/wasi-sdk/releases/tag/wasi-sdk-20),
-  with alternate [install instructions](https://github.com/WebAssembly/wasi-sdk#install)
+- [wasi-sdk, version 20](https://github.com/WebAssembly/wasi-sdk/releases/tag/wasi-sdk-20), with
+  alternate [install instructions](https://github.com/WebAssembly/wasi-sdk#install)
   ```sh
   curl -sS -L -O https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-linux.tar.gz
   tar xf wasi-sdk-20.0-linux.tar.gz
@@ -44,26 +44,10 @@ Software that needs installing to work with this library:
   sudo mv wasi-sdk-20.0/* /opt/wasi-sdk/
   ```
 
-### SpiderMonkey
-
-In the [/fastedge-runtime](./fastedge-runtime/) folder there is a subfolder containing [SpiderMonkey](https://firefox-source-docs.mozilla.org/js/index.html).
-
-You need to build this now:
-
-```sh
-cd fastedge-runtime/spidermonkey && bash build-engine.sh
-```
-
-This will take some time to complete, so grab a coffee, it is mandatory for running your code.
-
-Note: -> error `build-engine.sh: line 81: ./mach: No such file or directory` see the bit about [git submodules](./DEVELOPMENT.md#working-with-the-source-code)
-
-Once that is done you can start building your code.
-
 ### Building
 
 ```sh
-npm run build
+npm run build:all
 ```
 
 ## Testing
