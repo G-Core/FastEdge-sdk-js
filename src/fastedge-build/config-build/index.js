@@ -9,10 +9,8 @@ import { colorLog } from '~utils/prompts.js';
 
 async function buildFromConfig(config) {
   if (!config) return;
-  console.log('Farq: config', config);
   switch (config.type) {
     case 'static': {
-      console.log('Farq: static build');
       await createStaticManifest(config);
       await buildWasm(config);
       colorLog('success', `Success: Built ${config.output}`);
