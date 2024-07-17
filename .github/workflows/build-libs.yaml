@@ -11,6 +11,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up repo submodules
+        run: git submodule update --init --recursive
+
       # - name: Import Secrets
       #   uses: hashicorp/vault-action@v3
       #   id: secrets
