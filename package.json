@@ -31,12 +31,12 @@
     "README.md"
   ],
   "scripts": {
-    "build:all": "npm-run-all -p build:cli build:static-server build:types build:monkey:release",
+    "build:dev": "npm-run-all -p build:cli build:static-server build:types build:monkey:dev",
     "build:cli": "node esbuild/cli-binaries.js",
     "build:static-server": "node esbuild/static-server.js",
     "FIX:build:wasm": "node build-examples-config.js",
     "FIX:build:ci": "npm-run-all -p build:cli build:static-server build:monkey:release -s FIX:build:wasm",
-    "build:monkey": "./runtime/fastedge/build.sh --debug",
+    "build:monkey:dev": "./runtime/fastedge/build.sh --debug",
     "build:monkey:release": "./runtime/fastedge/build.sh",
     "build:types": "tsc -p ./src/static-server/tsconfig.json",
     "FIX:generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen",

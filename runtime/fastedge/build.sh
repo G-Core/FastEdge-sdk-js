@@ -17,6 +17,8 @@ done
 
 BUILD_PATH=build-${BUILD_TYPE,,}
 
+echo ">>>>>> BUILD_PATH: $BUILD_PATH"
+
 # Configure the build environment using cmake
 # HOST_API=$(realpath host-api) cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
 cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE
@@ -26,5 +28,7 @@ cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 # cmake --build $BUILD_PATH --parallel 16
 cmake --build $BUILD_PATH --parallel 8
 # Copy the built WebAssembly module to the parent directory
-mv $BUILD_PATH/starling.wasm/starling.wasm ../../lib/fastedge-runtime.wasm
-mv $BUILD_PATH/starling.wasm/preview1-adapter.wasm ../../lib/preview1-adapter.wasm
+echo "CWD: $(pwd)"
+
+mv ./$BUILD_PATH/starling.wasm/starling.wasm ../../lib/fastedge-runtime.wasm
+mv ./$BUILD_PATH/starling.wasm/preview1-adapter.wasm ../../lib/preview1-adapter.wasm

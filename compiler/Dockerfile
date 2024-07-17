@@ -50,10 +50,10 @@ RUN \
 COPY compiler/update_clang_alternatives.sh /tmp/update_clang_alternatives.sh
 RUN /tmp/update_clang_alternatives.sh ${clang_version} 100
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.68.2; \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.75.0; \
   rustup --version; \
   cargo --version; \
   rustc --version;
 
 # Install WASI target
-RUN rustup target add --toolchain 1.68.2 wasm32-wasi
+RUN rustup target add --toolchain 1.75.0 wasm32-wasi

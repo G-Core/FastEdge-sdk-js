@@ -47,7 +47,7 @@ Software that needs installing to work with this library:
 ### Building
 
 ```sh
-npm run build:all
+npm run build:dev
 ```
 
 ## Testing
