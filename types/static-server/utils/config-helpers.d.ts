@@ -33,9 +33,10 @@ export function normalizeBuildConfig(config?: Object): BuildConfig;
  * Takes a path string and ensures it has no trailing slash and has a single preceding slash.
  * (No dot-slash prefix allowed.)
  * @param {string} path
+ * @param {string} prefix - Prefix to add to the normalized value.
  * @returns {string}
  */
-export function normalizePath(path?: string): string;
+export function normalizePath(path?: string, prefix?: string): string;
 /**
  * @typedef {Object} ServerConfig
  * @property {Array<string>} staticItems
