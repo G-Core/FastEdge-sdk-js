@@ -2,9 +2,8 @@
 
 # Paths to ignore
 ignore_paths=(
-  "./fastedge-runtime/spidermonkey"
+  "./runtime/StarlingMonkey"
   "./node_modules"
-  "./fastedge-runtime/cbindings/build"
 )
 # Need to figure out single file exclusions e.g.
 # "../fastedge-runtime/cbindings/wit-interface/http_reactor.h"
