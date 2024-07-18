@@ -1,7 +1,8 @@
-name: Build /libs directory
+name: Deploy to NPM
 
 on:
-  workflow_call:
+  push:
+    branches: ['never']
 
 jobs:
   build_fastedge_libs:
@@ -33,17 +34,11 @@ jobs:
       - name: display contents of lib folder
         run: ls -la lib
 
-      - name: Remove all contents from lib folder
-        run: rm -rf lib/*
-
       - name: Build docker images
         run: docker build -t clang-monkey .
 
-      - name: Build fastedge runtime libs
+      - name: Build fastedge libs
         run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey
-
-      - name: Build javascript libs
-        run: npm run build:libs
 
       - name: display contents of lib folder
         run: ls -la lib

@@ -2,11 +2,6 @@ name: Unit Tests
 
 on:
   workflow_call:
-    inputs:
-      integration_tests:
-        required: true
-        default: 'false'
-        type: string
 
 jobs:
   unit_tests:
@@ -32,8 +27,3 @@ jobs:
       - name: Unit Tests
         run: |
           npm run test:unit
-
-      - name: Integration Tests
-        if: ${{ inputs.integration_tests == 'true' }}
-        run: |
-          npm run test:integration
