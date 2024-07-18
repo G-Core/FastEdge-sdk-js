@@ -45,6 +45,8 @@ jobs:
   build_fastedge_artifacts:
     needs: [code_validation, unit_tests]
     uses: ./.github/workflows/build-libs.yaml
+    secrets:
+      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
   npm_release:
     needs: [build_fastedge_artifacts]
