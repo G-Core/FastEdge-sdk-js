@@ -53,7 +53,7 @@ jobs:
 
       - name: Build FastEdge runtime libs
         run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey --debug
-        # Todo: Farq: Need to make this a release build!!
+        # Todo: Farq: Need to make this a release build!!!
 
       - name: Build Javascript libs
         run: npm run build:libs
