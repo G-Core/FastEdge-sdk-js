@@ -9,7 +9,7 @@ export async function addWasmMetadata(wasmPath) {
     encoding: 'utf-8',
   });
   const { name, version } = JSON.parse(packageJson);
-  // TODO: Farq: Sort out the version and changeLog push
+  // TODO: Farq: Sort out the version and changelog push
   const metadata = [['processed-by', [[name, version]]]];
   const wasm = await readFile(wasmPath);
   const newWasm = await metadataAdd(wasm, metadata);

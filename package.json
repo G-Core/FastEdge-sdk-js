@@ -41,6 +41,7 @@
     "FIX:build:wasm": "node build-examples-config.js",
     "FIX:generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen",
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
+    "prepare": "husky",
     "semantic-release": "semantic-release",
     "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
     "test:unit": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- src/",
