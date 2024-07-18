@@ -22,22 +22,22 @@ jobs:
         run: |
           npm ci
 
-      # - name: Import Secrets
-      #   uses: hashicorp/vault-action@v3
-      #   id: secrets
-      #   with:
-      #     url: https://puppet-vault.gc.onl
-      #     token: ${{ secrets.VAULT_TOKEN }}
-      #     secrets: |
-      #       secret/responsible_fe/harbor-credentials password | HARBOR_TOKEN ;
-      #       secret/responsible_fe/harbor-credentials name | HARBOR_LOGIN ;
+      - name: Import Secrets
+        uses: hashicorp/vault-action@v3
+        id: secrets
+        with:
+          url: https://puppet-vault.gc.onl
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            secret/project_fastedge/harbor-robot-account password | HARBOR_PASSWORD ;
+            secret/project_fastedge/harbor-robot-account username | HARBOR_LOGIN ;
 
-      # - name: Login to DockerHub
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: harbor.p.gc.onl
-      #     username: ${{ steps.secrets.outputs.HARBOR_LOGIN }}
-      #     password: ${{ steps.secrets.outputs.HARBOR_TOKEN }}
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.p.gc.onl
+          username: ${{ steps.secrets.outputs.HARBOR_LOGIN }}
+          password: ${{ steps.secrets.outputs.HARBOR_PASSWORD }}
 
       - name: display contents of lib folder
         run: ls -la lib

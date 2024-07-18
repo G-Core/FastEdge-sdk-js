@@ -1,4 +1,4 @@
-FROM viridiscomms/fastedge:latest
+FROM harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.1
 
 WORKDIR /usr/src/app
 
