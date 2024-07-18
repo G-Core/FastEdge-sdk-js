@@ -52,7 +52,8 @@ jobs:
         run: docker build -t clang-monkey .
 
       - name: Build FastEdge runtime libs
-        run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey
+        run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey --debug
+        # Todo: Farq: Need to make this a release build!!
 
       - name: Build Javascript libs
         run: npm run build:libs
@@ -69,6 +70,6 @@ jobs:
           name: libs-artifact
           retention-days: 1
           path: |
-            /bin
-            /lib
-            /types
+            bin/
+            lib/
+            types/
