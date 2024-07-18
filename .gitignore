@@ -1,10 +1,10 @@
-/bin/*
 /tests/jest-results.json
-runner.js
 
 node_modules/
 .DS_Store
+bin/
 dist/
+lib/
 integration-tests/test-files/output.wasm
 # *.o
 # *.d
@@ -12,6 +12,5 @@ integration-tests/test-files/output.wasm
 # compiler_flags
 
 /runtime/fastedge/build-*
-lib/
 *.a
 yarn-error.log
