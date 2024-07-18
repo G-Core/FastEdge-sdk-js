@@ -4,12 +4,14 @@
 ignore_paths=(
   "./runtime/StarlingMonkey"
   "./node_modules"
+  "./docs/node_modules"
 )
 # Need to figure out single file exclusions e.g.
 # "../fastedge-runtime/cbindings/wit-interface/http_reactor.h"
 
 # File extensions to include
 file_extensions=("*.yaml" "*.yml" "*.cpp" "*.h" "*.d.ts")
+
 
 # # Start of the find command
 find_cmd="find ./ \( "
@@ -30,7 +32,7 @@ for path in "${ignore_paths[@]}"; do
   find_cmd+=" -not -path '$path/*'"
 done
 
-# Find all yaml files in the repo, excluding ignore paths
+# Find all files in the repo, excluding ignore paths
 files=$(eval $find_cmd)
 
 # Regex to match kebab-case
@@ -42,7 +44,14 @@ error=false
 for file in $files; do
   # Extract the filename without the extension
   filename=$(basename -- "$file")
-  filename="${filename%.*}"
+
+   # Remove .d.ts extension if present
+  if [[ $filename == *.d.ts ]]; then
+    filename="${filename%.d.ts}"
+  else
+    # Remove the single extension
+    filename="${filename%.*}"
+  fi
 
   # Check if the filename matches the regex
   if [[ ! $filename =~ $regex ]]; then
