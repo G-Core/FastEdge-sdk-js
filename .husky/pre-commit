@@ -8,7 +8,7 @@
 # `git commit`
 # `git commit -m "message"`
 
-protected_branches="main next next-major beta alpha huksy"  # Add the names of the branches you want to protect here
+protected_branches="main next next-major beta alpha"  # Add the names of the branches you want to protect here
 
 current_branch=$(git symbolic-ref --short HEAD)
 
