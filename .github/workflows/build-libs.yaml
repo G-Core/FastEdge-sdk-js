@@ -51,11 +51,24 @@ jobs:
       - name: Build docker images
         run: docker build -t clang-monkey .
 
-      - name: Build fastedge runtime libs
+      - name: Build FastEdge runtime libs
         run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey
 
-      - name: Build javascript libs
+      - name: Build Javascript libs
+        run: npm run build:libs
+
+      - name: Run Integration Tests
         run: npm run build:libs
 
       - name: display contents of lib folder
         run: ls -la lib
+
+      - name: Upload libs Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libs-artifact
+          retention-days: 1
+          path: |
+            /bin
+            /lib
+            /types

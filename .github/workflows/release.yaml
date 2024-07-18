@@ -37,6 +37,17 @@ jobs:
       - name: display contents of bin folder
         run: ls -la bin
 
+      - name: Download libs Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: libs-artifact
+
+      - name: display contents of lib folder
+        run: ls -la lib
+
+      - name: display contents of bin folder
+        run: ls -la bin
+
       - name: Dry Run Status
         id: dry_run
         run: |
