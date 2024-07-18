@@ -7,6 +7,7 @@ on:
     paths:
       - 'src/**'
       - 'runtime/**'
+      - '.github/**' # Farq: Remove this
 
   workflow_dispatch: # trigger manually
     inputs:
