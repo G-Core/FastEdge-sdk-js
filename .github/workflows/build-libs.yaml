@@ -57,7 +57,7 @@ jobs:
         run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey
 
       - name: Build Javascript libs
-        run: npm run build:libs
+        run: npm run build:js
 
       - name: Run Integration Tests
         run: npm run test:integration
