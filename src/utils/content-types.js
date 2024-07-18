@@ -38,7 +38,7 @@ const binaryFormats = [
 ];
 
 const defaultContentTypes = [
-  // Todo: farq: pretty certain I can remove this text: boolean - kvStore implementation
+  // Todo: farq: pretty certain I can remove this text: boolean - kvStore  implementation
   ...textFormats.map((contentType) => ({ ...contentType, text: true })),
   ...binaryFormats.map((contentType) => ({ ...contentType, text: false })),
 ];
