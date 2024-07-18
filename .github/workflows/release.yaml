@@ -31,12 +31,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: display contents of lib folder
-        run: ls -la lib
-
-      - name: display contents of bin folder
-        run: ls -la bin
-
       - name: Download libs Artifact
         uses: actions/download-artifact@v4
         with:
@@ -63,4 +57,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CI: true # Used to bypass husky hooks
         run: npx semantic-release ${{ steps.dry_run.outputs.dry_run }}
