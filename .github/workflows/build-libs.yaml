@@ -59,7 +59,7 @@ jobs:
         run: npm run build:libs
 
       - name: Run Integration Tests
-        run: npm run build:libs
+        run: npm run test:integration
 
       - name: display contents of lib folder
         run: ls -la lib
