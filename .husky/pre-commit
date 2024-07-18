@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Called by "git commit"
 #
@@ -8,7 +8,7 @@
 # `git commit`
 # `git commit -m "message"`
 
-protected_branches=("main" "next" "next-major" "beta" "alpha")  # Add the names of the branches you want to protect here
+protected_branches="main next next-major beta alpha"  # Add the names of the branches you want to protect here
 
 current_branch=$(git symbolic-ref --short HEAD)
 
@@ -16,10 +16,10 @@ echo "current_branch: $current_branch"
 
 policy="[Policy] (Prevented with pre-commit hook.) 🚫\n You are not allowed to commit to the \"$current_branch\" branch, please create your own branch and use a PR."
 
-for branch in "${protected_branches[@]}"
+for branch in $protected_branches
 do
     if [ "$current_branch" = "$branch" ]; then
-        echo -e "$policy"
+        echo "$policy"
         exit 1
     fi
 done
