@@ -43,7 +43,7 @@ jobs:
     uses: ./.github/workflows/build-libs.yaml
 
   npm_release:
-    needs: [build_fastedge_runtime]
+    needs: [build_fastedge_artifacts]
     uses: ./.github/workflows/release.yaml
     with:
       dry_run: ${{ github.event.inputs.dry_run || 'true' }}
