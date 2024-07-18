@@ -38,8 +38,12 @@ jobs:
     needs: [validate_branch_name]
     uses: ./.github/workflows/unit-tests.yaml
 
-  npm_release:
+  build_fastedge_artifacts:
     needs: [code_validation, unit_tests]
+    uses: ./.github/workflows/build-libs.yaml
+
+  npm_release:
+    needs: [build_fastedge_runtime]
     uses: ./.github/workflows/release.yaml
     with:
       dry_run: ${{ github.event.inputs.dry_run || 'true' }}

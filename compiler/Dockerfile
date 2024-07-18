@@ -10,6 +10,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG clang_version=18
 ARG distro
 ARG rustArch=x86_64-unknown-linux-gnu
+ARG wasm32_wasi_version=1.77.1
 
 ENV RUSTUP_HOME=/usr/local/rustup \
   CARGO_HOME=/usr/local/cargo \
@@ -50,10 +51,10 @@ RUN \
 COPY compiler/update_clang_alternatives.sh /tmp/update_clang_alternatives.sh
 RUN /tmp/update_clang_alternatives.sh ${clang_version} 100
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.68.2; \
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${wasm32_wasi_version}; \
   rustup --version; \
   cargo --version; \
   rustc --version;
 
 # Install WASI target
-RUN rustup target add --toolchain 1.68.2 wasm32-wasi
+RUN rustup target add --toolchain ${wasm32_wasi_version} wasm32-wasi
