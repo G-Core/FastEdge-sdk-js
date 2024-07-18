@@ -2,13 +2,13 @@ import enquirer from 'enquirer';
 
 const { Confirm, Input, MultiSelect, Select } = enquirer;
 
-const NO_COLOUR = '\x1b[0m';
+const NO_COLOUR = '\u001B[0m';
 const promptColors = {
-  error: '\x1b[31m', // red
-  success: '\x1b[32m', // green
-  warning: '\x1b[33m', // yellow
-  info: '\x1b[34m', //blue
-  caution: '\x1b[35m', //magenta
+  error: '\u001B[31m', // Red
+  success: '\u001B[32m', // Green
+  warning: '\u001B[33m', // Yellow
+  info: '\u001B[34m', // Blue
+  caution: '\u001B[35m', // Magenta
   standard: NO_COLOUR,
 };
 
