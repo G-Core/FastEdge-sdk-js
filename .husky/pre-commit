@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ "$CI" = "true" ]; then
+  exit 0
+fi
+
 # Called by "git commit"
 #
 # If this script exits with a non-zero status nothing will be committed.

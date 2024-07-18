@@ -57,4 +57,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CI: true # Used to bypass husky hooks
         run: npx semantic-release ${{ steps.dry_run.outputs.dry_run }}
