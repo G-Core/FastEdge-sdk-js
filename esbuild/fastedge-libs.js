@@ -1,13 +1,15 @@
 import { build } from "esbuild";
+import { writeFileSync } from "node:fs";
 
-const entryPoints = [{ src: "./src/static-server/index.js", dest: "./lib/static-server.js" }];
+const libFolder = "./lib/";
+const entryPoints = [{ src: "./src/static-server/index.js", filename: "static-server.js" }];
 
 async function buildAll() {
-  for (const { src, dest } of entryPoints) {
+  for (const { src, filename } of entryPoints) {
     await build({
       entryPoints: [src],
       bundle: true,
-      outfile: dest,
+      outfile: `${libFolder}${filename}`,
       format: "esm",
       external: [
         "fastedge::fs",
@@ -30,3 +32,13 @@ try {
 } catch (e) {
   console.error("Build Failed:", e);
 }
+
+function createMainEntrypointFile() {
+  const fileContents = entryPoints
+    .map(({ filename }) => `export * from "./${filename.replace(libFolder, "")}";`)
+    .join("\n");
+
+  writeFileSync(`${libFolder}index.js`, fileContents);
+}
+
+createMainEntrypointFile();
