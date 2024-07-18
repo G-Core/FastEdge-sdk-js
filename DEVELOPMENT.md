@@ -50,6 +50,11 @@ Software that needs installing to work with this library:
 npm run build:dev
 ```
 
+### Docker Compiler
+
+We use a docker image in our CI/CD pipeline for building. This can be used locally, see
+[Compiler README.md](./compiler/README.md)
+
 ## Testing
 
 Coming soon......
