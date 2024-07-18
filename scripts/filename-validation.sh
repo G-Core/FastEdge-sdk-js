@@ -9,8 +9,7 @@ ignore_paths=(
 # "../fastedge-runtime/cbindings/wit-interface/http_reactor.h"
 
 # File extensions to include
-file_extensions=("*.yaml" "*.yml" "*.cpp" )
-# file_extensions=("*.yaml" "*.yml" "*.cpp" "*.h")
+file_extensions=("*.yaml" "*.yml" "*.cpp" "*.h" "*.d.ts")
 
 # # Start of the find command
 find_cmd="find ./ \( "
