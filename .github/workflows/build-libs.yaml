@@ -45,24 +45,22 @@ jobs:
       - name: display contents of lib folder
         run: ls -la lib
 
-      - name: Remove all contents from lib folder
-        run: rm -rf lib/*
+      - name: Ensure build folders are empty # Should already be empty
+        run: |
+          rm -rf lib/*
+          rm -rf bin/*
 
       - name: Build docker images
         run: docker build -t clang-monkey .
 
       - name: Build FastEdge runtime libs
-        run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey --debug
-        # Todo: Farq: Need to make this a release build!!!
+        run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey
 
       - name: Build Javascript libs
         run: npm run build:libs
 
       - name: Run Integration Tests
         run: npm run test:integration
-
-      - name: display contents of lib folder
-        run: ls -la lib
 
       - name: Upload libs Artifact
         uses: actions/upload-artifact@v4
