@@ -39,8 +39,11 @@ const binaryFormats = [
 
 const defaultContentTypes = [
   // Todo: farq: pretty certain I can remove this text: boolean - kvStore  implementation
-  ...textFormats.map((contentType) => ({ ...contentType, text: true })),
-  ...binaryFormats.map((contentType) => ({ ...contentType, text: false })),
+
+  // ...textFormats.map((contentType) => ({ ...contentType, text: true })),
+  // ...binaryFormats.map((contentType) => ({ ...contentType, text: false })),
+  ...textFormats.map((contentType) => ({ ...contentType })),
+  ...binaryFormats.map((contentType) => ({ ...contentType })),
 ];
 
 function getDefaultContentTypes() {
@@ -96,7 +99,7 @@ function getKnownContentTypes(customContentTypes) {
     }
   }
 
-  colorLog('caution', `Applying ${finalContentTypes.length} custom content type(s).`);
+  colorLog('info', `Applying ${finalContentTypes.length} custom content type(s).`);
 
   // Order matters, the earlier ones have higher precedence.
   // hence customContentTypes first followed by specifically ordered defaultContentTypes

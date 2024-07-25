@@ -14,7 +14,7 @@ import { createWasmInlineAsset } from './asset-loader.js';
  * @property {string} type - Type of the asset.
  * @property {string} assetKey - Key of the asset.
  * @property {string} contentType - Content type of the asset.
- * @property {boolean} text - Indicates if the asset is text.
+ // * @property {boolean} text - Indicates if the asset is text.
  * @property {FileInfo} fileInfo - Information about the file.
  * @property {number} lastModifiedTime - Farq: need to remove this, should be on file.
  */

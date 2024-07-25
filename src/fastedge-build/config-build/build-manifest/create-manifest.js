@@ -90,9 +90,7 @@ function createManifestFileMap(config) {
     };
   });
 
-  /**
-   * @typedef {import('~static-server/assets/static-assets.js').StaticAssetManifest} staticAssetManifest
-   */
+  /** @type {import('~static-server/assets/static-assets.js').StaticAssetManifest} */
   const staticAssetManifest = {};
 
   for (const assetInfo of manifestAssets) {
@@ -101,7 +99,6 @@ function createManifestFileMap(config) {
     staticAssetManifest[assetInfo.assetKey] = assetInfo;
   }
 
-  console.log('Farq: createManifestFileMap -> staticAssetManifest', staticAssetManifest);
   return staticAssetManifest;
 }
 

@@ -17,6 +17,7 @@ export function createWasmInlineAsset(metadata: import("./static-assets.js").Sta
         assetKey: string;
         /**
          * - Content type of the asset.
+         * // *
          */
         contentType: string;
         /**
