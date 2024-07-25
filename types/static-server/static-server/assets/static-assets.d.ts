@@ -12,10 +12,6 @@ export type FileInfo = {
      */
     assetPath: string;
     /**
-     * - Farq: need to remove this....
-     */
-    staticFilePath: string;
-    /**
      * - Last modified time as Unix time.
      */
     lastModifiedTime: number;
@@ -72,7 +68,6 @@ export type StaticAssetManifest = {
  * @property {string} hash - Same as hash of file.
  * @property {number} size - Size of the file.
  * @property {string} assetPath - Path to the asset.
- * @property {string} staticFilePath - Farq: need to remove this....
  * @property {number} lastModifiedTime - Last modified time as Unix time.
  */
 /**

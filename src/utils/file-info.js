@@ -26,7 +26,6 @@ function createFileInfo(assetKey, publicDir, file) {
     hash: hash.digest('hex'),
     lastModifiedTime,
     assetPath,
-    staticFilePath: assetPath, // todo: farq: remove this
   };
 }
 

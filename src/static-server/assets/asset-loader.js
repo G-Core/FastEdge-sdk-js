@@ -61,7 +61,7 @@ const findMatchingSourceAndInfo = (
 const createWasmInlineAsset = (metadata) => {
   const _metadata = { ...metadata };
   const _sourceAndInfo = {
-    source: readFileSync(metadata.fileInfo.staticFilePath),
+    source: readFileSync(metadata.fileInfo.assetPath),
     hash: metadata.fileInfo.hash,
     size: metadata.fileInfo.size,
   };
