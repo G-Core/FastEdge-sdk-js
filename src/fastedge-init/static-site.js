@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { createConfigFile } from './create-config.js';
+import { createConfigFile, createProjectFiles } from './create-config.js';
 
 import { normalizePath } from '~utils/config-helpers.js';
 import { createOutputDirectory, isDirectory, isFile } from '~utils/file-system.js';
@@ -76,6 +76,8 @@ async function setupStaticApp() {
       );
     }
   }
+
+  await createProjectFiles(); // ES6 requirements: package.json & jsconfig.json etc..
 
   await createConfigFile(
     'static',

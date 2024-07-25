@@ -1,1 +1,4 @@
-export const CONFIG_FILE_PATH = '.fastedge/build-config.js';
+const PROJECT_DIRECTORY = '.fastedge';
+const CONFIG_FILE_PATH = `${PROJECT_DIRECTORY}/build-config.js`;
+
+export { CONFIG_FILE_PATH, PROJECT_DIRECTORY };

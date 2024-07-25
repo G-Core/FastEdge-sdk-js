@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 
-import { CONFIG_FILE_PATH } from '~constants/index.js';
+import { CONFIG_FILE_PATH, PROJECT_DIRECTORY } from '~constants/index.js';
 import { createOutputDirectory } from '~utils/file-system.js';
 
 /**
@@ -91,4 +91,30 @@ async function createConfigFile(type, buildConfig, serverConfig) {
   await writeFile(CONFIG_FILE_PATH, fileContents, 'utf-8');
 }
 
-export { createConfigFile };
+/**
+ * Creates basic package.json & jsconfig.json files for the ./fastedge folder
+ * This ensures when building FastEdge it is using ES6 modules
+ * i.e. end-user is building a project still based on ES5 / CommonJS
+ */
+async function createProjectFiles() {
+  await createOutputDirectory(PROJECT_DIRECTORY);
+
+  const packageJsonContents = [
+    '{',
+    '  "name": "fastedge-build",',
+    '  "version": "1.0.0",',
+    '  "description": "fastedge-build project folder uses ES6",',
+    '  "type": "module"',
+    '}',
+  ].join('\n');
+
+  await writeFile(`${PROJECT_DIRECTORY}/package.json`, packageJsonContents, 'utf-8');
+
+  const jsConfigContents = ['{', '  "compilerOptions": {', '    "target": "ES6"', '  }', '}'].join(
+    '\n',
+  );
+
+  await writeFile(`${PROJECT_DIRECTORY}/jsconfig.json`, jsConfigContents, 'utf-8');
+}
+
+export { createConfigFile, createProjectFiles };
