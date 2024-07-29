@@ -7,7 +7,7 @@ import path from 'node:path';
  * @param {string} assetKey
  * @param {string} publicDir
  * @param {string} file
- * @returns {import('~static-server/types/assets/static-asset.js').FileInfo}
+ * @returns {import('~static-server/assets/static-assets.js').FileInfo}
  */
 function createFileInfo(assetKey, publicDir, file) {
   const stats = statSync(file);
