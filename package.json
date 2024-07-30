@@ -1,6 +1,6 @@
 {
   "name": "@gcoredev/fastedge-sdk-js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "node": "18 - 20",
     "npm": "^8 || ^9 || ^10"
