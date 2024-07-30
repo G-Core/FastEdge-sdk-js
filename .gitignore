@@ -1,0 +1,16 @@
+/tests/jest-results.json
+
+node_modules/
+.DS_Store
+bin/
+dist/
+lib/
+integration-tests/test-files/output.wasm
+# *.o
+# *.d
+/rusturl/
+# compiler_flags
+
+/runtime/fastedge/build-*
+*.a
+yarn-error.log

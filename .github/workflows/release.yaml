@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        required: true
+        type: string
+    secrets:
+      GH_TOKEN:
+        required: true
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  release:
+    name: NPM Release
+    runs-on: [self-hosted, ubuntu-22-04, regular]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download libs Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: libs-artifact
+
+      - name: display contents of lib folder
+        run: ls -la lib
+
+      - name: display contents of bin folder
+        run: ls -la bin
+
+      - name: Dry Run Status
+        id: dry_run
+        run: |
+          if [[ ${{ inputs.dry_run }} == true ]]; then
+            echo "Running NPM release in dry-run mode"
+            echo "dry_run=--dry-run" >> $GITHUB_OUTPUT
+          else
+            echo "Running NPM release in production mode"
+            echo "dry_run=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          CI: true # Used to bypass husky hooks
+        run: npx semantic-release ${{ steps.dry_run.outputs.dry_run }}

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+if [ "$CI" = "true" ]; then
+  exit 0
+fi
+
+# Called by "git commit"
+#
+# If this script exits with a non-zero status nothing will be committed.
+#
+# The commands below will not be allowed...
+# `git commit`
+# `git commit -m "message"`
+
+protected_branches="main next next-major beta alpha"  # Add the names of the branches you want to protect here
+
+current_branch=$(git symbolic-ref --short HEAD)
+
+echo "current_branch: $current_branch"
+
+policy="[Policy] (Prevented with pre-commit hook.) 🚫\n You are not allowed to commit to the \"$current_branch\" branch, please create your own branch and use a PR."
+
+for branch in $protected_branches
+do
+    if [ "$current_branch" = "$branch" ]; then
+        echo "$policy"
+        exit 1
+    fi
+done
