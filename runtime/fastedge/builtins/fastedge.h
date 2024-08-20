@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>
 
-
 #include "../../StarlingMonkey/runtime/encode.h"
 #include "extension-api.h"
 

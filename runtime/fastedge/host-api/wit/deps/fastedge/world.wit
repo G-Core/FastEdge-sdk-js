@@ -1,0 +1,5 @@
+package gcore:fastedge;
+
+world imports {
+    import dictionary;
+}

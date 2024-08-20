@@ -10,7 +10,6 @@ const entryPoints = [
 
 async function buildAll() {
   for (const { src, dest } of entryPoints) {
-    console.log("Farq: buildAll -> dest", dest);
     await build({
       entryPoints: [src],
       bundle: true,

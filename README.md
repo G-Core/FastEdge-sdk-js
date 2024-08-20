@@ -1,10 +1,10 @@
 # FastEdge JS SDK
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/G-Core/FastEdge-sdk-js/deploy.yaml)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/t/G-Core/FastEdge-sdk-js)
-![GitHub top language](https://img.shields.io/github/languages/top/G-Core/FastEdge-sdk-js)
-![GitHub License](https://img.shields.io/github/license/G-Core/FastEdge-sdk-js)
-![NPM Version](https://img.shields.io/npm/v/@gcoredev/fastedge-sdk-js)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/G-Core/FastEdge-sdk-js/deploy.yaml)](https://github.com/G-Core/FastEdge-sdk-js)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/t/G-Core/FastEdge-sdk-js)](https://github.com/G-Core/FastEdge-sdk-js)
+[![GitHub top language](https://img.shields.io/github/languages/top/G-Core/FastEdge-sdk-js)](https://github.com/G-Core/FastEdge-sdk-js)
+[![GitHub License](https://img.shields.io/github/license/G-Core/FastEdge-sdk-js)](https://github.com/G-Core/FastEdge-sdk-js/blob/main/LICENSE)
+[![NPM Version](https://img.shields.io/npm/v/@gcoredev/fastedge-sdk-js)](https://www.npmjs.com/package/@gcoredev/fastedge-sdk-js)
 
 This is the Javascript SDK for building Javascript applications ready for deploying on FastEdge.
 

@@ -1,5 +1,10 @@
 #include "fastedge.h"
 
+#include <cstdlib>
+
+#include "../host-api/host_api_fastedge.h"
+
+
 using fastedge::fastedge::FastEdge;
 
 namespace {
@@ -24,18 +29,30 @@ JS::PersistentRooted<JSObject *> FastEdge::fs;
 bool FastEdge::getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
   if (!args.requireAtLeast(cx, "getEnv", 1)) {
-    cerr << "Error: getEnv() -> requires at least 1 argument" << endl;
+    JS_ReportErrorUTF8(cx, "getEnv() -> requires at least 1 argument");
     return false;
   }
+  // Convert the first argument to a string
+  JS::RootedString jsKey(cx, JS::ToString(cx, args[0]));
+  if (!jsKey) {
+    return false;
+  }
+  // Encode the JS string to a C++ string
+  JS::UniqueChars keyChars = JS_EncodeStringToUTF8(cx, jsKey);
+  if (!keyChars) {
+    return false;
+  }
+  auto envValue = host_api::get_env_vars(keyChars.get());
+  if (!envValue.size()) {
+    args.rval().setNull();
+    return true;
+  }
 
-  auto key_chars = core::encode(cx, args[0]);
-  auto val_chars = std::getenv(std::string(key_chars).c_str());
-
-  JS::RootedString jsEnvStr(cx, JS_NewStringCopyZ(cx, std::string(val_chars).c_str()));
-  args.rval().setString(jsEnvStr);
-
+  JS::RootedString envValueStr(cx, JS_NewStringCopyUTF8N(cx, JS::UTF8Chars(envValue.begin(), envValue.size())));
+  args.rval().setString(envValueStr);
   return true;
 }
+
 
 bool FastEdge::readFileSync(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = CallArgsFromVp(argc, vp);
