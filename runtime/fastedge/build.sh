@@ -19,7 +19,7 @@ BUILD_PATH=build-${BUILD_TYPE,,}
 
 # Configure the build environment using cmake
 # HOST_API=$(realpath host-api) cmake -B build-debug -DCMAKE_BUILD_TYPE=Debug
-cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+HOST_API=$(realpath host-api) cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 # cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_BUILTIN_WEB_FETCH=0 -DENABLE_BUILTIN_WEB_FETCH_FETCH_EVENT=0
 # cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_BUILTIN_WEB_FETCH=0
 # Build the StarlingMonkey runtime

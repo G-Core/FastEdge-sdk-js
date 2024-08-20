@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>
 
-
 #include "../../StarlingMonkey/runtime/encode.h"
 #include "extension-api.h"
 
@@ -15,6 +14,8 @@ using std::endl;
 using std::string;
 
 namespace fastedge::fastedge {
+
+const JSErrorFormatString *FastEdgeGetErrorMessage(void *userRef, unsigned errorNumber);
 
 class FastEdge : public builtins::BuiltinNoConstructor<FastEdge> {
 private:

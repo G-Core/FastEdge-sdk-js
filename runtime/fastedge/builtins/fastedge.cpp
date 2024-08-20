@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 
+#include "../host-api/host_api_fastedge.h"
+
 
 using fastedge::fastedge::FastEdge;
 
@@ -21,92 +23,44 @@ bool debug_logging_enabled() { return DEBUG_LOGGING_ENABLED; }
 
 namespace fastedge::fastedge {
 
+const JSErrorFormatString *FastEdgeGetErrorMessage(void *userRef, unsigned errorNumber) {
+// if (errorNumber > 0 && errorNumber < JSErrNum_Limit) {
+//   return &fastly_ErrorFormatString[errorNumber];
+// }
+  return nullptr;
+}
+
 JS::PersistentRooted<JSObject *> FastEdge::env;
 JS::PersistentRooted<JSObject *> FastEdge::fs;
 
 bool FastEdge::getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
   if (!args.requireAtLeast(cx, "getEnv", 1)) {
-    std::cerr << "Error: getEnv() -> requires at least 1 argument" << std::endl;
+    JS_ReportErrorUTF8(cx, "getEnv() -> requires at least 1 argument");
     return false;
   }
-
   // Convert the first argument to a string
   JS::RootedString jsKey(cx, JS::ToString(cx, args[0]));
   if (!jsKey) {
     return false;
   }
-
   // Encode the JS string to a C++ string
   JS::UniqueChars keyChars = JS_EncodeStringToUTF8(cx, jsKey);
   if (!keyChars) {
     return false;
   }
-
-  // print the keyChars to std out
-  std::cout << "EnvVar:>> keyChars: " << keyChars.get() << std::endl;
-
-  // Get the environment variable
-  const char* valChars = std::getenv(keyChars.get());
-  if (!valChars) {
+  auto envValue = host_api::get_env_vars(keyChars.get());
+  if (!envValue.size()) {
     args.rval().setNull();
-    std::cout << "EnvVar:>> valChars: IS NULL" << std::endl;
     return true;
   }
 
-  // print the valChars to std out
-  std::cout << "EnvVar:>> valChars: " << valChars << std::endl;
-
-  // Convert the C string to a JS string
-  JS::RootedString jsVal(cx, JS_NewStringCopyZ(cx, valChars));
-  if (!jsVal) {
-    return false;
-  }
-
-  // Set the return value
-  args.rval().setString(jsVal);
+  JS::RootedString envValueStr(cx, JS_NewStringCopyUTF8N(cx, JS::UTF8Chars(envValue.begin(), envValue.size())));
+  args.rval().setString(envValueStr);
   return true;
 }
 
-/*
 
-bool FastEdge::getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
-  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-  if (!args.requireAtLeast(cx, "getEnv", 1)) {
-    cerr << "Error: getEnv() -> requires at least 1 argument" << endl;
-    return false;
-  }
-
-  auto key_chars = core::encode(cx, args[0]);
-  if (!key_chars) {
-    return false;
-  }
-	std::cout << "key_chars: " << std::string(key_chars) << endl;
-
-
-  auto val_chars = std::getenv(std::string(key_chars).c_str());
-
-  std::cout << "val_chars: " << std::string(val_chars) << endl;
-
-  std::cout << "hello: " << std::string(key_chars) << endl;
-
-  // JS::RootedString jsEnvStr(cx, JS_NewStringCopyZ(cx, std::string(val_chars).c_str()));
-  // args.rval().setString(jsEnvStr);
-
-  // return true;
-
-  JS::RootedString env_var(cx, JS_NewStringCopyZ(cx, getenv(key_chars.begin())));
-
-  std::cout << "env_var: " << env_var << endl;
-
-  if (!env_var)
-    return false;
-
-  args.rval().setString(env_var);
-  return true;
-}
-
-*/
 bool FastEdge::readFileSync(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = CallArgsFromVp(argc, vp);
 
