@@ -1238,14 +1238,14 @@ Result<HttpIncomingBody *> HttpIncomingRequest::body() {
 }
 
 // Used for debugging and logging bindings_string_t values
-std::ostream& operator<<(std::ostream& os, const bindings_string_t& str) {
-  os << "ptr: ";
-  for (size_t i = 0; i < str.len; ++i) {
-    os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(str.ptr[i]) << " ";
-  }
-  os << std::dec << ", len: " << str.len;
-  return os;
-}
+// std::ostream& operator<<(std::ostream& os, const bindings_string_t& str) {
+//   os << "ptr: ";
+//   for (size_t i = 0; i < str.len; ++i) {
+//     os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(str.ptr[i]) << " ";
+//   }
+//   os << std::dec << ", len: " << str.len;
+//   return os;
+// }
 
 HostString get_env_vars(std::string_view name) {
   auto name_str = string_view_to_world_string(name);

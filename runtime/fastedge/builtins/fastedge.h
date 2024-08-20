@@ -15,8 +15,6 @@ using std::string;
 
 namespace fastedge::fastedge {
 
-const JSErrorFormatString *FastEdgeGetErrorMessage(void *userRef, unsigned errorNumber);
-
 class FastEdge : public builtins::BuiltinNoConstructor<FastEdge> {
 private:
   // static bool log(JSContext *cx, unsigned argc, JS::Value *vp);

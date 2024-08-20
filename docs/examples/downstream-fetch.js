@@ -1,5 +1,5 @@
 async function app(event) {
-  return await fetch('https://dummyjson.com/todos');
+  return await fetch('http://jsonplaceholder.typicode.com/users');
 }
 
 addEventListener('fetch', (event) => {
