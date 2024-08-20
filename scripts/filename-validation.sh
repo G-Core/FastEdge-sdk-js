@@ -3,6 +3,9 @@
 # Paths to ignore
 ignore_paths=(
   "./runtime/StarlingMonkey"
+  "./runtime/fastedge/build-debug"
+  "./runtime/fastedge/build-release"
+  "./runtime/fastedge/host-api"
   "./node_modules"
   "./docs/node_modules"
 )

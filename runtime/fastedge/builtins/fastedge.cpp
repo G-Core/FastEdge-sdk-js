@@ -23,13 +23,6 @@ bool debug_logging_enabled() { return DEBUG_LOGGING_ENABLED; }
 
 namespace fastedge::fastedge {
 
-const JSErrorFormatString *FastEdgeGetErrorMessage(void *userRef, unsigned errorNumber) {
-// if (errorNumber > 0 && errorNumber < JSErrNum_Limit) {
-//   return &fastly_ErrorFormatString[errorNumber];
-// }
-  return nullptr;
-}
-
 JS::PersistentRooted<JSObject *> FastEdge::env;
 JS::PersistentRooted<JSObject *> FastEdge::fs;
 
