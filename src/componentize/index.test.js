@@ -97,7 +97,7 @@ describe('componentize', () => {
         encoding: 'utf-8',
         env: {
           ENABLE_PBL: '0',
-          ...process.env,
+          // ...process.env,
         },
       },
     );
