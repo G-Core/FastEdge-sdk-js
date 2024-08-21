@@ -1,9 +1,9 @@
 async function app(event) {
   const downstreamResponse = await fetch('http://jsonplaceholder.typicode.com/users');
-  const resJson = await downstreamResponse.json();
+  const users = await downstreamResponse.json();
   return new Response(
     JSON.stringify({
-      users: resJson.recipes.slice(0, 5),
+      users: users.slice(0, 5),
       total: 5,
       skip: 0,
       limit: 30,
