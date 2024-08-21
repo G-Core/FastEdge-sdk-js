@@ -3,6 +3,8 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://g-core.github.io',
+  base: '/FastEdge-sdk-js',
   integrations: [
     starlight({
       title: '@gcoredev/fastedge-sdk-js',
@@ -13,20 +15,26 @@ export default defineConfig({
         {
           label: 'Getting Started',
           items: [
-            { label: 'FastEdge', link: `/guides/fastedge/` },
+            { label: 'FastEdge', link: `${import.meta.env.BASE_URL}guides/fastedge/` },
             {
               label: 'FastEdge-sdk-js',
-              link: `/guides/fastedge-sdk-js/`,
+              link: `${import.meta.env.BASE_URL}guides/fastedge-sdk-js/`,
             },
-            { label: 'Installation', link: `/guides/installation/` },
-            { label: 'Creating a Wasm', link: `/guides/creating-a-wasm/` },
-            { label: 'Building with config', link: `/guides/fastedge-init/` },
+            { label: 'Installation', link: `${import.meta.env.BASE_URL}guides/installation/` },
+            {
+              label: 'Creating a Wasm',
+              link: `${import.meta.env.BASE_URL}guides/creating-a-wasm/`,
+            },
+            {
+              label: 'Building with config',
+              link: `${import.meta.env.BASE_URL}guides/fastedge-init/`,
+            },
           ],
           collapsed: true,
         },
         {
           label: 'Examples',
-          link: `/examples/main-examples/`,
+          link: `${import.meta.env.BASE_URL}examples/main-examples/`,
         },
         {
           label: 'Reference',
