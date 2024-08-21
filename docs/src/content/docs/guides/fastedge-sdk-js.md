@@ -6,8 +6,8 @@ description: A basic description of the overall javascript SDK.
 ### Basic Usage
 
 The Javascript code you write will look and feel very much like the
-<a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API" target="_blank">
-Service Workers API</a>.
+<a href='https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API' target='_blank' rel='noopener noreferrer'>
+Service Workers API </a> .
 
 All incoming HTTP requests will start an instance of your FastEdge application and invoke a fetch
 event, which can be bound using the addEventListener function:
