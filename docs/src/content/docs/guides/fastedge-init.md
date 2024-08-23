@@ -21,7 +21,7 @@ npx fastedge-init
 
 This will present you with a few menu options:
 
-![Description of image](/fastedge-init-http.png)
+![Description of image](/FastEdge-sdk-js/fastedge-init-http.png)
 
 Running this init command will create a `.fastedge` folder at the top level of your project
 including the created `build-config.js` file.

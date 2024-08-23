@@ -29,6 +29,10 @@ export default defineConfig({
               label: 'Building with config',
               link: `${import.meta.env.BASE_URL}guides/fastedge-init/`,
             },
+            {
+              label: 'Serving a static site',
+              link: `${import.meta.env.BASE_URL}guides/serving-a-static-site/`,
+            },
           ],
           collapsed: true,
         },
