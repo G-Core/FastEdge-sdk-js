@@ -1,0 +1,90 @@
+{
+  "name": "@gcoredev/fastedge-sdk-js",
+  "version": "0.1.0",
+  "engines": {
+    "node": "18 - 20",
+    "npm": "^8 || ^9 || ^10"
+  },
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "types": "types/index.d.ts",
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "homepage": "https://github.com/G-Core/FastEdge-sdk-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/G-Core/FastEdge-sdk-js.git"
+  },
+  "bin": {
+    "fastedge-build": "./bin/fastedge-build.js",
+    "fastedge-init": "./bin/fastedge-init.js"
+  },
+  "files": [
+    "types",
+    "bin/fastedge-build.js",
+    "bin/fastedge-init.js",
+    "lib/*.wasm",
+    "lib/*.js",
+    "README.md"
+  ],
+  "scripts": {
+    "build:cli": "node esbuild/cli-binaries.js",
+    "build:dev": "npm-run-all -p build:js build:monkey:dev",
+    "build:js": "npm-run-all -p build:cli build:libs build:types",
+    "build:monkey:dev": "./runtime/fastedge/build.sh --debug",
+    "build:monkey:prod": "./runtime/fastedge/build.sh",
+    "build:libs": "node esbuild/fastedge-libs.js",
+    "build:types": "tsc -p ./src/static-server/tsconfig.json",
+    "FIX:build:wasm": "node build-examples-config.js",
+    "FIX:generate:wit-world": "make -j8 -C fastedge-runtime/cbindings generate-wit-bindgen",
+    "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
+    "semantic-release": "semantic-release",
+    "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
+    "test:unit": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- src/",
+    "test:integration": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- integration-tests/",
+    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.23.9",
+    "@gmrchk/cli-testing-library": "^0.1.2",
+    "@jest/transform": "^29.7.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@types/jest": "^29.5.12",
+    "babel-jest": "^29.7.0",
+    "babel-plugin-transform-import-meta": "^2.2.1",
+    "conventional-changelog-eslint": "^5.0.0",
+    "esbuild-plugin-polyfill-node": "^0.3.0",
+    "eslint": "^8.56.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-ban": "^1.6.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jest": "^27.6.3",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-testing-library": "^6.2.0",
+    "eslint-plugin-unicorn": "^50.0.1",
+    "husky": "^9.0.11",
+    "jest": "^29.7.0",
+    "semantic-release": "^23.0.7",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "@bytecodealliance/jco": "^1.2.4",
+    "@bytecodealliance/wizer": "^3.0.1",
+    "acorn": "^8.8.2",
+    "acorn-walk": "^8.2.0",
+    "arg": "^5.0.2",
+    "enquirer": "^2.4.1",
+    "esbuild": "^0.17.18",
+    "event-target-polyfill": "^0.0.4",
+    "magic-string": "^0.30.0",
+    "npm-run-all": "^4.1.5",
+    "prompts": "^2.4.2",
+    "regexpu-core": "^5.3.2"
+  }
+}

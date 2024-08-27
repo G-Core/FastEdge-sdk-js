@@ -1,0 +1,38 @@
+#!/bin/sh
+
+if [ "$CI" = "true" ]; then
+  exit 0
+fi
+
+# Called by "git push" after it has checked the remote status,
+# but before anything has been pushed.
+#
+# If this script exits with a non-zero status nothing will be pushed.
+#
+# Try a push to main, you should get a message `*** [Policy] Never push code directly to...`
+#
+# The commands below will not be allowed...
+# `git push origin main`
+# `git push --force origin main`
+# `git push --delete origin main`
+
+protected_branches='^(main|next|next-major|beta|alpha)$'  # Add the names of the branches you want to protect here
+
+policy="[Policy] (Prevented with pre-push hook.) 🚫\n Never push code directly to the protected branches!"
+
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+push_command=$(ps -ocommand= -p $PPID)
+
+do_exit(){
+  echo "$policy"
+  exit 1
+}
+
+# Prevent ALL pushes to protected_branches
+echo "$push_command" | grep -E "$protected_branches" > /dev/null && do_exit
+echo "$current_branch" | grep -E "$protected_branches" > /dev/null && do_exit
+
+unset do_exit
+
+exit 0

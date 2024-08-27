@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "../../types/static-server/",
+    "strict": true,
+    "checkJs": true
+  },
+  "include": ["**/*.js"],
+  "exclude": ["./node_modules", "../utils/prompts.js"]
+  // "exclude": ["./node_modules"]
+}
