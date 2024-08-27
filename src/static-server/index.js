@@ -38,7 +38,7 @@ import {
  * @property {string | null} spaEntrypoint
  * @property {string | null} notFoundPage
  * @property {string} publicDirPrefix
- * @property {Array<string>} staticItems
+ * @property {Array<string | RegExp>} extendedCache
  * @property {Array<string>} autoIndex
  * @property {Array<string>} autoExt
  * @property {Array<ContentCompressionTypes>} compression
@@ -142,21 +142,7 @@ const handlePreconditions = (request, asset, responseHeaders) => {
 const getStaticServer = (serverConfig, assetCache) => {
   const _serverConfig = normalizeServerConfig(serverConfig);
   const _assetCache = assetCache; // @ts-ignore
-  const _staticItems = serverConfig.staticItems // @ts-ignore
-    .map((x, i) => {
-      if (x.startsWith('re:')) {
-        // eslint-disable-next-line require-unicode-regexp
-        const fragments = x.slice(3).match(/\/(.*?)\/([a-z]*)?$/i);
-        if (fragments == null) {
-          // eslint-disable-next-line no-console
-          console.warn(`Cannot parse staticItems item index ${i}: '${x}', skipping...`);
-          return '';
-        }
-        return new RegExp(fragments[1], fragments[2] || '');
-      }
-      return x;
-    }) // @ts-ignore
-    .filter((x) => Boolean(x));
+  const _extendedCache = serverConfig.extendedCache;
 
   /**
    * @param {string} path
@@ -261,8 +247,7 @@ const getStaticServer = (serverConfig, assetCache) => {
    * @returns {boolean}
    */
   const testExtendedCache = (pathname) =>
-    // @ts-ignore
-    _staticItems.some((x) => {
+    _extendedCache.some((x) => {
       if (x instanceof RegExp) {
         return x.test(pathname);
       }

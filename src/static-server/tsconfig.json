@@ -11,5 +11,6 @@
     "checkJs": true
   },
   "include": ["**/*.js"],
-  "exclude": ["./node_modules"]
+  "exclude": ["./node_modules", "../utils/prompts.js"]
+  // "exclude": ["./node_modules"]
 }

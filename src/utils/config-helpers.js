@@ -72,6 +72,60 @@ function normalizeArrayOfPaths(pathsArray = []) {
 }
 
 /**
+ * @param {string} pattern
+ * @returns {boolean}
+ */
+function isValidRegex(pattern) {
+  try {
+    // eslint-disable-next-line require-unicode-regexp, no-new
+    new RegExp(pattern);
+    return true;
+    // eslint-disable-next-line unicorn/prefer-optional-catch-binding
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * @param {string} pattern
+ * @returns {string | RegExp}
+ */
+function convertToRegex(pattern) {
+  if (pattern.startsWith('/') && pattern.lastIndexOf('/') > 2) {
+    // Implies string may be a regex. e.g. /hello/gi
+    const regex = pattern.slice(1, pattern.lastIndexOf('/'));
+    const flags = pattern.slice(pattern.lastIndexOf('/') + 1);
+    if (isValidRegex(regex)) {
+      return new RegExp(regex, flags);
+    }
+  }
+  // Not a valid regex, return as string
+  return pattern;
+}
+
+/**
+ * Normalize path or convert to regex from string array
+ * @param {Array<string>} inputsArray
+ * @returns {Array<string | RegExp>}
+ */
+function normalizePathsOrRegex(inputsArray = []) {
+  return inputsArray
+    .map((strInput) => {
+      if (strInput.startsWith('regex:')) {
+        const regexp = convertToRegex(strInput.slice(6));
+        if (typeof regexp === 'string') {
+          // eslint-disable-next-line no-console
+          console.warn('caution', `Invalid regex pattern: ${strInput}`);
+          return '';
+        }
+        return regexp;
+      }
+      return normalizePath(strInput);
+    })
+    .filter(Boolean);
+}
+
+/**
  * @typedef {Object} BuildConfig
  * @property {string} input
  * @property {string} output
@@ -102,7 +156,7 @@ function normalizeBuildConfig(config = {}) {
 
 /**
  * @typedef {Object} ServerConfig
- * @property {Array<string>} staticItems
+ * @property {Array<string | RegExp>} extendedCache
  * @property {string} publicDirPrefix
  * @property {Array<string>} compression
  * @property {string | null} notFoundPage
@@ -118,7 +172,7 @@ function normalizeBuildConfig(config = {}) {
 function normalizeServerConfig(config = {}) {
   /**
    * @type {Object.<string, function>} serverConfigNormalizeFns
-   * @property {function(Array<string>): Array<string>} staticItems
+   * @property {function(Array<string>): Array<string | RegExp>} extendedCache
    * @property {function(Array<string>): Array<string>} compression
    * @property {function(string | null): string | null} notFoundPage
    * @property {function(Array<string>): Array<string>} autoExt
@@ -126,7 +180,7 @@ function normalizeServerConfig(config = {}) {
    * @property {function(string | null): string | null} spaEntrypoint
    */
   const serverConfigNormalizeFns = {
-    staticItems: normalizeArrayOfPaths,
+    extendedCache: normalizePathsOrRegex,
     compression: normalizeStringArray,
     notFoundPage: normalizeString(),
     autoExt: normalizeStringArray,

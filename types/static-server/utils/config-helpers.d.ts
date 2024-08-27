@@ -7,7 +7,7 @@ export type BuildConfig = {
     ignoreWellKnown: boolean;
 };
 export type ServerConfig = {
-    staticItems: Array<string>;
+    extendedCache: Array<string | RegExp>;
     publicDirPrefix: string;
     compression: Array<string>;
     notFoundPage: string | null;
@@ -39,7 +39,7 @@ export function normalizeBuildConfig(config?: Object): BuildConfig;
 export function normalizePath(path?: string, prefix?: string): string;
 /**
  * @typedef {Object} ServerConfig
- * @property {Array<string>} staticItems
+ * @property {Array<string | RegExp>} extendedCache
  * @property {string} publicDirPrefix
  * @property {Array<string>} compression
  * @property {string | null} notFoundPage

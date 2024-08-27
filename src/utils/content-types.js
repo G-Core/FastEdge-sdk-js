@@ -38,8 +38,7 @@ const binaryFormats = [
 ];
 
 const defaultContentTypes = [
-  // Todo: farq: pretty certain I can remove this text: boolean - kvStore  implementation
-
+  // Farq: May need to track this "text" status for kvStore implementation
   // ...textFormats.map((contentType) => ({ ...contentType, text: true })),
   // ...binaryFormats.map((contentType) => ({ ...contentType, text: false })),
   ...textFormats.map((contentType) => ({ ...contentType })),

@@ -54,6 +54,7 @@ function createStaticAssetsCache(staticAssetManifest) {
     if (!(metadata.type in assetLoaders)) {
       throw new Error(`Unknown content asset type '${metadata.type}'`);
     }
+    // @ts-ignore
     const asset = assetLoaders[metadata.type](metadata);
 
     staticAssetsCache.loadAsset(assetKey, asset);

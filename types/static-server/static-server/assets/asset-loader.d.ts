@@ -1,3 +1,14 @@
+export type SourceAndInfo = {
+    /**
+     * ,
+     */
+    source: Uint8Array;
+    /**
+     * ,
+     */
+    hash: string;
+    size: number;
+};
 /**
  *
  * @param {import('./static-assets.js').StaticAssetMetadata} metadata

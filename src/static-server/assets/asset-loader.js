@@ -6,10 +6,15 @@ import { readFileSync } from 'fastedge::fs';
 
 import { createEmbeddedStoreEntry } from './embedded-store-entry.js';
 
-// todo: farq: fix this along with compression
+/**
+ * @typedef {Object} SourceAndInfo
+ * @property {Uint8Array} source,
+ * @property {string} hash,
+ * @property {number} size
+ */
+
 /**
  * Used to change out the sourceAndInfo object for the correct encoded version
- * @template SourceAndInfo
  * @param {Array<import('../index.js').ContentCompressionTypes> | null} acceptEncodingsGroups
  * @param {SourceAndInfo} defaultSourceAndInfo
  * @param {unknown} sourceAndInfoForEncodingFn
@@ -22,6 +27,7 @@ const findMatchingSourceAndInfo = (
 ) => {
   const sourceAndInfo = defaultSourceAndInfo;
   const contentEncoding = null;
+  // Compression
   if (acceptEncodingsGroups != null) {
     // FARQ: Compression not yet implemented...
     // for (const encodingGroup of acceptEncodingsGroups) {

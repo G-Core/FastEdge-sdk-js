@@ -24,7 +24,7 @@ export type ServerConfig = {
     spaEntrypoint: string | null;
     notFoundPage: string | null;
     publicDirPrefix: string;
-    staticItems: Array<string>;
+    extendedCache: Array<string | RegExp>;
     autoIndex: Array<string>;
     autoExt: Array<string>;
     compression: Array<ContentCompressionTypes>;

@@ -38,11 +38,9 @@ const defaultConfig = {
     http: {},
     next: {},
     static: {
-      // todo: Farq: clean this up.. what do we actually use and need here??
-      staticItems: [], // Do not know what this is..
-
+      extendedCache: [],
       publicDirPrefix: '',
-      compression: ['br', 'gzip'], // not implemented yet
+      compression: [], // not implemented yet ('br', 'gzip')
       notFoundPage: '/404.html',
       autoExt: [], // never used before
       autoIndex: ['index.html', 'index.htm'],
