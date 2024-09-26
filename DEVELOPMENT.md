@@ -57,4 +57,4 @@ We use a docker image in our CI/CD pipeline for building. This can be used local
 
 ## Testing
 
-Coming soon...
+Coming soon... 🚀
