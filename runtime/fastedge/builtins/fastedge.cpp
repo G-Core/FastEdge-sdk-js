@@ -25,6 +25,7 @@ namespace fastedge::fastedge {
 
 JS::PersistentRooted<JSObject *> FastEdge::env;
 JS::PersistentRooted<JSObject *> FastEdge::fs;
+JS::PersistentRooted<JSObject *> FastEdge::secret;
 
 bool FastEdge::getEnv(JSContext* cx, unsigned argc, JS::Value* vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -96,6 +97,33 @@ bool FastEdge::readFileSync(JSContext *cx, unsigned argc, JS::Value *vp) {
   return true;
 }
 
+bool FastEdge::getSecret(JSContext* cx, unsigned argc, JS::Value* vp) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+  if (!args.requireAtLeast(cx, "getSecret", 1)) {
+    JS_ReportErrorUTF8(cx, "getSecret() -> requires at least 1 argument");
+    return false;
+  }
+  // Convert the first argument to a string
+  JS::RootedString jsKey(cx, JS::ToString(cx, args[0]));
+  if (!jsKey) {
+    return false;
+  }
+  // Encode the JS string to a C++ string
+  JS::UniqueChars keyChars = JS_EncodeStringToUTF8(cx, jsKey);
+  if (!keyChars) {
+    return false;
+  }
+  auto secretValue = host_api::get_secret_vars(keyChars.get());
+  if (!secretValue.size()) {
+    args.rval().setNull();
+    return true;
+  }
+
+  JS::RootedString secretValueStr(cx, JS_NewStringCopyUTF8N(cx, JS::UTF8Chars(secretValue.begin(), secretValue.size())));
+  args.rval().setString(secretValueStr);
+  return true;
+}
+
 const JSPropertySpec FastEdge::properties[] = {
     JS_PSG("env", getEnv, JSPROP_ENUMERATE),
     JS_PS_END
@@ -118,6 +146,7 @@ bool install(api::Engine *engine) {
   const JSFunctionSpec methods[] = {
       JS_FN("getEnv", FastEdge::getEnv, 1, JSPROP_ENUMERATE),
       JS_FN("readFileSync", FastEdge::readFileSync, 1, JSPROP_ENUMERATE),
+      JS_FN("getSecret", FastEdge::getSecret, 1, JSPROP_ENUMERATE),
       JS_FS_END
   };
 
@@ -153,6 +182,20 @@ bool install(api::Engine *engine) {
   }
   RootedValue fs_builtin_val(engine->cx(), JS::ObjectValue(*fs_builtin));
   if (!engine->define_builtin_module("fastedge::fs", fs_builtin_val)) {
+    return false;
+  }
+
+  // fastedge:secret
+  RootedValue get_secret_val(engine->cx());
+  if (!JS_GetProperty(engine->cx(), fastedge, "getSecret", &get_secret_val)) {
+    return false;
+  }
+  RootedObject secret_builtin(engine->cx(), JS_NewObject(engine->cx(), nullptr));
+  if (!JS_SetProperty(engine->cx(), secret_builtin, "getSecret", get_secret_val)) {
+    return false;
+  }
+  RootedValue secret_builtin_val(engine->cx(), JS::ObjectValue(*secret_builtin));
+  if (!engine->define_builtin_module("fastedge::secret", secret_builtin_val)) {
     return false;
   }
 

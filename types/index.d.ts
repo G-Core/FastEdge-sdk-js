@@ -1,6 +1,7 @@
 /// <reference path="globals.d.ts" />
 /// <reference path="fastedge-fs.d.ts" />
 /// <reference path="fastedge-env.d.ts" />
+/// <reference path="fastedge-secret.d.ts" />
 
 import { AssetCache } from './static-server/assets/asset-cache.d.ts';
 import { StaticAssetManifest } from './static-server/assets/static-assets.d.ts';

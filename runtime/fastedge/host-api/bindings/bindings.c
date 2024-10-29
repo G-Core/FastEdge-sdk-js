@@ -5,6 +5,9 @@
 __attribute__((__import_module__("gcore:fastedge/dictionary"), __import_name__("get")))
 extern void __wasm_import_gcore_fastedge_dictionary_get(int32_t, int32_t, int32_t);
 
+__attribute__((__import_module__("gcore:fastedge/secret"), __import_name__("get")))
+extern void __wasm_import_gcore_fastedge_secret_get(int32_t, int32_t, int32_t);
+
 __attribute__((__import_module__("wasi:cli/environment@0.2.0"), __import_name__("get-environment")))
 extern void __wasm_import_wasi_cli_0_2_0_environment_get_environment(int32_t);
 
@@ -541,6 +544,23 @@ void *cabi_realloc(void *ptr, size_t old_size, size_t align, size_t new_size) {
 void gcore_fastedge_dictionary_option_string_free(gcore_fastedge_dictionary_option_string_t *ptr) {
   if (ptr->is_some) {
     bindings_string_free(&ptr->val);
+  }
+}
+
+void gcore_fastedge_secret_error_free(gcore_fastedge_secret_error_t *ptr) {
+  switch ((int32_t) ptr->tag) {
+    case 2: {
+      bindings_string_free(&ptr->val.other);
+      break;
+    }
+  }
+}
+
+void gcore_fastedge_secret_result_option_string_error_free(gcore_fastedge_secret_result_option_string_error_t *ptr) {
+  if (!ptr->is_err) {
+    gcore_fastedge_dictionary_option_string_free(&ptr->val.ok);
+  } else {
+    gcore_fastedge_secret_error_free(&ptr->val.err);
   }
 }
 
@@ -1716,6 +1736,61 @@ bool gcore_fastedge_dictionary_get(bindings_string_t *name, bindings_string_t *r
   }
   *ret = option.val;
   return option.is_some;
+}
+
+bool gcore_fastedge_secret_get(bindings_string_t *key, gcore_fastedge_dictionary_option_string_t *ret, gcore_fastedge_secret_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  int32_t ptr = (int32_t) &ret_area;
+  __wasm_import_gcore_fastedge_secret_get((int32_t) (*key).ptr, (int32_t) (*key).len, ptr);
+  gcore_fastedge_secret_result_option_string_error_t result;
+  switch ((int32_t) (*((uint8_t*) (ptr + 0)))) {
+    case 0: {
+      result.is_err = false;
+      gcore_fastedge_dictionary_option_string_t option;
+      switch ((int32_t) (*((uint8_t*) (ptr + 4)))) {
+        case 0: {
+          option.is_some = false;
+          break;
+        }
+        case 1: {
+          option.is_some = true;
+          option.val = (bindings_string_t) { (uint8_t*)(*((int32_t*) (ptr + 8))), (size_t)(*((int32_t*) (ptr + 12))) };
+          break;
+        }
+      }
+      
+      result.val.ok = option;
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_secret_error_t variant;
+      variant.tag = (int32_t) (*((uint8_t*) (ptr + 4)));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((int32_t*) (ptr + 8))), (size_t)(*((int32_t*) (ptr + 12))) };
+          break;
+        }
+      }
+      
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
 }
 
 void wasi_cli_0_2_0_environment_get_environment(wasi_cli_0_2_0_environment_list_tuple2_string_string_t *ret) {

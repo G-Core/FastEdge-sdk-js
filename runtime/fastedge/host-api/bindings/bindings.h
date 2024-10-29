@@ -20,6 +20,30 @@ typedef struct {
   bindings_string_t val;
 } gcore_fastedge_dictionary_option_string_t;
 
+// The set of errors which may be raised by functions in this interface
+typedef struct {
+  uint8_t tag;
+  union {
+    bindings_string_t other;
+  } val;
+} gcore_fastedge_secret_error_t;
+
+// The requesting component does not have access to the specified key
+// (which may or may not exist).
+#define GCORE_FASTEDGE_SECRET_ERROR_ACCESS_DENIED 0
+// Decryption error.
+#define GCORE_FASTEDGE_SECRET_ERROR_DECRYPT_ERROR 1
+// Some implementation-specific error has occurred (e.g. I/O)
+#define GCORE_FASTEDGE_SECRET_ERROR_OTHER 2
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_fastedge_dictionary_option_string_t ok;
+    gcore_fastedge_secret_error_t err;
+  } val;
+} gcore_fastedge_secret_result_option_string_error_t;
+
 typedef struct {
   bindings_string_t f0;
   bindings_string_t f1;
@@ -1538,6 +1562,11 @@ typedef wasi_http_0_2_0_types_own_response_outparam_t exports_wasi_http_0_2_0_in
 // Returns `ok(none)` if the key does not exist.
 extern bool gcore_fastedge_dictionary_get(bindings_string_t *name, bindings_string_t *ret);
 
+// Imported Functions from `gcore:fastedge/secret`
+// Get the secret associated with the specified `key`
+// Returns `ok(none)` if the key does not exist.
+extern bool gcore_fastedge_secret_get(bindings_string_t *key, gcore_fastedge_dictionary_option_string_t *ret, gcore_fastedge_secret_error_t *err);
+
 // Imported Functions from `wasi:cli/environment@0.2.0`
 // Get the POSIX-style environment variables.
 // 
@@ -3039,6 +3068,10 @@ extern bool wasi_io_0_2_0_streams_method_output_stream_write(wasi_io_0_2_0_strea
         // Helper Functions
         
         void gcore_fastedge_dictionary_option_string_free(gcore_fastedge_dictionary_option_string_t *ptr);
+        
+        void gcore_fastedge_secret_error_free(gcore_fastedge_secret_error_t *ptr);
+        
+        void gcore_fastedge_secret_result_option_string_error_free(gcore_fastedge_secret_result_option_string_error_t *ptr);
         
         void wasi_cli_0_2_0_environment_tuple2_string_string_free(wasi_cli_0_2_0_environment_tuple2_string_string_t *ptr);
         
