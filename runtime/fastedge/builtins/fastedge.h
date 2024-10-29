@@ -23,11 +23,13 @@ public:
 
   static JS::PersistentRooted<JSObject *> env;
   static JS::PersistentRooted<JSObject *> fs;
+  static JS::PersistentRooted<JSObject *> secret;
 
   static const JSPropertySpec properties[];
 
   static bool readFileSync(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool getEnv(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool getSecret(JSContext *cx, unsigned argc, JS::Value *vp);
 
 };
 

@@ -1260,6 +1260,18 @@ HostString get_env_vars(std::string_view name) {
   return bindings_string_to_host_string(value_str);
 }
 
+HostString get_secret_vars(std::string_view name) {
+  auto key_str = string_view_to_world_string(name);
+  gcore_fastedge_dictionary_option_string_t ret{};
+  gcore_fastedge_secret_error_t err;
+  auto has_value = gcore_fastedge_secret_get(&key_str, &ret, &err);
+  if (has_value && ret.is_some) {
+    return bindings_string_to_host_string(ret.val);
+  }
+  return nullptr;
+}
+
+
 } // namespace host_api
 
 static host_api::HttpIncomingRequest::RequestHandler REQUEST_HANDLER = nullptr;

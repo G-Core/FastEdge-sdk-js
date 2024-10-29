@@ -15,6 +15,9 @@ const fastedgePackagePlugin = {
         case 'fs': {
           return { contents: `export const readFileSync = globalThis.fastedge.readFileSync;` };
         }
+        case 'secret': {
+          return { contents: `export const getSecret = globalThis.fastedge.getSecret;` };
+        }
         default: {
           return { contents: '' };
         }
