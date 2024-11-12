@@ -1,13 +1,6 @@
 #include "host_api.h"
 #include "bindings/bindings.h"
 
-
-#include "./host_api_fastedge.h"
-
-#include <iomanip> // for std::hex and std::dec (DEBUGGING  ONLY)
-#include <iostream>
-
-
 #include <exports.h>
 #include <list>
 #ifdef DEBUG
@@ -25,21 +18,23 @@ using std::vector;
 // pointer.
 static_assert(sizeof(uint32_t) == sizeof(void *));
 
-typedef wasi_http_0_2_0_types_own_future_incoming_response_t future_incoming_response_t;
-typedef wasi_http_0_2_0_types_borrow_future_incoming_response_t borrow_future_incoming_response_t;
+typedef wasi_http_types_own_future_incoming_response_t future_incoming_response_t;
+typedef wasi_http_types_borrow_future_incoming_response_t borrow_future_incoming_response_t;
 
-typedef wasi_http_0_2_0_types_own_incoming_body_t incoming_body_t;
-typedef wasi_http_0_2_0_types_own_outgoing_body_t outgoing_body_t;
+typedef wasi_http_types_own_incoming_body_t incoming_body_t;
+typedef wasi_http_types_own_outgoing_body_t outgoing_body_t;
 
-using field_key = wasi_http_0_2_0_types_field_key_t;
-using field_value = wasi_http_0_2_0_types_field_value_t;
+using field_key = wasi_http_types_field_key_t;
+using field_value = wasi_http_types_field_value_t;
 
-typedef wasi_io_0_2_0_poll_own_pollable_t own_pollable_t;
-typedef wasi_io_0_2_0_poll_borrow_pollable_t borrow_pollable_t;
-typedef wasi_io_0_2_0_poll_list_borrow_pollable_t list_borrow_pollable_t;
+typedef wasi_io_poll_own_pollable_t own_pollable_t;
+typedef wasi_io_poll_borrow_pollable_t borrow_pollable_t;
+typedef wasi_io_poll_list_borrow_pollable_t list_borrow_pollable_t;
 
 #ifdef LOG_HANDLE_OPS
-#define LOG_HANDLE_OP(...) fprintf(stderr, "%s", __PRETTY_FUNCTION__); fprintf(stderr, __VA_ARGS__)
+#define LOG_HANDLE_OP(...)                                                                         \
+  fprintf(stderr, "%s", __PRETTY_FUNCTION__);                                                      \
+  fprintf(stderr, __VA_ARGS__)
 #else
 #define LOG_HANDLE_OP(...)
 #endif
@@ -59,8 +54,7 @@ public:
 
 template <class T> struct HandleOps {};
 
-template <class T>
-class WASIHandle : public host_api::HandleState {
+template <class T> class WASIHandle : public host_api::HandleState {
 #ifdef DEBUG
   static inline auto used_handles = std::set<Handle>();
 #endif
@@ -102,13 +96,11 @@ public:
 #endif
   }
 
-  static WASIHandle<T>* cast(HandleState* handle) {
-    return reinterpret_cast<WASIHandle<T>*>(handle);
+  static WASIHandle<T> *cast(HandleState *handle) {
+    return reinterpret_cast<WASIHandle<T> *>(handle);
   }
 
-  typename HandleOps<T>::borrowed borrow(HandleState *handle) {
-    return cast(handle)->borrow();
-  }
+  typename HandleOps<T>::borrowed borrow(HandleState *handle) { return cast(handle)->borrow(); }
 
   bool valid() const override {
     bool valid = handle_ != POISONED_HANDLE;
@@ -126,7 +118,7 @@ public:
     MOZ_ASSERT(valid());
     MOZ_ASSERT(owned_);
     LOG_HANDLE_OP("taking handle %d\n", handle_);
-    typename HandleOps<T>::owned handle = { handle_ };
+    typename HandleOps<T>::owned handle = {handle_};
 #ifdef DEBUG
     used_handles.erase(handle_);
 #endif
@@ -135,8 +127,7 @@ public:
   }
 };
 
-template<class T>
-struct Borrow {
+template <class T> struct Borrow {
   static constexpr typename HandleOps<T>::borrowed invalid{std::numeric_limits<int32_t>::max()};
   typename HandleOps<T>::borrowed handle_{invalid};
 
@@ -144,72 +135,68 @@ struct Borrow {
     handle_ = WASIHandle<T>::cast(handle)->borrow();
   }
 
-  explicit Borrow(typename HandleOps<T>::borrowed handle) {
-    handle_ = handle;
-  }
+  explicit Borrow(typename HandleOps<T>::borrowed handle) { handle_ = handle; }
 
-  explicit Borrow(typename HandleOps<T>::owned handle) {
-    handle_ = {handle.__handle};
-  }
+  explicit Borrow(typename HandleOps<T>::owned handle) { handle_ = {handle.__handle}; }
 
   operator typename HandleOps<T>::borrowed() const { return handle_; }
 };
 
 template <> struct HandleOps<host_api::Pollable> {
-  using owned = wasi_io_0_2_0_poll_own_pollable_t;
-  using borrowed = wasi_io_0_2_0_poll_borrow_pollable_t;
+  using owned = wasi_io_poll_own_pollable_t;
+  using borrowed = wasi_io_poll_borrow_pollable_t;
 };
 
 template <> struct HandleOps<host_api::HttpHeaders> {
-  using owned = wasi_http_0_2_0_types_own_headers_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_fields_t;
+  using owned = wasi_http_types_own_headers_t;
+  using borrowed = wasi_http_types_borrow_fields_t;
 };
 
 template <> struct HandleOps<host_api::HttpIncomingRequest> {
-  using owned = wasi_http_0_2_0_types_own_incoming_request_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_incoming_request_t;
+  using owned = wasi_http_types_own_incoming_request_t;
+  using borrowed = wasi_http_types_borrow_incoming_request_t;
 };
 
 template <> struct HandleOps<host_api::HttpOutgoingRequest> {
-  using owned = wasi_http_0_2_0_types_own_outgoing_request_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_outgoing_request_t;
+  using owned = wasi_http_types_own_outgoing_request_t;
+  using borrowed = wasi_http_types_borrow_outgoing_request_t;
 };
 
 template <> struct HandleOps<host_api::FutureHttpIncomingResponse> {
-  using owned = wasi_http_0_2_0_types_own_future_incoming_response_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_future_incoming_response_t;
+  using owned = wasi_http_types_own_future_incoming_response_t;
+  using borrowed = wasi_http_types_borrow_future_incoming_response_t;
 };
 
 template <> struct HandleOps<host_api::HttpIncomingResponse> {
-  using owned = wasi_http_0_2_0_types_own_incoming_response_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_incoming_response_t;
+  using owned = wasi_http_types_own_incoming_response_t;
+  using borrowed = wasi_http_types_borrow_incoming_response_t;
 };
 
 template <> struct HandleOps<host_api::HttpOutgoingResponse> {
-  using owned = wasi_http_0_2_0_types_own_outgoing_response_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_outgoing_response_t;
+  using owned = wasi_http_types_own_outgoing_response_t;
+  using borrowed = wasi_http_types_borrow_outgoing_response_t;
 };
 
 template <> struct HandleOps<host_api::HttpIncomingBody> {
-  using owned = wasi_http_0_2_0_types_own_incoming_body_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_incoming_body_t;
+  using owned = wasi_http_types_own_incoming_body_t;
+  using borrowed = wasi_http_types_borrow_incoming_body_t;
 };
 
 template <> struct HandleOps<host_api::HttpOutgoingBody> {
-  using owned = wasi_http_0_2_0_types_own_outgoing_body_t;
-  using borrowed = wasi_http_0_2_0_types_borrow_outgoing_body_t;
+  using owned = wasi_http_types_own_outgoing_body_t;
+  using borrowed = wasi_http_types_borrow_outgoing_body_t;
 };
 
 struct OutputStream {};
 template <> struct HandleOps<OutputStream> {
-  using owned = wasi_io_0_2_0_streams_own_output_stream_t;
-  using borrowed = wasi_io_0_2_0_streams_borrow_output_stream_t;
+  using owned = wasi_io_streams_own_output_stream_t;
+  using borrowed = wasi_io_streams_borrow_output_stream_t;
 };
 
 struct InputStream {};
 template <> struct HandleOps<InputStream> {
-  using owned = wasi_io_0_2_0_streams_own_input_stream_t;
-  using borrowed = wasi_io_0_2_0_streams_borrow_input_stream_t;
+  using owned = wasi_io_streams_own_input_stream_t;
+  using borrowed = wasi_io_streams_borrow_input_stream_t;
 };
 
 class IncomingBodyHandle final : public WASIHandle<host_api::HttpIncomingBody> {
@@ -222,14 +209,14 @@ public:
   explicit IncomingBodyHandle(HandleOps<host_api::HttpIncomingBody>::owned handle)
       : WASIHandle(handle), pollable_handle_(INVALID_POLLABLE_HANDLE) {
     HandleOps<InputStream>::owned stream{};
-    if (!wasi_http_0_2_0_types_method_incoming_body_stream(borrow(), &stream)) {
+    if (!wasi_http_types_method_incoming_body_stream(borrow(), &stream)) {
       MOZ_ASSERT_UNREACHABLE("Getting a body's stream should never fail");
     }
     stream_handle_ = stream;
   }
 
-  static IncomingBodyHandle* cast(HandleState* handle) {
-    return reinterpret_cast<IncomingBodyHandle*>(handle);
+  static IncomingBodyHandle *cast(HandleState *handle) {
+    return reinterpret_cast<IncomingBodyHandle *>(handle);
   }
 };
 
@@ -243,14 +230,14 @@ public:
   explicit OutgoingBodyHandle(HandleOps<host_api::HttpOutgoingBody>::owned handle)
       : WASIHandle(handle), pollable_handle_(INVALID_POLLABLE_HANDLE) {
     HandleOps<OutputStream>::owned stream{};
-    if (!wasi_http_0_2_0_types_method_outgoing_body_write(borrow(), &stream)) {
+    if (!wasi_http_types_method_outgoing_body_write(borrow(), &stream)) {
       MOZ_ASSERT_UNREACHABLE("Getting a body's stream should never fail");
     }
     stream_handle_ = stream;
   }
 
-  static OutgoingBodyHandle* cast(HandleState* handle) {
-    return reinterpret_cast<OutgoingBodyHandle*>(handle);
+  static OutgoingBodyHandle *cast(HandleState *handle) {
+    return reinterpret_cast<OutgoingBodyHandle *>(handle);
   }
 };
 
@@ -260,9 +247,9 @@ size_t api::AsyncTask::select(std::vector<AsyncTask *> &tasks) {
   for (const auto task : tasks) {
     handles.emplace_back(task->id());
   }
-  auto list = list_borrow_pollable_t{ handles.data(), count};
-  wasi_io_0_2_0_poll_list_u32_t result{nullptr, 0};
-  wasi_io_0_2_0_poll_poll(&list, &result);
+  auto list = list_borrow_pollable_t{handles.data(), count};
+  bindings_list_u32_t result{nullptr, 0};
+  wasi_io_poll_poll(&list, &result);
   MOZ_ASSERT(result.len > 0);
   const auto ready_index = result.ptr[0];
   free(result.ptr);
@@ -271,13 +258,6 @@ size_t api::AsyncTask::select(std::vector<AsyncTask *> &tasks) {
 }
 
 namespace host_api {
-
-HostString::HostString(const char *c_str) {
-  len = strlen(c_str);
-  ptr = JS::UniqueChars(static_cast<char *>(malloc(len + 1)));
-  std::memcpy(ptr.get(), c_str, len);
-  ptr[len] = '\0';
-}
 
 namespace {
 
@@ -296,11 +276,11 @@ template <typename T> T from_string_view(std::string_view str) {
 
 auto string_view_to_world_string = from_string_view<bindings_string_t>;
 
-HostString scheme_to_string(const wasi_http_0_2_0_types_scheme_t &scheme) {
-  if (scheme.tag == WASI_HTTP_0_2_0_TYPES_SCHEME_HTTP) {
+HostString scheme_to_string(const wasi_http_types_scheme_t &scheme) {
+  if (scheme.tag == WASI_HTTP_TYPES_SCHEME_HTTP) {
     return {"http"};
   }
-  if (scheme.tag == WASI_HTTP_0_2_0_TYPES_SCHEME_HTTPS) {
+  if (scheme.tag == WASI_HTTP_TYPES_SCHEME_HTTPS) {
     return {"https"};
   }
   return to_host_string(scheme.val.other);
@@ -311,8 +291,8 @@ HostString scheme_to_string(const wasi_http_0_2_0_types_scheme_t &scheme) {
 Result<HostBytes> Random::get_bytes(size_t num_bytes) {
   Result<HostBytes> res;
 
-  wasi_random_0_2_0_random_list_u8_t list{};
-  wasi_random_0_2_0_random_get_random_bytes(num_bytes, &list);
+  bindings_list_u8_t list{};
+  wasi_random_random_get_random_bytes(num_bytes, &list);
   auto ret = HostBytes{
       std::unique_ptr<uint8_t[]>{list.ptr},
       list.len,
@@ -323,135 +303,98 @@ Result<HostBytes> Random::get_bytes(size_t num_bytes) {
 }
 
 Result<uint32_t> Random::get_u32() {
-  return Result<uint32_t>::ok(wasi_random_0_2_0_random_get_random_u64());
+  return Result<uint32_t>::ok(wasi_random_random_get_random_u64());
 }
 
-uint64_t MonotonicClock::now() { return wasi_clocks_0_2_0_monotonic_clock_now(); }
+uint64_t MonotonicClock::now() { return wasi_clocks_monotonic_clock_now(); }
 
-uint64_t MonotonicClock::resolution() { return wasi_clocks_0_2_0_monotonic_clock_resolution(); }
+uint64_t MonotonicClock::resolution() { return wasi_clocks_monotonic_clock_resolution(); }
 
 int32_t MonotonicClock::subscribe(const uint64_t when, const bool absolute) {
   if (absolute) {
-    return wasi_clocks_0_2_0_monotonic_clock_subscribe_instant(when).__handle;
+    return wasi_clocks_monotonic_clock_subscribe_instant(when).__handle;
   } else {
-    return wasi_clocks_0_2_0_monotonic_clock_subscribe_duration(when).__handle;
+    return wasi_clocks_monotonic_clock_subscribe_duration(when).__handle;
   }
 }
 
 void MonotonicClock::unsubscribe(const int32_t handle_id) {
-  wasi_io_0_2_0_poll_pollable_drop_own(own_pollable_t{handle_id});
+  wasi_io_poll_pollable_drop_own(own_pollable_t{handle_id});
 }
 
-HttpHeaders::HttpHeaders(HttpHeadersGuard guard, std::unique_ptr<HandleState> state)
-    : HttpHeadersReadOnly(std::move(state)), guard_(guard) {}
-
-HttpHeaders::HttpHeaders(HttpHeadersGuard guard) : guard_(guard) {
-  handle_state_ = std::make_unique<WASIHandle<HttpHeaders>>(wasi_http_0_2_0_types_constructor_fields());
+vector<std::string> environment_get_arguments() {
+  bindings_list_string_t raw_args = {};
+  wasi_cli_environment_get_arguments(&raw_args);
+  std::vector<std::string> args = {};
+  for (int i = 0; i < raw_args.len; i++) {
+    args.push_back(std::string(reinterpret_cast<char *>(raw_args.ptr[i].ptr), raw_args.ptr[i].len));
+  }
+  return args;
 }
 
-Result<HttpHeaders*> HttpHeaders::FromEntries(HttpHeadersGuard guard,
-                                              vector<tuple<HostString, HostString>>& entries) {
-  std::vector<wasi_http_0_2_0_types_tuple2_field_key_field_value_t> pairs;
+HttpHeaders::HttpHeaders(std::unique_ptr<HandleState> state)
+    : HttpHeadersReadOnly(std::move(state)) {}
+
+HttpHeaders::HttpHeaders() {
+  handle_state_ =
+      std::make_unique<WASIHandle<HttpHeaders>>(wasi_http_types_constructor_fields());
+}
+
+Result<HttpHeaders *> HttpHeaders::FromEntries(vector<tuple<HostString, HostString>> &entries) {
+  std::vector<bindings_tuple2_field_key_field_value_t> pairs;
   pairs.reserve(entries.size());
 
   for (const auto &[name, value] : entries) {
     pairs.emplace_back(from_string_view<field_key>(name), from_string_view<field_value>(value));
   }
 
-  wasi_http_0_2_0_types_list_tuple2_field_key_field_value_t tuples{pairs.data(), entries.size()};
+  bindings_list_tuple2_field_key_field_value_t tuples{pairs.data(), entries.size()};
 
-  wasi_http_0_2_0_types_own_fields_t ret;
-  wasi_http_0_2_0_types_header_error_t err;
-  if (!wasi_http_0_2_0_types_static_fields_from_list(&tuples, &ret, &err)) {
+  wasi_http_types_own_fields_t ret;
+  wasi_http_types_header_error_t err;
+  if (!wasi_http_types_static_fields_from_list(&tuples, &ret, &err)) {
     // TODO: handle `err`
-    return Result<HttpHeaders*>::err(154);
+    return Result<HttpHeaders *>::err(154);
   }
 
-  auto headers = new HttpHeaders(guard, std::make_unique<WASIHandle<HttpHeaders>>(ret));
-  return Result<HttpHeaders*>::ok(headers);
+  auto headers = new HttpHeaders(std::make_unique<WASIHandle<HttpHeaders>>(ret));
+  return Result<HttpHeaders *>::ok(headers);
 }
 
-HttpHeaders::HttpHeaders(HttpHeadersGuard guard, const HttpHeadersReadOnly &headers)
-  : HttpHeadersReadOnly(nullptr), guard_(guard) {
+HttpHeaders::HttpHeaders(const HttpHeadersReadOnly &headers) : HttpHeadersReadOnly(nullptr) {
   Borrow<HttpHeaders> borrow(headers.handle_state_.get());
-  auto handle = wasi_http_0_2_0_types_method_fields_clone(borrow);
+  auto handle = wasi_http_types_method_fields_clone(borrow);
   this->handle_state_ = std::unique_ptr<HandleState>(new WASIHandle<HttpHeaders>(handle));
 }
 
 // We currently only guard against a single request header, instead of the full list in
 // https://fetch.spec.whatwg.org/#forbidden-request-header.
-static std::list forbidden_request_headers = {
-  "host",
+static const std::vector forbidden_request_headers = {
+    "host",
 };
 
 // We currently only guard against a single response header, instead of the full list in
 // https://fetch.spec.whatwg.org/#forbidden-request-header.
-static std::list forbidden_response_headers = {
-  "host",
+static const std::vector forbidden_response_headers = {
+    "host",
 };
 
-bool HttpHeaders::check_guard(HttpHeadersGuard guard, string_view header_name) {
-  std::list<const char*>* forbidden_headers = nullptr;
-  switch (guard) {
-  case HttpHeadersGuard::None:
-    return true;
-  case HttpHeadersGuard::Request:
-    forbidden_headers = &forbidden_request_headers;
-    break;
-  case HttpHeadersGuard::Response:
-    forbidden_headers = &forbidden_response_headers;
-    break;
-  default:
-    MOZ_ASSERT_UNREACHABLE();
-  }
-
-  if (!forbidden_headers) {
-    return true;
-  }
-
-  for (auto header : *forbidden_headers) {
-    if (header_name.compare(header) == 0) {
-      return false;
-    }
-  }
-
-  return true;
+const std::vector<const char *> &HttpHeaders::get_forbidden_request_headers() {
+  return forbidden_request_headers;
 }
 
-HttpHeaders *HttpHeadersReadOnly::clone(HttpHeadersGuard guard) {
-  auto headers = new HttpHeaders(guard, *this);
-  std::list<const char*>* forbidden_headers = nullptr;
-  switch (guard) {
-  case HttpHeadersGuard::Request:
-    forbidden_headers = &forbidden_request_headers;
-    break;
-  case HttpHeadersGuard::Response:
-    break;
-  case HttpHeadersGuard::None:
-    break;
-  default:
-    MOZ_ASSERT_UNREACHABLE();
-  }
-
-  if (!forbidden_headers) {
-    return headers;
-  }
-
-  for (auto header : *forbidden_headers) {
-    if (headers->has(header).unwrap()) {
-      headers->remove(header).unwrap();
-    }
-  }
-
-  return headers;
+const std::vector<const char *> &HttpHeaders::get_forbidden_response_headers() {
+  return forbidden_response_headers;
 }
+
+HttpHeaders *HttpHeadersReadOnly::clone() { return new HttpHeaders(*this); }
 
 Result<vector<tuple<HostString, HostString>>> HttpHeadersReadOnly::entries() const {
   Result<vector<tuple<HostString, HostString>>> res;
 
-  wasi_http_0_2_0_types_list_tuple2_field_key_field_value_t entries;
+  bindings_list_tuple2_field_key_field_value_t entries;
   Borrow<HttpHeaders> borrow(this->handle_state_.get());
-  wasi_http_0_2_0_types_method_fields_entries(borrow, &entries);
+  wasi_http_types_method_fields_entries(borrow, &entries);
 
   vector<tuple<HostString, HostString>> entries_vec;
   for (int i = 0; i < entries.len; i++) {
@@ -469,9 +412,9 @@ Result<vector<tuple<HostString, HostString>>> HttpHeadersReadOnly::entries() con
 Result<vector<HostString>> HttpHeadersReadOnly::names() const {
   Result<vector<HostString>> res;
 
-  wasi_http_0_2_0_types_list_tuple2_field_key_field_value_t entries;
+  bindings_list_tuple2_field_key_field_value_t entries;
   Borrow<HttpHeaders> borrow(this->handle_state_.get());
-  wasi_http_0_2_0_types_method_fields_entries(borrow, &entries);
+  wasi_http_types_method_fields_entries(borrow, &entries);
 
   vector<HostString> names;
   names.reserve(entries.len);
@@ -488,10 +431,10 @@ Result<vector<HostString>> HttpHeadersReadOnly::names() const {
 Result<optional<vector<HostString>>> HttpHeadersReadOnly::get(string_view name) const {
   Result<optional<vector<HostString>>> res;
 
-  wasi_http_0_2_0_types_list_field_value_t values;
+  bindings_list_field_value_t values;
   auto hdr = string_view_to_world_string(name);
   Borrow<HttpHeaders> borrow(this->handle_state_.get());
-  wasi_http_0_2_0_types_method_fields_get(borrow, &hdr, &values);
+  wasi_http_types_method_fields_get(borrow, &hdr, &values);
 
   if (values.len > 0) {
     std::vector<HostString> names;
@@ -512,44 +455,37 @@ Result<optional<vector<HostString>>> HttpHeadersReadOnly::get(string_view name) 
 Result<bool> HttpHeadersReadOnly::has(string_view name) const {
   auto hdr = string_view_to_world_string(name);
   Borrow<HttpHeaders> borrow(this->handle_state_.get());
-  return Result<bool>::ok(wasi_http_0_2_0_types_method_fields_has(borrow, &hdr));
+  return Result<bool>::ok(wasi_http_types_method_fields_has(borrow, &hdr));
 }
 
 Result<Void> HttpHeaders::set(string_view name, string_view value) {
-  if (!check_guard(guard_, name)) {
-    return {};
-  }
   auto hdr = from_string_view<field_key>(name);
   auto val = from_string_view<field_value>(value);
-  wasi_http_0_2_0_types_list_field_value_t host_values{&val, 1};
+  bindings_list_field_value_t host_values{&val, 1};
   Borrow<HttpHeaders> borrow(this->handle_state_.get());
 
-  wasi_http_0_2_0_types_header_error_t err;
-  if (!wasi_http_0_2_0_types_method_fields_set(borrow, &hdr, &host_values, &err)) {
-  // TODO: handle `err`
+  wasi_http_types_header_error_t err;
+  if (!wasi_http_types_method_fields_set(borrow, &hdr, &host_values, &err)) {
+    // TODO: handle `err`
     return Result<Void>::err(154);
   }
-
 
   return {};
 }
 
 Result<Void> HttpHeaders::append(string_view name, string_view value) {
-  if (!check_guard(guard_, name)) {
-    return {};
-  }
   auto hdr = from_string_view<field_key>(name);
   auto val = from_string_view<field_value>(value);
   Borrow<HttpHeaders> borrow(this->handle_state_.get());
 
   // TODO: properly handle `err`
-  wasi_http_0_2_0_types_header_error_t err;
-  if (!wasi_http_0_2_0_types_method_fields_append(borrow, &hdr, &val, &err)) {
+  wasi_http_types_header_error_t err;
+  if (!wasi_http_types_method_fields_append(borrow, &hdr, &val, &err)) {
     switch (err.tag) {
-    case WASI_HTTP_0_2_0_TYPES_HEADER_ERROR_INVALID_SYNTAX:
-    case WASI_HTTP_0_2_0_TYPES_HEADER_ERROR_FORBIDDEN:
+    case WASI_HTTP_TYPES_HEADER_ERROR_INVALID_SYNTAX:
+    case WASI_HTTP_TYPES_HEADER_ERROR_FORBIDDEN:
       return Result<Void>::err(154);
-    case WASI_HTTP_0_2_0_TYPES_HEADER_ERROR_IMMUTABLE:
+    case WASI_HTTP_TYPES_HEADER_ERROR_IMMUTABLE:
       MOZ_ASSERT_UNREACHABLE("Headers should not be immutable");
     default:
       MOZ_ASSERT_UNREACHABLE("Unknown header error type");
@@ -563,8 +499,8 @@ Result<Void> HttpHeaders::remove(string_view name) {
   auto hdr = string_view_to_world_string(name);
   Borrow<HttpHeaders> borrow(this->handle_state_.get());
 
-  wasi_http_0_2_0_types_header_error_t err;
-  if (!wasi_http_0_2_0_types_method_fields_delete(borrow, &hdr, &err)) {
+  wasi_http_types_header_error_t err;
+  if (!wasi_http_types_method_fields_delete(borrow, &hdr, &err)) {
     // TODO: handle `err`
     return Result<Void>::err(154);
   }
@@ -580,17 +516,17 @@ string_view HttpRequestResponseBase::url() {
 
   Borrow<HttpIncomingRequest> borrow(handle_state_.get());
 
-  wasi_http_0_2_0_types_scheme_t scheme;
+  wasi_http_types_scheme_t scheme;
   bool success;
-  success = wasi_http_0_2_0_types_method_incoming_request_scheme(borrow, &scheme);
+  success = wasi_http_types_method_incoming_request_scheme(borrow, &scheme);
   MOZ_RELEASE_ASSERT(success);
 
   bindings_string_t authority;
-  success = wasi_http_0_2_0_types_method_incoming_request_authority(borrow, &authority);
+  success = wasi_http_types_method_incoming_request_authority(borrow, &authority);
   MOZ_RELEASE_ASSERT(success);
 
   bindings_string_t path;
-  success = wasi_http_0_2_0_types_method_incoming_request_path_with_query(borrow, &path);
+  success = wasi_http_types_method_incoming_request_path_with_query(borrow, &path);
   MOZ_RELEASE_ASSERT(success);
 
   HostString scheme_str = scheme_to_string(scheme);
@@ -605,10 +541,10 @@ string_view HttpRequestResponseBase::url() {
 bool write_to_outgoing_body(Borrow<OutputStream> borrow, const uint8_t *ptr, const size_t len) {
   // The write call doesn't mutate the buffer; the cast is just for the
   // generated bindings.
-  wasi_io_0_2_0_streams_list_u8_t list{const_cast<uint8_t *>(ptr), len};
-  wasi_io_0_2_0_streams_stream_error_t err;
+  bindings_list_u8_t list{const_cast<uint8_t *>(ptr), len};
+  wasi_io_streams_stream_error_t err;
   // TODO: proper error handling.
-  return wasi_io_0_2_0_streams_method_output_stream_write(borrow, &list, &err);
+  return wasi_io_streams_method_output_stream_write(borrow, &list, &err);
 }
 
 HttpOutgoingBody::HttpOutgoingBody(std::unique_ptr<HandleState> state) : Pollable() {
@@ -623,56 +559,88 @@ Result<uint64_t> HttpOutgoingBody::capacity() {
   auto *state = static_cast<OutgoingBodyHandle *>(this->handle_state_.get());
   Borrow<OutputStream> borrow(state->stream_handle_);
   uint64_t capacity = 0;
-  wasi_io_0_2_0_streams_stream_error_t err;
-  if (!wasi_io_0_2_0_streams_method_output_stream_check_write(borrow, &capacity, &err)) {
+  wasi_io_streams_stream_error_t err;
+  if (!wasi_io_streams_method_output_stream_check_write(borrow, &capacity, &err)) {
     return Result<uint64_t>::err(154);
   }
   return Result<uint64_t>::ok(capacity);
 }
 
-Result<uint32_t> HttpOutgoingBody::write(const uint8_t *bytes, size_t len) {
-  auto res = capacity();
-  if (res.is_err()) {
-    // TODO: proper error handling for all 154 error codes.
-    return Result<uint32_t>::err(154);
-  }
-  auto capacity = res.unwrap();
-  auto bytes_to_write = std::min(len, static_cast<size_t>(capacity));
+void HttpOutgoingBody::write(const uint8_t *bytes, size_t len) {
+  MOZ_ASSERT(capacity().unwrap() >= len);
 
   auto *state = static_cast<OutgoingBodyHandle *>(this->handle_state_.get());
   Borrow<OutputStream> borrow(state->stream_handle_);
-  if (!write_to_outgoing_body(borrow, bytes, bytes_to_write)) {
-    return Result<uint32_t>::err(154);
-  }
-
-  return Result<uint32_t>::ok(bytes_to_write);
+  MOZ_RELEASE_ASSERT(write_to_outgoing_body(borrow, bytes, len));
 }
 
-Result<Void> HttpOutgoingBody::write_all(const uint8_t *bytes, size_t len) {
+class BodyWriteAllTask final : public api::AsyncTask {
+  HttpOutgoingBody *outgoing_body_;
+  PollableHandle outgoing_pollable_;
+
+  api::TaskCompletionCallback cb_;
+  Heap<JSObject *> cb_receiver_;
+  HostBytes bytes_;
+  size_t offset_ = 0;
+
+public:
+  explicit BodyWriteAllTask(HttpOutgoingBody *outgoing_body, HostBytes bytes,
+                          api::TaskCompletionCallback completion_callback,
+                          HandleObject callback_receiver)
+      : outgoing_body_(outgoing_body), cb_(completion_callback),
+        cb_receiver_(callback_receiver), bytes_(std::move(bytes)) {
+    outgoing_pollable_ = outgoing_body_->subscribe().unwrap();
+  }
+
+  [[nodiscard]] bool run(api::Engine *engine) override {
+    MOZ_ASSERT(offset_ < bytes_.len);
+    while (true) {
+      auto res = outgoing_body_->capacity();
+      if (res.is_err()) {
+        return false;
+      }
+      uint64_t capacity = res.unwrap();
+      if (capacity == 0) {
+        engine->queue_async_task(this);
+        return true;
+      }
+
+      auto bytes_to_write = std::min(bytes_.len - offset_, static_cast<size_t>(capacity));
+      outgoing_body_->write(bytes_.ptr.get() + offset_, bytes_to_write);
+      offset_ += bytes_to_write;
+      MOZ_ASSERT(offset_ <= bytes_.len);
+      if (offset_ == bytes_.len) {
+        bytes_.ptr.reset();
+        RootedObject receiver(engine->cx(), cb_receiver_);
+        bool result = cb_(engine->cx(), receiver);
+        cb_ = nullptr;
+        cb_receiver_ = nullptr;
+        return result;
+      }
+    }
+  }
+
+  [[nodiscard]] bool cancel(api::Engine *engine) override {
+    MOZ_ASSERT_UNREACHABLE("BodyWriteAllTask's semantics don't allow for cancellation");
+    return true;
+  }
+
+  [[nodiscard]] int32_t id() override {
+    return outgoing_pollable_;
+  }
+
+  void trace(JSTracer *trc) override {
+    JS::TraceEdge(trc, &cb_receiver_, "BodyWriteAllTask completion callback receiver");
+  }
+};
+
+Result<Void> HttpOutgoingBody::write_all(api::Engine *engine, HostBytes bytes,
+  api::TaskCompletionCallback callback, HandleObject cb_receiver) {
   if (!valid()) {
     // TODO: proper error handling for all 154 error codes.
     return Result<Void>::err(154);
   }
-
-  auto *state = static_cast<OutgoingBodyHandle *>(handle_state_.get());
-  Borrow<OutputStream> borrow(state->stream_handle_);
-
-  while (len > 0) {
-    auto capacity_res = capacity();
-    if (capacity_res.is_err()) {
-      // TODO: proper error handling for all 154 error codes.
-      return Result<Void>::err(154);
-    }
-    auto capacity = capacity_res.unwrap();
-    auto bytes_to_write = std::min(len, static_cast<size_t>(capacity));
-    if (!write_to_outgoing_body(borrow, bytes, len)) {
-      return Result<Void>::err(154);
-    }
-
-    bytes += bytes_to_write;
-    len -= bytes_to_write;
-  }
-
+  engine->queue_async_task(new BodyWriteAllTask(this, std::move(bytes), callback, cb_receiver));
   return {};
 }
 
@@ -691,10 +659,10 @@ class BodyAppendTask final : public api::AsyncTask {
   PollableHandle outgoing_pollable_;
 
   api::TaskCompletionCallback cb_;
-  Heap<JSObject*> cb_receiver_;
+  Heap<JSObject *> cb_receiver_;
   State state_;
 
-  void set_state(JSContext* cx, const State state) {
+  void set_state(JSContext *cx, const State state) {
     MOZ_ASSERT(state_ != State::Done);
     state_ = state;
     if (state == State::Done && cb_) {
@@ -706,24 +674,14 @@ class BodyAppendTask final : public api::AsyncTask {
   }
 
 public:
-  explicit BodyAppendTask(api::Engine *engine,
-                          HttpIncomingBody *incoming_body,
+  explicit BodyAppendTask(api::Engine *engine, HttpIncomingBody *incoming_body,
                           HttpOutgoingBody *outgoing_body,
                           api::TaskCompletionCallback completion_callback,
                           HandleObject callback_receiver)
-      : incoming_body_(incoming_body), outgoing_body_(outgoing_body),
-        cb_(completion_callback) {
-    auto res = incoming_body_->subscribe();
-    MOZ_ASSERT(!res.is_err());
-    incoming_pollable_ = res.unwrap();
-
-    res = outgoing_body_->subscribe();
-    MOZ_ASSERT(!res.is_err());
-    outgoing_pollable_ = res.unwrap();
-
-    cb_receiver_ = callback_receiver;
-
-    set_state(engine->cx(), State::BlockedOnBoth);
+      : incoming_body_(incoming_body), outgoing_body_(outgoing_body), cb_(completion_callback),
+        cb_receiver_(callback_receiver), state_(State::BlockedOnBoth) {
+    incoming_pollable_ = incoming_body_->subscribe().unwrap();
+    outgoing_pollable_ = outgoing_body_->subscribe().unwrap();
   }
 
   [[nodiscard]] bool run(api::Engine *engine) override {
@@ -740,19 +698,17 @@ public:
       set_state(engine->cx(), State::BlockedOnOutgoing);
     }
 
-    uint64_t capacity = 0;
-    if (state_ == State::BlockedOnOutgoing) {
-      auto res = outgoing_body_->capacity();
-      if (res.is_err()) {
-        return false;
-      }
-      capacity = res.unwrap();
-      if (capacity > 0) {
-        set_state(engine->cx(), State::Ready);
-      } else {
-        engine->queue_async_task(this);
-        return true;
-      }
+    MOZ_ASSERT(state_ == State::BlockedOnOutgoing);
+    auto res = outgoing_body_->capacity();
+    if (res.is_err()) {
+      return false;
+    }
+    uint64_t capacity = res.unwrap();
+    if (capacity > 0) {
+      set_state(engine->cx(), State::Ready);
+    } else {
+      engine->queue_async_task(this);
+      return true;
     }
 
     MOZ_ASSERT(state_ == State::Ready);
@@ -771,17 +727,8 @@ public:
         return true;
       }
 
-      unsigned offset = 0;
-      while (bytes.len - offset > 0) {
-        // TODO: remove double checking of write-readiness
-        // TODO: make this async by storing the remaining chunk in the task and marking it as
-        // being blocked on write
-        auto write_res = outgoing_body_->write(bytes.ptr.get() + offset, bytes.len - offset);
-        if (write_res.is_err()) {
-          // TODO: proper error handling.
-          return false;
-        }
-        offset += write_res.unwrap();
+      if (bytes.len > 0) {
+        outgoing_body_->write(bytes.ptr.get(), bytes.len);
       }
 
       if (done) {
@@ -823,7 +770,8 @@ public:
 };
 
 Result<Void> HttpOutgoingBody::append(api::Engine *engine, HttpIncomingBody *other,
-  api::TaskCompletionCallback callback, HandleObject callback_receiver) {
+                                      api::TaskCompletionCallback callback,
+                                      HandleObject callback_receiver) {
   engine->queue_async_task(new BodyAppendTask(engine, other, this, callback, callback_receiver));
   return {};
 }
@@ -835,23 +783,23 @@ Result<Void> HttpOutgoingBody::close() {
   Borrow<OutputStream> borrow{state->stream_handle_};
 
   {
-    wasi_io_0_2_0_streams_stream_error_t err;
-    bool success = wasi_io_0_2_0_streams_method_output_stream_blocking_flush(borrow, &err);
+    wasi_io_streams_stream_error_t err;
+    bool success = wasi_io_streams_method_output_stream_blocking_flush(borrow, &err);
     if (!success) {
       // TODO: validate that this condition applies if `content-length` bytes were written, and
       //  the host has auto-closed the body.
-      MOZ_RELEASE_ASSERT(err.tag == WASI_IO_0_2_0_STREAMS_STREAM_ERROR_CLOSED);
+      MOZ_RELEASE_ASSERT(err.tag == WASI_IO_STREAMS_STREAM_ERROR_CLOSED);
     }
   }
 
   if (state->pollable_handle_ != INVALID_POLLABLE_HANDLE) {
-    wasi_io_0_2_0_poll_pollable_drop_own(own_pollable_t{state->pollable_handle_});
+    wasi_io_poll_pollable_drop_own(own_pollable_t{state->pollable_handle_});
   }
-  wasi_io_0_2_0_streams_output_stream_drop_own({state->stream_handle_});
+  wasi_io_streams_output_stream_drop_own({state->stream_handle_});
 
   {
-    wasi_http_0_2_0_types_error_code_t err;
-    wasi_http_0_2_0_types_static_outgoing_body_finish({state->take()}, nullptr, &err);
+    wasi_http_types_error_code_t err;
+    wasi_http_types_static_outgoing_body_finish({state->take()}, nullptr, &err);
     // TODO: handle `err`
   }
 
@@ -861,7 +809,7 @@ Result<PollableHandle> HttpOutgoingBody::subscribe() {
   auto state = static_cast<OutgoingBodyHandle *>(handle_state_.get());
   if (state->pollable_handle_ == INVALID_POLLABLE_HANDLE) {
     Borrow<OutputStream> borrow(state->stream_handle_);
-    state->pollable_handle_ = wasi_io_0_2_0_streams_method_output_stream_subscribe(borrow).__handle;
+    state->pollable_handle_ = wasi_io_streams_method_output_stream_subscribe(borrow).__handle;
   }
   return Result<PollableHandle>::ok(state->pollable_handle_);
 }
@@ -871,42 +819,44 @@ void HttpOutgoingBody::unsubscribe() {
   if (state->pollable_handle_ == INVALID_POLLABLE_HANDLE) {
     return;
   }
-  wasi_io_0_2_0_poll_pollable_drop_own(own_pollable_t{state->pollable_handle_});
+  wasi_io_poll_pollable_drop_own(own_pollable_t{state->pollable_handle_});
   state->pollable_handle_ = INVALID_POLLABLE_HANDLE;
 }
 
 static const char *http_method_names[9] = {"GET",     "HEAD",    "POST",  "PUT",  "DELETE",
                                            "CONNECT", "OPTIONS", "TRACE", "PATCH"};
 
-wasi_http_0_2_0_types_method_t http_method_to_host(string_view method_str) {
+wasi_http_types_method_t http_method_to_host(string_view method_str) {
 
   if (method_str.empty()) {
-    return wasi_http_0_2_0_types_method_t{WASI_HTTP_0_2_0_TYPES_METHOD_GET};
+    return wasi_http_types_method_t{WASI_HTTP_TYPES_METHOD_GET};
   }
 
   auto method = method_str.begin();
-  for (uint8_t i = 0; i < WASI_HTTP_0_2_0_TYPES_METHOD_OTHER; i++) {
+  for (uint8_t i = 0; i < WASI_HTTP_TYPES_METHOD_OTHER; i++) {
     auto name = http_method_names[i];
     if (strcasecmp(method, name) == 0) {
-      return wasi_http_0_2_0_types_method_t{i};
+      return wasi_http_types_method_t{i};
     }
   }
 
   auto val = bindings_string_t{reinterpret_cast<uint8_t *>(const_cast<char *>(method)),
                                method_str.length()};
-  return wasi_http_0_2_0_types_method_t{WASI_HTTP_0_2_0_TYPES_METHOD_OTHER, {val}};
+  return wasi_http_types_method_t{WASI_HTTP_TYPES_METHOD_OTHER, {val}};
 }
 
-HttpOutgoingRequest::HttpOutgoingRequest(std::unique_ptr<HandleState> state) { this->handle_state_ = std::move(state); }
+HttpOutgoingRequest::HttpOutgoingRequest(std::unique_ptr<HandleState> state) {
+  this->handle_state_ = std::move(state);
+}
 
 HttpOutgoingRequest *HttpOutgoingRequest::make(string_view method_str, optional<HostString> url_str,
                                                std::unique_ptr<HttpHeadersReadOnly> headers) {
   bindings_string_t path_with_query;
-  wasi_http_0_2_0_types_scheme_t scheme;
+  wasi_http_types_scheme_t scheme;
   bindings_string_t authority;
 
   bindings_string_t *maybe_path_with_query = nullptr;
-  wasi_http_0_2_0_types_scheme_t *maybe_scheme = nullptr;
+  wasi_http_types_scheme_t *maybe_scheme = nullptr;
   bindings_string_t *maybe_authority = nullptr;
 
   if (url_str) {
@@ -914,11 +864,11 @@ HttpOutgoingRequest *HttpOutgoingRequest::make(string_view method_str, optional<
     jsurl::JSUrl *url = new_jsurl(&val);
     jsurl::SpecSlice protocol = jsurl::protocol(url);
     if (std::memcmp(protocol.data, "http:", protocol.len) == 0) {
-      scheme.tag = WASI_HTTP_0_2_0_TYPES_SCHEME_HTTP;
+      scheme.tag = WASI_HTTP_TYPES_SCHEME_HTTP;
     } else if (std::memcmp(protocol.data, "https:", protocol.len) == 0) {
-      scheme.tag = WASI_HTTP_0_2_0_TYPES_SCHEME_HTTPS;
+      scheme.tag = WASI_HTTP_TYPES_SCHEME_HTTPS;
     } else {
-      scheme.tag = WASI_HTTP_0_2_0_TYPES_SCHEME_OTHER;
+      scheme.tag = WASI_HTTP_TYPES_SCHEME_OTHER;
       scheme.val = {const_cast<uint8_t *>(protocol.data), protocol.len - 1};
     }
     maybe_scheme = &scheme;
@@ -934,23 +884,22 @@ HttpOutgoingRequest *HttpOutgoingRequest::make(string_view method_str, optional<
   }
 
   auto headers_handle = WASIHandle<HttpHeaders>::cast(headers->handle_state_.get())->take();
-  auto handle =
-      wasi_http_0_2_0_types_constructor_outgoing_request(headers_handle);
+  auto handle = wasi_http_types_constructor_outgoing_request(headers_handle);
   {
-    auto borrow = wasi_http_0_2_0_types_borrow_outgoing_request(handle);
+    auto borrow = wasi_http_types_borrow_outgoing_request(handle);
 
     // TODO: error handling on result
     auto method = http_method_to_host(method_str);
-    wasi_http_0_2_0_types_method_outgoing_request_set_method(borrow, &method);
+    wasi_http_types_method_outgoing_request_set_method(borrow, &method);
 
     // TODO: error handling on result
-    wasi_http_0_2_0_types_method_outgoing_request_set_scheme(borrow, maybe_scheme);
+    wasi_http_types_method_outgoing_request_set_scheme(borrow, maybe_scheme);
 
     // TODO: error handling on result
-    wasi_http_0_2_0_types_method_outgoing_request_set_authority(borrow, maybe_authority);
+    wasi_http_types_method_outgoing_request_set_authority(borrow, maybe_authority);
 
     // TODO: error handling on result
-    wasi_http_0_2_0_types_method_outgoing_request_set_path_with_query(borrow,
+    wasi_http_types_method_outgoing_request_set_path_with_query(borrow,
                                                                       maybe_path_with_query);
   }
 
@@ -960,9 +909,7 @@ HttpOutgoingRequest *HttpOutgoingRequest::make(string_view method_str, optional<
   return resp;
 }
 
-Result<string_view> HttpOutgoingRequest::method() {
-  return Result<string_view>::ok(method_);
-}
+Result<string_view> HttpOutgoingRequest::method() { return Result<string_view>::ok(method_); }
 
 Result<HttpHeadersReadOnly *> HttpOutgoingRequest::headers() {
   if (!headers_) {
@@ -970,8 +917,9 @@ Result<HttpHeadersReadOnly *> HttpOutgoingRequest::headers() {
       return Result<HttpHeadersReadOnly *>::err(154);
     }
     Borrow<HttpOutgoingRequest> borrow(handle_state_.get());
-    auto res = wasi_http_0_2_0_types_method_outgoing_request_headers(borrow);
-    headers_ = new HttpHeadersReadOnly(std::unique_ptr<HandleState>(new WASIHandle<HttpHeaders>(res)));
+    auto res = wasi_http_types_method_outgoing_request_headers(borrow);
+    headers_ =
+        new HttpHeadersReadOnly(std::unique_ptr<HandleState>(new WASIHandle<HttpHeaders>(res)));
   }
 
   return Result<HttpHeadersReadOnly *>::ok(headers_);
@@ -982,7 +930,7 @@ Result<HttpOutgoingBody *> HttpOutgoingRequest::body() {
   if (!this->body_) {
     outgoing_body_t body;
     Borrow<HttpOutgoingRequest> borrow(handle_state_.get());
-    if (!wasi_http_0_2_0_types_method_outgoing_request_body(borrow, &body)) {
+    if (!wasi_http_types_method_outgoing_request_body(borrow, &body)) {
       return Res::err(154);
     }
     body_ = new HttpOutgoingBody(std::unique_ptr<HandleState>(new OutgoingBodyHandle(body)));
@@ -993,20 +941,23 @@ Result<HttpOutgoingBody *> HttpOutgoingRequest::body() {
 Result<FutureHttpIncomingResponse *> HttpOutgoingRequest::send() {
   typedef Result<FutureHttpIncomingResponse *> Res;
   future_incoming_response_t ret;
-  wasi_http_0_2_0_outgoing_handler_error_code_t err;
+  wasi_http_outgoing_handler_error_code_t err;
   auto request_handle = WASIHandle<HttpOutgoingRequest>::cast(handle_state_.get())->take();
-  if (!wasi_http_0_2_0_outgoing_handler_handle(request_handle, nullptr, &ret, &err)) {
+  if (!wasi_http_outgoing_handler_handle(request_handle, nullptr, &ret, &err)) {
     return Res::err(154);
   }
-  auto res = new FutureHttpIncomingResponse(std::unique_ptr<HandleState>(new WASIHandle<FutureHttpIncomingResponse>(ret)));
+  auto res = new FutureHttpIncomingResponse(
+      std::unique_ptr<HandleState>(new WASIHandle<FutureHttpIncomingResponse>(ret)));
   return Result<FutureHttpIncomingResponse *>::ok(res);
 }
 
 void block_on_pollable_handle(PollableHandle handle) {
-  wasi_io_0_2_0_poll_method_pollable_block({handle});
+  wasi_io_poll_method_pollable_block({handle});
 }
 
-HttpIncomingBody::HttpIncomingBody(std::unique_ptr<HandleState> state) : Pollable() { handle_state_ = std::move(state); }
+HttpIncomingBody::HttpIncomingBody(std::unique_ptr<HandleState> state) : Pollable() {
+  handle_state_ = std::move(state);
+}
 
 Resource::~Resource() {
   if (handle_state_ != nullptr) {
@@ -1021,13 +972,13 @@ bool Resource::valid() const {
 Result<HttpIncomingBody::ReadResult> HttpIncomingBody::read(uint32_t chunk_size) {
   typedef Result<ReadResult> Res;
 
-  wasi_io_0_2_0_streams_list_u8_t ret{};
-  wasi_io_0_2_0_streams_stream_error_t err{};
+  bindings_list_u8_t ret{};
+  wasi_io_streams_stream_error_t err{};
   auto body_handle = IncomingBodyHandle::cast(handle_state_.get());
   auto borrow = Borrow<InputStream>(body_handle->stream_handle_);
-  bool success = wasi_io_0_2_0_streams_method_input_stream_read(borrow, chunk_size, &ret, &err);
+  bool success = wasi_io_streams_method_input_stream_read(borrow, chunk_size, &ret, &err);
   if (!success) {
-    if (err.tag == WASI_IO_0_2_0_STREAMS_STREAM_ERROR_CLOSED) {
+    if (err.tag == WASI_IO_STREAMS_STREAM_ERROR_CLOSED) {
       return Res::ok(ReadResult(true, nullptr, 0));
     }
     return Res::err(154);
@@ -1041,7 +992,7 @@ Result<Void> HttpIncomingBody::close() { return {}; }
 Result<PollableHandle> HttpIncomingBody::subscribe() {
   auto body_handle = IncomingBodyHandle::cast(handle_state_.get());
   auto borrow = Borrow<InputStream>(body_handle->stream_handle_);
-  auto pollable = wasi_io_0_2_0_streams_method_input_stream_subscribe(borrow);
+  auto pollable = wasi_io_streams_method_input_stream_subscribe(borrow);
   return Result<PollableHandle>::ok(pollable.__handle);
 }
 void HttpIncomingBody::unsubscribe() {
@@ -1049,7 +1000,7 @@ void HttpIncomingBody::unsubscribe() {
   if (state->pollable_handle_ == INVALID_POLLABLE_HANDLE) {
     return;
   }
-  wasi_io_0_2_0_poll_pollable_drop_own(own_pollable_t{state->pollable_handle_});
+  wasi_io_poll_pollable_drop_own(own_pollable_t{state->pollable_handle_});
   state->pollable_handle_ = INVALID_POLLABLE_HANDLE;
 }
 
@@ -1057,12 +1008,11 @@ FutureHttpIncomingResponse::FutureHttpIncomingResponse(std::unique_ptr<HandleSta
   handle_state_ = std::move(state);
 }
 
-
 Result<optional<HttpIncomingResponse *>> FutureHttpIncomingResponse::maybe_response() {
   typedef Result<optional<HttpIncomingResponse *>> Res;
-  wasi_http_0_2_0_types_result_result_own_incoming_response_error_code_void_t res;
+  wasi_http_types_result_result_own_incoming_response_error_code_void_t res;
   Borrow<FutureHttpIncomingResponse> borrow(handle_state_.get());
-  if (!wasi_http_0_2_0_types_method_future_incoming_response_get(borrow, &res)) {
+  if (!wasi_http_types_method_future_incoming_response_get(borrow, &res)) {
     return Res::ok(std::nullopt);
   }
 
@@ -1080,16 +1030,14 @@ Result<optional<HttpIncomingResponse *>> FutureHttpIncomingResponse::maybe_respo
 
 Result<PollableHandle> FutureHttpIncomingResponse::subscribe() {
   Borrow<FutureHttpIncomingResponse> borrow(handle_state_.get());
-  auto pollable = wasi_http_0_2_0_types_method_future_incoming_response_subscribe(borrow);
+  auto pollable = wasi_http_types_method_future_incoming_response_subscribe(borrow);
   return Result<PollableHandle>::ok(pollable.__handle);
 }
 void FutureHttpIncomingResponse::unsubscribe() {
   // TODO: implement
 }
 
-HttpHeadersReadOnly::HttpHeadersReadOnly() {
-  handle_state_ = nullptr;
-}
+HttpHeadersReadOnly::HttpHeadersReadOnly() { handle_state_ = nullptr; }
 
 HttpHeadersReadOnly::HttpHeadersReadOnly(std::unique_ptr<HandleState> state) {
   handle_state_ = std::move(state);
@@ -1101,7 +1049,7 @@ Result<uint16_t> HttpIncomingResponse::status() {
       return Result<uint16_t>::err(154);
     }
     auto borrow = Borrow<HttpIncomingResponse>(handle_state_.get());
-    status_ = wasi_http_0_2_0_types_method_incoming_response_status(borrow);
+    status_ = wasi_http_types_method_incoming_response_status(borrow);
   }
   return Result<uint16_t>::ok(status_);
 }
@@ -1116,7 +1064,7 @@ Result<HttpHeadersReadOnly *> HttpIncomingResponse::headers() {
       return Result<HttpHeadersReadOnly *>::err(154);
     }
     auto borrow = Borrow<HttpIncomingResponse>(handle_state_.get());
-    auto res = wasi_http_0_2_0_types_method_incoming_response_headers(borrow);
+    auto res = wasi_http_types_method_incoming_response_headers(borrow);
     auto state = new WASIHandle<HttpHeaders>(res);
     headers_ = new HttpHeadersReadOnly(std::unique_ptr<HandleState>(state));
   }
@@ -1131,7 +1079,7 @@ Result<HttpIncomingBody *> HttpIncomingResponse::body() {
     }
     auto borrow = Borrow<HttpIncomingResponse>(handle_state_.get());
     incoming_body_t body;
-    if (!wasi_http_0_2_0_types_method_incoming_response_consume(borrow, &body)) {
+    if (!wasi_http_types_method_incoming_response_consume(borrow, &body)) {
       return Result<HttpIncomingBody *>::err(154);
     }
     body_ = new HttpIncomingBody(std::unique_ptr<HandleState>(new IncomingBodyHandle(body)));
@@ -1139,11 +1087,14 @@ Result<HttpIncomingBody *> HttpIncomingResponse::body() {
   return Result<HttpIncomingBody *>::ok(body_);
 }
 
-HttpOutgoingResponse::HttpOutgoingResponse(std::unique_ptr<HandleState> state) { this->handle_state_ = std::move(state); }
+HttpOutgoingResponse::HttpOutgoingResponse(std::unique_ptr<HandleState> state) {
+  this->handle_state_ = std::move(state);
+}
 
-HttpOutgoingResponse *HttpOutgoingResponse::make(const uint16_t status, unique_ptr<HttpHeaders> headers) {
+HttpOutgoingResponse *HttpOutgoingResponse::make(const uint16_t status,
+                                                 unique_ptr<HttpHeaders> headers) {
   auto owned_headers = WASIHandle<HttpHeaders>::cast(headers->handle_state_.get())->take();
-  auto handle = wasi_http_0_2_0_types_constructor_outgoing_response(owned_headers);
+  auto handle = wasi_http_types_constructor_outgoing_response(owned_headers);
 
   auto *state = new WASIHandle<HttpOutgoingResponse>(handle);
   auto *resp = new HttpOutgoingResponse(std::unique_ptr<HandleState>(state));
@@ -1151,7 +1102,8 @@ HttpOutgoingResponse *HttpOutgoingResponse::make(const uint16_t status, unique_p
   // Set the status
   if (status != 200) {
     // The DOM implementation is expected to have validated the status code already.
-    MOZ_RELEASE_ASSERT(wasi_http_0_2_0_types_method_outgoing_response_set_status_code(state->borrow(), status));
+    MOZ_RELEASE_ASSERT(
+        wasi_http_types_method_outgoing_response_set_status_code(state->borrow(), status));
   }
 
   resp->status_ = status;
@@ -1164,7 +1116,7 @@ Result<HttpHeadersReadOnly *> HttpOutgoingResponse::headers() {
       return Result<HttpHeadersReadOnly *>::err(154);
     }
     auto borrow = Borrow<HttpOutgoingResponse>(handle_state_.get());
-    auto res = wasi_http_0_2_0_types_method_outgoing_response_headers(borrow);
+    auto res = wasi_http_types_method_outgoing_response_headers(borrow);
     auto state = new WASIHandle<HttpHeaders>(res);
     headers_ = new HttpHeadersReadOnly(std::unique_ptr<HandleState>(state));
   }
@@ -1177,7 +1129,7 @@ Result<HttpOutgoingBody *> HttpOutgoingResponse::body() {
   if (!this->body_) {
     auto borrow = Borrow<HttpOutgoingResponse>(handle_state_.get());
     outgoing_body_t body;
-    if (!wasi_http_0_2_0_types_method_outgoing_response_body(borrow, &body)) {
+    if (!wasi_http_types_method_outgoing_response_body(borrow, &body)) {
       return Res::err(154);
     }
     body_ = new HttpOutgoingBody(std::unique_ptr<HandleState>(new OutgoingBodyHandle(body)));
@@ -1197,9 +1149,9 @@ Result<string_view> HttpIncomingRequest::method() {
     }
   }
   auto borrow = Borrow<HttpIncomingRequest>(handle_state_.get());
-  wasi_http_0_2_0_types_method_t method;
-  wasi_http_0_2_0_types_method_incoming_request_method(borrow, &method);
-  if (method.tag != WASI_HTTP_0_2_0_TYPES_METHOD_OTHER) {
+  wasi_http_types_method_t method;
+  wasi_http_types_method_incoming_request_method(borrow, &method);
+  if (method.tag != WASI_HTTP_TYPES_METHOD_OTHER) {
     method_ = std::string(http_method_names[method.tag], strlen(http_method_names[method.tag]));
   } else {
     method_ = std::string(reinterpret_cast<char *>(method.val.other.ptr), method.val.other.len);
@@ -1214,7 +1166,7 @@ Result<HttpHeadersReadOnly *> HttpIncomingRequest::headers() {
       return Result<HttpHeadersReadOnly *>::err(154);
     }
     auto borrow = Borrow<HttpIncomingRequest>(handle_state_.get());
-    auto res = wasi_http_0_2_0_types_method_incoming_request_headers(borrow);
+    auto res = wasi_http_types_method_incoming_request_headers(borrow);
     auto state = new WASIHandle<HttpHeaders>(res);
     headers_ = new HttpHeadersReadOnly(std::unique_ptr<HandleState>(state));
   }
@@ -1229,13 +1181,14 @@ Result<HttpIncomingBody *> HttpIncomingRequest::body() {
     }
     auto borrow = Borrow<HttpIncomingRequest>(handle_state_.get());
     incoming_body_t body;
-    if (!wasi_http_0_2_0_types_method_incoming_request_consume(borrow, &body)) {
+    if (!wasi_http_types_method_incoming_request_consume(borrow, &body)) {
       return Result<HttpIncomingBody *>::err(154);
     }
     body_ = new HttpIncomingBody(std::unique_ptr<HandleState>(new IncomingBodyHandle(body)));
   }
   return Result<HttpIncomingBody *>::ok(body_);
 }
+
 
 // Used for debugging and logging bindings_string_t values
 // Un-comment the following code to enable debugging
@@ -1262,7 +1215,7 @@ HostString get_env_vars(std::string_view name) {
 
 HostString get_secret_vars(std::string_view name) {
   auto key_str = string_view_to_world_string(name);
-  gcore_fastedge_dictionary_option_string_t ret{};
+  bindings_option_string_t ret{};
   gcore_fastedge_secret_error_t err;
   auto has_value = gcore_fastedge_secret_get(&key_str, &ret, &err);
   if (has_value && ret.is_some) {
@@ -1283,20 +1236,30 @@ void host_api::HttpIncomingRequest::set_handler(RequestHandler handler) {
 }
 
 host_api::Result<host_api::Void> host_api::HttpOutgoingResponse::send() {
-  wasi_http_0_2_0_types_result_own_outgoing_response_error_code_t result;
+  wasi_http_types_result_own_outgoing_response_error_code_t result;
 
   auto own = WASIHandle<HttpOutgoingResponse>::cast(this->handle_state_.get())->take();
 
   result.is_err = false;
   result.val.ok = own;
 
-  wasi_http_0_2_0_types_static_response_outparam_set(RESPONSE_OUT, &result);
+  wasi_http_types_static_response_outparam_set(RESPONSE_OUT, &result);
 
   return {};
 }
 
+extern "C" bool init_from_environment();
+
 void exports_wasi_http_incoming_handler(exports_wasi_http_incoming_request request_handle,
                                         exports_wasi_http_response_outparam response_out) {
+  // If StarlingMonkey hasn't been pre-initialized, no request handler will be installed yet.
+  // The embedding must provide an implementation of the `init_from_environment()` hook and ensure
+  // that it properly initializes the runtime and installs a request handler.
+  if (!REQUEST_HANDLER) {
+    init_from_environment();
+  }
+  MOZ_ASSERT(REQUEST_HANDLER);
+
   RESPONSE_OUT = response_out;
   auto state = new WASIHandle<host_api::HttpIncomingRequest>(request_handle);
   auto *request = new host_api::HttpIncomingRequest(std::unique_ptr<host_api::HandleState>(state));
