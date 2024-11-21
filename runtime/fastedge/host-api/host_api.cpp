@@ -1189,10 +1189,11 @@ Result<HttpIncomingBody *> HttpIncomingRequest::body() {
   return Result<HttpIncomingBody *>::ok(body_);
 }
 
+// Gcore FastEdge API extensions
 
+/*
 // Used for debugging and logging bindings_string_t values
 // Un-comment the following code to enable debugging
-/*
 std::ostream& operator<<(std::ostream& os, const bindings_string_t& str) {
   os << "ptr: ";
   for (size_t i = 0; i < str.len; ++i) {
@@ -1223,7 +1224,6 @@ HostString get_secret_vars(std::string_view name) {
   }
   return nullptr;
 }
-
 
 } // namespace host_api
 
