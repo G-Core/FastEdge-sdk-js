@@ -26,5 +26,5 @@ HOST_API=$(realpath host-api) cmake -B $BUILD_PATH -DCMAKE_BUILD_TYPE=$BUILD_TYP
 # cmake --build $BUILD_PATH --parallel 16
 cmake --build $BUILD_PATH --parallel 8
 # Copy the built WebAssembly module to the parent directory
-mv $BUILD_PATH/starling.wasm/starling.wasm ../../lib/fastedge-runtime.wasm
-mv $BUILD_PATH/starling.wasm/preview1-adapter.wasm ../../lib/preview1-adapter.wasm
+mv $BUILD_PATH/starling-raw.wasm/starling-raw.wasm ../../lib/fastedge-runtime.wasm
+mv $BUILD_PATH/starling-raw.wasm/preview1-adapter.wasm ../../lib/preview1-adapter.wasm
