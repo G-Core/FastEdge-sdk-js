@@ -15,7 +15,16 @@ new Response(body, options);
 
 - `body` (optional)
 
-  A string defining the body of a response. This can be `null` that is the default.
+  A object defining the body of a response. This can be `null` (which is the default) or one of the
+  following:
+
+  - ArrayBuffer
+  - TypedArray
+  - DataView
+  - ReadableStream
+  - URLSearchParams
+  - String
+  - string literal
 
 - `options` (optional)
 
@@ -24,6 +33,10 @@ new Response(body, options);
   - status: (optional)
 
     A number representing the http status code. e.g. `200`
+
+  - statusText: (optional)
+
+    The status message associated with the status code, e.g. `OK`.
 
   - headers: (optional)
 
