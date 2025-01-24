@@ -11,7 +11,7 @@ import { addWasmMetadata } from './add-wasm-metadata.js';
 import { getJsInputContents } from './get-js-input.js';
 import { precompile } from './precompile.js';
 
-import { getTmpDir, npxPackagePath, resolveTmpDir } from '~utils/file-system.js';
+import { getTmpDir, npxPackagePath, resolveOsPath, resolveTmpDir } from '~utils/file-system.js';
 import { validateFilePaths } from '~utils/input-path-verification.js';
 
 async function componentize(jsInput, output, opts = {}) {
@@ -23,9 +23,12 @@ async function componentize(jsInput, output, opts = {}) {
     preBundleJSInput = true,
   } = opts;
 
-  const jsPath = fileURLToPath(new URL(resolve(process.cwd(), jsInput), import.meta.url));
+  const jsPath = fileURLToPath(new URL(`file://${resolveOsPath(process.cwd(), jsInput)}`));
+  console.log('Farq: componentize -> jsPath', jsPath);
 
-  const wasmOutputDir = fileURLToPath(new URL(resolve(process.cwd(), output), import.meta.url));
+  const wasmOutputDir = fileURLToPath(new URL(`file://${resolveOsPath(process.cwd(), output)}`));
+  console.log('Farq: componentize -> wasmOutputDir', wasmOutputDir);
+
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
 
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
@@ -85,9 +88,7 @@ async function componentize(jsInput, output, opts = {}) {
   }
 
   const coreComponent = await readFile(output);
-  const adapter = fileURLToPath(
-    new URL(npxPackagePath('./lib/preview1-adapter.wasm'), import.meta.url),
-  );
+  const adapter = fileURLToPath(new URL(`file://${npxPackagePath('./lib/preview1-adapter.wasm')}`));
 
   const generatedComponent = await componentNew(coreComponent, [
     ['wasi_snapshot_preview1', await readFile(adapter)],

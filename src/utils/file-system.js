@@ -1,10 +1,21 @@
 import { readdirSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, stat } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
+import { platform, tmpdir } from 'node:os';
+import path, { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { colorLog } from './prompts.js';
+
+/**
+ *
+ * @param {Array<string>} paths
+ * @returns {string} osSafePath
+ */
+const resolveOsPath = (...paths) => {
+  const isWindows = platform() === 'win32';
+  const filePath = path.resolve(...paths);
+  return isWindows ? filePath.replace(/\//gu, '\\') : filePath;
+};
 
 /**
  *
@@ -12,9 +23,12 @@ import { colorLog } from './prompts.js';
  * @returns {string} npxPackagePath
  */
 const npxPackagePath = (filePath) => {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url)).replace(/\/bin([^/]*)$/u, '');
+  const isWindows = platform() === 'win32';
+  const binPathRegex = isWindows ? /\\bin([^\\]*)$/u : /\/bin([^/]*)$/u;
+  const __dirname = path.dirname(fileURLToPath(import.meta.url)).replace(binPathRegex, '');
   try {
-    return path.resolve(__dirname, filePath);
+    console.log('Farq: npxPackagePath -> createdPath', resolveOsPath(__dirname, filePath));
+    return resolveOsPath(__dirname, filePath);
   } catch {
     throw new Error(`Failed to resolve the npxPackagePath: ${filePath}`);
   }
@@ -71,7 +85,7 @@ async function getTmpDir() {
 }
 
 function resolveTmpDir(filePath) {
-  return path.resolve(filePath, 'temp.bundle.js');
+  return resolve(filePath, 'temp.bundle.js');
 }
 
 /**
@@ -91,8 +105,8 @@ function getFilesRecursively(inputPath, opts) {
     const entries = readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
       const { name } = entry;
-      const fullpath = path.resolve(dir, name);
-      const relative = `/${path.relative(inputPath, fullpath)}`;
+      const fullpath = resolve(dir, name);
+      const relative = `${path.sep}${path.relative(inputPath, fullpath)}`;
       // Remove ignoreDirs file trees
       if (ignoreDirs.includes(relative)) continue;
       // Remove .well-known file trees
@@ -101,7 +115,7 @@ function getFilesRecursively(inputPath, opts) {
       // Remove ignoreDotFiles file trees (except .well-known)
       if (ignoreDotFiles && name.startsWith('.') && name !== '.well-known') continue;
 
-      const res = path.resolve(dir, name);
+      const res = resolve(dir, name);
       if (entry.isDirectory()) {
         readDir(res);
       } else {
@@ -120,5 +134,6 @@ export {
   isDirectory,
   isFile,
   npxPackagePath,
+  resolveOsPath,
   resolveTmpDir,
 };
