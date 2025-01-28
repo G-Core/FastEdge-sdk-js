@@ -1,10 +1,10 @@
-import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { createStaticManifest } from './build-manifest/create-static-manifest.js';
 import { buildWasm } from './build-wasm.js';
 
 import { normalizeBuildConfig } from '~utils/config-helpers.js';
-import { isFile } from '~utils/file-system.js';
+import { isFile, resolveOsPath } from '~utils/file-system.js';
 import { colorLog } from '~utils/prompts.js';
 
 async function buildFromConfig(config) {
@@ -36,7 +36,8 @@ async function loadConfig(configPath) {
   try {
     const configFileExists = await isFile(configPath);
     if (configFileExists) {
-      const { config } = await import(/* webpackChunkName: "config" */ configPath);
+      const configUrlPath = pathToFileURL(configPath).href;
+      const { config } = await import(/* webpackChunkName: "config" */ configUrlPath);
       return normalizeBuildConfig(config);
     }
     colorLog('error', `Error: Config file not found at ${configPath}. Skipping build.`);
@@ -48,7 +49,7 @@ async function loadConfig(configPath) {
 
 async function buildFromConfigFiles(configFilePaths = []) {
   for (const configFilePath of configFilePaths) {
-    const configPath = path.resolve(configFilePath);
+    const configPath = resolveOsPath(configFilePath);
     // Await in loop is correct, it must run sequentially - it overwrites files within each build cycle
     // eslint-disable-next-line no-await-in-loop
     await buildFromConfig(await loadConfig(configPath));

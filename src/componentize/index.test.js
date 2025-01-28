@@ -1,7 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { rmSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 
 import { componentNew } from '@bytecodealliance/jco';
 
@@ -27,14 +26,6 @@ jest.mock('node:fs/promises', () => ({
 }));
 jest.mock('./get-js-input', () => ({
   getJsInputContents: jest.fn().mockReturnValue('{_user_provided_js_content_}'),
-}));
-
-jest.mock('node:url', () => ({
-  fileURLToPath: jest
-    .fn()
-    .mockReturnValueOnce('input.js')
-    .mockReturnValueOnce('output.wasm')
-    .mockReturnValue('./lib/wasi_snapshot_preview1.reactor.wasm'),
 }));
 
 // This is just mocked here.. Integration tests from fastedge-build will test this in detail
@@ -66,16 +57,14 @@ describe('componentize', () => {
   });
 
   it('should handle componentization process correctly', async () => {
-    expect.assertions(11);
+    expect.assertions(10);
     await componentize('input.js', 'output.wasm');
 
-    expect(fileURLToPath).toHaveBeenCalledTimes(3);
     expect(validateFilePaths).toHaveBeenCalledWith(
       'input.js',
       'output.wasm',
       'root_dir/lib/fastedge-runtime.wasm',
     );
-
     expect(getJsInputContents).toHaveBeenCalledWith('input.js', true);
     expect(precompile).toHaveBeenCalledWith('{_user_provided_js_content_}');
     expect(spawnSync).toHaveBeenCalledWith(
@@ -104,7 +93,7 @@ describe('componentize', () => {
 
     expect(rmSync).toHaveBeenCalledWith('tmp_dir', { recursive: true });
     expect(readFile).toHaveBeenNthCalledWith(1, 'output.wasm');
-    expect(readFile).toHaveBeenNthCalledWith(2, './lib/wasi_snapshot_preview1.reactor.wasm');
+    expect(readFile).toHaveBeenNthCalledWith(2, 'root_dir/lib/preview1-adapter.wasm');
 
     expect(componentNew).toHaveBeenCalledWith('generated_binary', [
       ['wasi_snapshot_preview1', 'preview_wasm'],
