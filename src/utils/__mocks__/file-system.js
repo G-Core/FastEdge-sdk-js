@@ -6,4 +6,8 @@ const getTmpDir = async () => 'tmp_dir';
 
 const resolveTmpDir = (filePath) => path.join('temp_root', 'temp.bundle.js');
 
-export { getTmpDir, npxPackagePath, resolveTmpDir };
+const resolveOsPath = (base, providedPath) => providedPath;
+
+const useUnixPath = (path) => path;
+
+export { getTmpDir, npxPackagePath, resolveOsPath, resolveTmpDir, useUnixPath };

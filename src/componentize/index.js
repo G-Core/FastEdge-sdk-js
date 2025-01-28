@@ -11,21 +11,28 @@ import { addWasmMetadata } from './add-wasm-metadata.js';
 import { getJsInputContents } from './get-js-input.js';
 import { precompile } from './precompile.js';
 
-import { getTmpDir, npxPackagePath, resolveTmpDir } from '~utils/file-system.js';
+import {
+  getTmpDir,
+  npxPackagePath,
+  resolveOsPath,
+  resolveTmpDir,
+  useUnixPath,
+} from '~utils/file-system.js';
 import { validateFilePaths } from '~utils/input-path-verification.js';
 
 async function componentize(jsInput, output, opts = {}) {
   const {
     debug = false,
-    wasmEngine = await npxPackagePath('./lib/fastedge-runtime.wasm'),
+    wasmEngine = npxPackagePath('./lib/fastedge-runtime.wasm'),
     enableStdout = false,
     enablePBL = false,
     preBundleJSInput = true,
   } = opts;
 
-  const jsPath = fileURLToPath(new URL(resolve(process.cwd(), jsInput), import.meta.url));
+  const jsPath = resolveOsPath(process.cwd(), jsInput);
 
-  const wasmOutputDir = fileURLToPath(new URL(resolve(process.cwd(), output), import.meta.url));
+  const wasmOutputDir = resolveOsPath(process.cwd(), output);
+
   await validateFilePaths(jsPath, wasmOutputDir, wasmEngine);
 
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
@@ -51,14 +58,14 @@ async function componentize(jsInput, output, opts = {}) {
         '--inherit-env=true',
         '--dir=.',
         // '--dir=../', // todo: Farq: NEED to iterate config file and add these paths for static building...
-        `--dir=${dirname(wizerInput)}`,
+        `--dir=${useUnixPath(dirname(wizerInput))}`,
         '-r _start=wizer.resume',
-        `-o=${wasmOutputDir}`,
-        wasmEngine,
+        `-o=${useUnixPath(wasmOutputDir)}`,
+        useUnixPath(wasmEngine),
       ],
       {
         stdio: [null, process.stdout, process.stderr],
-        input: wizerInput,
+        input: useUnixPath(wizerInput),
         shell: true,
         encoding: 'utf-8',
         env: {
@@ -85,9 +92,7 @@ async function componentize(jsInput, output, opts = {}) {
   }
 
   const coreComponent = await readFile(output);
-  const adapter = fileURLToPath(
-    new URL(npxPackagePath('./lib/preview1-adapter.wasm'), import.meta.url),
-  );
+  const adapter = npxPackagePath('./lib/preview1-adapter.wasm');
 
   const generatedComponent = await componentNew(coreComponent, [
     ['wasi_snapshot_preview1', await readFile(adapter)],
