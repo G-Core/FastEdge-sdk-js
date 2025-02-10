@@ -1,10 +1,26 @@
 import { readdirSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import path from 'node:path';
+import path, { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { colorLog } from './prompts.js';
+
+/**
+ *
+ * Normalizes and resolves the path for unix/windows compatibility
+ * @param {Array<string>} paths
+ * @returns {string} path
+ */
+const resolveOsPath = (...paths) => path.normalize(resolve(...paths));
+
+/**
+ *
+ * Replaces backslashes with forward slashes - wizer requires unix paths
+ * @param {string} path
+ * @returns {string} path
+ */
+const useUnixPath = (path) => path.replace(/\\/gu, '/');
 
 /**
  *
@@ -12,7 +28,10 @@ import { colorLog } from './prompts.js';
  * @returns {string} npxPackagePath
  */
 const npxPackagePath = (filePath) => {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url)).replace(/\/bin([^/]*)$/u, '');
+  const __dirname = path
+    .dirname(fileURLToPath(import.meta.url))
+    .replace(/[\\/]bin([\\/][^\\/]*)?$/u, '');
+
   try {
     return path.resolve(__dirname, filePath);
   } catch {
@@ -120,5 +139,7 @@ export {
   isDirectory,
   isFile,
   npxPackagePath,
+  resolveOsPath,
   resolveTmpDir,
+  useUnixPath,
 };
