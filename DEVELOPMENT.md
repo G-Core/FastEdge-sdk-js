@@ -15,7 +15,7 @@ git submodule update --recursive --init
 Software that needs installing to work with this library:
 
 - Rust
-  ```
+  ```sh
   curl -so rust.sh https://sh.rustup.rs && sh rust.sh -y
   restart shell or run source $HOME/.cargo/env
   ```

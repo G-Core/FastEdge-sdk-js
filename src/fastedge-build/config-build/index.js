@@ -22,7 +22,7 @@ async function buildFromConfig(config) {
       break;
     }
     case 'next': {
-      console.log('Farq: next build - Not yet implemented');
+      colorLog('info', 'Farq: next build - Not yet implemented');
       break;
     }
     default: {

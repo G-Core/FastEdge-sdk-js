@@ -37,7 +37,6 @@ async function componentize(jsInput, output, opts = {}) {
 
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
 
-  //  todo: farq: Can I remove this step?? regex collection?
   const application = precompile(contents);
 
   // Create a temporary file
@@ -57,7 +56,7 @@ async function componentize(jsInput, output, opts = {}) {
         `--wasm-bulk-memory=true`,
         '--inherit-env=true',
         '--dir=.',
-        // '--dir=../', // todo: Farq: NEED to iterate config file and add these paths for static building...
+        // '--dir=../', // Farq: NEED to iterate config file and add these paths for static building...
         `--dir=${useUnixPath(dirname(wizerInput))}`,
         '-r _start=wizer.resume',
         `-o=${useUnixPath(wasmOutputDir)}`,

@@ -18,7 +18,7 @@ This Javascript SDK is not yet fully fledged, but it is growing quickly.
 As we test and write more functionality we will endeavour to keep adding to this reference guide.
 
 At present there is all the basic javascript functionality provided by
-<a href="https://spidermonkey.dev/" target="_blank">SpiderMonkey</a>. This is the engine our
-Javascript product is embedded with.
+<a href="https://github.com/bytecodealliance/StarlingMonkey" target="_blank">StarlingMonkey</a>.
+This is the engine our Javascript product is embedded with.
 
 We will continue to add more, so please check back often!
