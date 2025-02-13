@@ -82,9 +82,9 @@ function createManifestFileMap(config) {
     return {
       assetKey,
       ...contentTypeInfo,
-      // fileInfo: createFileInfo(assetKey, config.publicDir, file),
+      // Farq: fileInfo: createFileInfo(assetKey, config.publicDir, file),
       fileInfo,
-      // todo: fix these.. to our shape
+      // Farq: fix these.. to our shape
       lastModifiedTime: fileInfo.lastModifiedTime,
       type: 'wasm-inline',
     };
@@ -94,7 +94,7 @@ function createManifestFileMap(config) {
   const staticAssetManifest = {};
 
   for (const assetInfo of manifestAssets) {
-    // todo: Do other build things here??
+    // Do other build things here??
     // or should the above loop become a reduce?
     staticAssetManifest[assetInfo.assetKey] = assetInfo;
   }
