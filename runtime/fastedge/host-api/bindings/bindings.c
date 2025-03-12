@@ -13,6 +13,9 @@ extern void __wasm_import_gcore_fastedge_dictionary_get(uint8_t *, size_t, uint8
 __attribute__((__import_module__("gcore:fastedge/secret"), __import_name__("get")))
 extern void __wasm_import_gcore_fastedge_secret_get(uint8_t *, size_t, uint8_t *);
 
+__attribute__((__import_module__("gcore:fastedge/secret"), __import_name__("get-effective-at")))
+extern void __wasm_import_gcore_fastedge_secret_get_effective_at(uint8_t *, size_t, int32_t, uint8_t *);
+
 // Imported Functions from `wasi:cli/environment@0.2.0`
 
 __attribute__((__import_module__("wasi:cli/environment@0.2.0"), __import_name__("get-environment")))
@@ -1681,6 +1684,61 @@ bool gcore_fastedge_secret_get(bindings_string_t *key, bindings_option_string_t 
   uint8_t ret_area[16];
   uint8_t *ptr = (uint8_t *) &ret_area;
   __wasm_import_gcore_fastedge_secret_get((uint8_t *) (*key).ptr, (*key).len, ptr);
+  gcore_fastedge_secret_result_option_string_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      bindings_option_string_t option;
+      switch ((int32_t) *((uint8_t*) (ptr + 4))) {
+        case 0: {
+          option.is_some = false;
+          break;
+        }
+        case 1: {
+          option.is_some = true;
+          option.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.ok = option;
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_secret_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 4));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_secret_get_effective_at(bindings_string_t *key, uint32_t at, bindings_option_string_t *ret, gcore_fastedge_secret_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_secret_get_effective_at((uint8_t *) (*key).ptr, (*key).len, (int32_t) (at), ptr);
   gcore_fastedge_secret_result_option_string_error_t result;
   switch ((int32_t) *((uint8_t*) (ptr + 0))) {
     case 0: {
