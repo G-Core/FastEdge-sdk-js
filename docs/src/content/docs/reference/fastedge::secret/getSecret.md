@@ -34,5 +34,5 @@ getSecret(secretName);
 
 A string containing the value of the key. If the key does not exist, null is returned.
 
-**Note**: If the secret contains multiple `secret_slots` you will always recieve the largest `slot`
+**Note**: If the secret contains multiple `secret_slots` you will always receive the MAX `slot`
 value.

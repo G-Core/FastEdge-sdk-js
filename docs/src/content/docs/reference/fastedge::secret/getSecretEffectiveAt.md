@@ -5,7 +5,7 @@ description: How to use FastEdge secret variables.
 
 ### Secret Variables
 
-To access secret variables, set during deployment on the FastEdge network.
+To access slot specific secret variables, set during deployment on the FastEdge network.
 
 ```js
 import { getSecretEffectiveAt } from 'fastedge::secret';
@@ -71,17 +71,19 @@ Having created a secret:
 }
 ```
 
-It would now be easy enough to provide the `slot` value within the tokens claims as to which
-password it should validate against. This would allow you to slowly roll-over from one password to
-another and keep all users able to refresh their tokens without issues. As each users token would
-carry the data to know which password was still in use when it was issued.
+It would now be easy enough to also provide the `slot` value within the tokens claims as to which
+password it should validate against. This would allow you to slowly rollover from one password to
+another and keep all users able to refresh their tokens without issues, as each users token also
+carries the data to know which password was still in use when it was issued.
 
 It always returns `effectiveAt >= secret_slots.slot`
 
 So a request to:
 
+- `getSecretEffectiveAt("token-secret", 0)` would return `original_password`
 - `getSecretEffectiveAt("token-secret", 3)` would return `original_password`
 - `getSecretEffectiveAt("token-secret", 5)` would return `updated_password`
+- `getSecretEffectiveAt("token-secret", 7)` would return `updated_password`
 
 This `>=` logic makes it very easy to implement the following example.
 
