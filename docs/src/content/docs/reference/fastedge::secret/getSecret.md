@@ -1,5 +1,5 @@
 ---
-title: FastEdge::secret
+title: getSecret
 description: How to use FastEdge secret variables.
 ---
 
@@ -33,3 +33,6 @@ getSecret(secretName);
 ##### Return Value
 
 A string containing the value of the key. If the key does not exist, null is returned.
+
+**Note**: If the secret contains multiple `secret_slots` you will always receive the MAX `slot`
+value.

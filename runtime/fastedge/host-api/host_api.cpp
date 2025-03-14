@@ -1225,6 +1225,18 @@ HostString get_secret_vars(std::string_view name) {
   return nullptr;
 }
 
+HostString get_secret_vars_effective_at(std::string_view name, uint32_t effective_at) {
+  auto key_str = string_view_to_world_string(name);
+  bindings_option_string_t ret{};
+  gcore_fastedge_secret_error_t err;
+  auto has_value = gcore_fastedge_secret_get_effective_at(&key_str, effective_at, &ret, &err);
+  if (has_value && ret.is_some) {
+    return bindings_string_to_host_string(ret.val);
+  }
+  return nullptr;
+}
+
+
 } // namespace host_api
 
 static host_api::HttpIncomingRequest::RequestHandler REQUEST_HANDLER = nullptr;

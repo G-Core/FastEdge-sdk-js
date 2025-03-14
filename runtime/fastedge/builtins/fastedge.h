@@ -30,6 +30,7 @@ public:
   static bool readFileSync(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool getEnv(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool getSecret(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool getSecretEffectiveAt(JSContext *cx, unsigned argc, JS::Value *vp);
 
 };
 

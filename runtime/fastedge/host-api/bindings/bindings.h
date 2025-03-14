@@ -1536,9 +1536,12 @@ typedef wasi_http_types_own_response_outparam_t exports_wasi_http_incoming_handl
 extern bool gcore_fastedge_dictionary_get(bindings_string_t *name, bindings_string_t *ret);
 
 // Imported Functions from `gcore:fastedge/secret`
-// Get the secret associated with the specified `key`
+// Get the secret associated with the specified `key` efective at current timestamp.
 // Returns `ok(none)` if the key does not exist.
 extern bool gcore_fastedge_secret_get(bindings_string_t *key, bindings_option_string_t *ret, gcore_fastedge_secret_error_t *err);
+// Get the secret associated with the specified `key` effective `at` given timestamp in seconds.
+// Returns `ok(none)` if the key does not exist.
+extern bool gcore_fastedge_secret_get_effective_at(bindings_string_t *key, uint32_t at, bindings_option_string_t *ret, gcore_fastedge_secret_error_t *err);
 
 // Imported Functions from `wasi:cli/environment@0.2.0`
 // Get the POSIX-style environment variables.
