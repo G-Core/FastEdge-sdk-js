@@ -40,9 +40,9 @@ const defaultConfig = {
     static: {
       extendedCache: [],
       publicDirPrefix: '',
-      compression: [], // not implemented - seems excessive for inline-wasm sizes ['br', 'gzip']
+      compression: [], // Not implemented - seems excessive for inline-wasm sizes ['br', 'gzip']
       notFoundPage: '/404.html',
-      autoExt: [], // never used before
+      autoExt: [], // Never used before
       autoIndex: ['index.html', 'index.htm'],
     },
   },
