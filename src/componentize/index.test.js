@@ -10,7 +10,7 @@ import { precompile } from './precompile.js';
 
 import { componentize } from './index.js';
 
-import { validateFilePaths } from '~utils/input-path-verification.js';
+import { validateFileExists } from '~utils/input-path-verification.js';
 
 jest.mock('~utils/file-system');
 jest.mock('node:fs', () => ({
@@ -30,7 +30,7 @@ jest.mock('./get-js-input', () => ({
 
 // This is just mocked here.. Integration tests from fastedge-build will test this in detail
 jest.mock('~utils/input-path-verification', () => ({
-  validateFilePaths: jest.fn().mockResolvedValue(),
+  validateFileExists: jest.fn().mockResolvedValue(),
 }));
 
 jest.mock('./precompile', () => ({
@@ -60,11 +60,7 @@ describe('componentize', () => {
     expect.assertions(10);
     await componentize('input.js', 'output.wasm');
 
-    expect(validateFilePaths).toHaveBeenCalledWith(
-      'input.js',
-      'output.wasm',
-      'root_dir/lib/fastedge-runtime.wasm',
-    );
+    expect(validateFileExists).toHaveBeenCalledWith('root_dir/lib/fastedge-runtime.wasm');
     expect(getJsInputContents).toHaveBeenCalledWith('input.js', true);
     expect(precompile).toHaveBeenCalledWith('{_user_provided_js_content_}');
     expect(spawnSync).toHaveBeenCalledWith(
