@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,8 +48,8 @@ describe('fastedge-build', () => {
   describe('validates files and paths exist', () => {
     it('should error if input file does not exist', async () => {
       expect.assertions(2);
-      const { execute, cleanup, writeFile } = await prepareEnvironment();
-      const { code, stderr, stdout } = await execute(
+      const { execute, cleanup } = await prepareEnvironment();
+      const { code, stderr } = await execute(
         'node',
         './bin/fastedge-build.js input.js dist/output.wasm',
       );
@@ -68,9 +69,24 @@ describe('fastedge-build', () => {
       expect(distFolderExists).toBe(true);
       await cleanup();
     });
+    it('should exit with an error if the input is not a ".js" or ".ts" file', async () => {
+      expect.assertions(2);
+      const { execute, cleanup, writeFile } = await prepareEnvironment();
+      await writeFile('input.jsx', 'function() { console.log("Hello World"); }');
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      const { code, stderr } = await execute(
+        'node',
+        './bin/fastedge-build.js input.jsx dist/output.wasm',
+      );
+      expect(code).toBe(1);
+      expect(stderr[0]).toContain(
+        'Error: "input.jsx" is not a valid file type - must be ".js" or ".ts"',
+      );
+      await cleanup();
+    });
     it('should exit with an error if the Javascript is not valid', async () => {
-      expect.assertions(5);
-      const { execute, cleanup, writeFile, ls } = await prepareEnvironment();
+      expect.assertions(6);
+      const { execute, cleanup, writeFile } = await prepareEnvironment();
       await writeFile('input.js', 'function() { console.log("Hello World"); }');
       await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
       const { code, stderr, stdout } = await execute(
@@ -81,7 +97,46 @@ describe('fastedge-build', () => {
       expect(stdout[1]).toContain('function() { console.log("Hello World"); }');
       expect(stdout[2]).toContain('^^^^^^^^');
       expect(stdout[3]).toContain('SyntaxError: Function statements require a function name');
-      expect(stderr[1]).toContain('Error: "input.js" contains JS Errors');
+      expect(stderr[0]).toContain('SyntaxError: javascript code');
+      expect(stderr[1]).toContain('Error: "input.js" contains JS errors');
+      await cleanup();
+    });
+    it('should exit with an error if TypeScript is not installed', async () => {
+      expect.assertions(3);
+      const { execute, cleanup, writeFile } = await prepareEnvironment();
+      await writeFile('input.ts', 'function() { console.log("Hello World"); }');
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      const { code, stderr, stdout } = await execute(
+        'node',
+        './bin/fastedge-build.js input.ts dist/output.wasm',
+      );
+      expect(code).toBe(1);
+      expect(stderr[0]).toContain('TypeScript is not installed.');
+      expect(stderr[1]).toContain('Please run "npm install typescript"');
+      await cleanup();
+    });
+    it('should exit with an error if the TypeScript is not valid', async () => {
+      expect.assertions(4);
+      const { execute, cleanup, writeFile, path } = await prepareEnvironment();
+      spawnSync('npm', ['install', 'typescript'], {
+        stdio: 'inherit',
+        cwd: path,
+      });
+      await writeFile(
+        'input.ts',
+        'interface Test { hasTypes: boolean; } function test(data: Test) { console.log("Hello World", data.unknown ); }',
+      );
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      const { code, stderr, stdout } = await execute(
+        'node',
+        './bin/fastedge-build.js input.ts dist/output.wasm',
+      );
+      expect(code).toBe(1);
+      expect(stderr[0]).toContain('SyntaxError: typescript code');
+      expect(stderr[1]).toContain('Error: "input.ts" contains TypeScript errors');
+      expect(stdout[0]).toContain(
+        "input.ts(1,99): error TS2339: Property 'unknown' does not exist on type 'Test'.",
+      );
       await cleanup();
     });
   });

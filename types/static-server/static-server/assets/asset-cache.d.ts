@@ -26,4 +26,4 @@ export type AssetCache = {
  */
 export function createAssetCache<AssetType>(assets?: {
     [x: string]: AssetType;
-} | undefined): AssetCache;
+}): AssetCache;
