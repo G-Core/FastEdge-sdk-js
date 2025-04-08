@@ -27,13 +27,8 @@ export type StaticAssetMetadata = {
     assetKey: string;
     /**
      * - Content type of the asset.
-     * // *
      */
     contentType: string;
-    /**
-     * - Indicates if the asset is text.
-     */
-    text: boolean;
     /**
      * - Information about the file.
      */
@@ -76,7 +71,6 @@ export type StaticAssetManifest = {
  * @property {string} type - Type of the asset.
  * @property {string} assetKey - Key of the asset.
  * @property {string} contentType - Content type of the asset.
- // * @property {boolean} text - Indicates if the asset is text.
  * @property {FileInfo} fileInfo - Information about the file.
  * @property {number} lastModifiedTime - Farq: need to remove this, should be on file.
  */

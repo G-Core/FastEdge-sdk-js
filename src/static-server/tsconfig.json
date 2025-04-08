@@ -6,7 +6,7 @@
     "allowJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "../../types/static-server/",
+    "outDir": "../../types/",
     "strict": true,
     "checkJs": true
   },
