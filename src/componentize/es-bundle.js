@@ -3,11 +3,13 @@ import { build } from 'esbuild';
 const fastedgePackagePlugin = {
   name: 'fastedge-package-plugin',
   setup(build) {
-    build.onResolve({ filter: /^fastedge::.*/u }, (args) => ({
+    // eslint-disable-next-line require-unicode-regexp
+    build.onResolve({ filter: /^fastedge::.*/ }, (args) => ({
       path: args.path.replace('fastedge::', ''),
       namespace: 'fastedge',
     }));
-    build.onLoad({ filter: /^.*/u, namespace: 'fastedge' }, async (args) => {
+    // eslint-disable-next-line require-unicode-regexp
+    build.onLoad({ filter: /^.*/, namespace: 'fastedge' }, async (args) => {
       switch (args.path) {
         case 'env': {
           return { contents: `export const getEnv = globalThis.fastedge.getEnv;` };
