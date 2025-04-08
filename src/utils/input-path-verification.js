@@ -46,6 +46,8 @@ function containsTypeScriptSyntaxErrors(tsInput, tsconfigPath) {
       '--strict',
       '--target',
       'esnext',
+      '--moduleResolution',
+      'node',
       ...includeFasEdgeTypes,
       tsInput,
     ];
