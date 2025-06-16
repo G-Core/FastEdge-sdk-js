@@ -1,94 +1,44 @@
-export type FileInfo = {
-    /**
-     * - Same as hash of file.
-     */
+import type { EmbeddedStoreEntry } from './embedded-store-entry.ts';
+import type { AssetCache } from './asset-cache.ts';
+/**
+ * Represents information about a file.
+ */
+interface FileInfo {
     hash: string;
-    /**
-     * - Size of the file.
-     */
     size: number;
-    /**
-     * - Path to the asset.
-     */
     assetPath: string;
-    /**
-     * - Last modified time as Unix time.
-     */
     lastModifiedTime: number;
-};
-export type StaticAssetMetadata = {
-    /**
-     * - Type of the asset.
-     */
+}
+/**
+ * Represents metadata for a static asset.
+ */
+interface StaticAssetMetadata {
     type: string;
-    /**
-     * - Key of the asset.
-     */
     assetKey: string;
-    /**
-     * - Content type of the asset.
-     */
     contentType: string;
-    /**
-     * - Information about the file.
-     */
     fileInfo: FileInfo;
-    /**
-     * - Farq: need to remove this, should be on file.
-     */
     lastModifiedTime: number;
-};
-export type StaticAsset = {
-    /**
-     * - Type of the asset.
-     */
+}
+/**
+ * Represents a static asset.
+ */
+interface StaticAsset {
     type: string;
-    /**
-     * - Key of the asset.
-     */
     assetKey: string;
-    /**
-     * - Gets the metadata of the asset.
-     */
-    getMetadata: () => StaticAssetMetadata;
-    /**
-     * - Gets the store entry of the asset.
-     */
-    getStoreEntry: (arg0: unknown) => Promise<import("./embedded-store-entry.js").EmbeddedStoreEntry>;
-};
-export type StaticAssetManifest = {
-    [x: string]: StaticAssetMetadata;
-};
+    getMetadata(): StaticAssetMetadata;
+    getStoreEntry(arg: unknown): Promise<EmbeddedStoreEntry>;
+}
 /**
- * @typedef {Object} FileInfo
- * @property {string} hash - Same as hash of file.
- * @property {number} size - Size of the file.
- * @property {string} assetPath - Path to the asset.
- * @property {number} lastModifiedTime - Last modified time as Unix time.
+ * Represents a manifest of static assets.
  */
+type StaticAssetManifest = Record<string, StaticAssetMetadata>;
 /**
- * @typedef {Object} StaticAssetMetadata
- * @property {string} type - Type of the asset.
- * @property {string} assetKey - Key of the asset.
- * @property {string} contentType - Content type of the asset.
- * @property {FileInfo} fileInfo - Information about the file.
- * @property {number} lastModifiedTime - Farq: need to remove this, should be on file.
- */
-/**
- * @typedef {Object} StaticAsset
- * @property {string} type - Type of the asset.
- * @property {string} assetKey - Key of the asset.
- * @property {function(): StaticAssetMetadata} getMetadata - Gets the metadata of the asset.
- * @property {function(unknown): Promise<import('./embedded-store-entry.js').EmbeddedStoreEntry>} getStoreEntry - Gets the store entry of the asset.
- */
-/**
- * @typedef {Object.<string, StaticAssetMetadata>} StaticAssetManifest
- */
-/**
- * Create an object that contains all static assets in memory, with setters and getters for each asset/metadata
- * This StaticAssetCache will be stored in the binary during wizer proccessing.
+ * Creates an object that contains all static assets in memory, with setters and getters for each asset/metadata.
+ * This `StaticAssetCache` will be stored in the binary during Wizer processing.
  *
- * @param {StaticAssetManifest} staticAssetManifest
- * @returns {import('./asset-cache.js').AssetCache} AssetCache
+ * @param staticAssetManifest - The manifest of static assets.
+ * @returns An `AssetCache` instance containing the static assets.
  */
-export function createStaticAssetsCache(staticAssetManifest: StaticAssetManifest): import("./asset-cache.js").AssetCache;
+declare function createStaticAssetsCache(staticAssetManifest: StaticAssetManifest): AssetCache<StaticAsset>;
+export { createStaticAssetsCache };
+export type { FileInfo, StaticAssetMetadata, StaticAsset, StaticAssetManifest };

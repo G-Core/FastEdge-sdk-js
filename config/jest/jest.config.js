@@ -1,4 +1,4 @@
-export default {
+const config = {
   moduleDirectories: ['node_modules'],
   moduleNameMapper: {
     '^~utils/(.*)$': '<rootDir>/src/utils/$1',
@@ -7,12 +7,12 @@ export default {
     '^~static-server/(.*)$': '<rootDir>/src/static-server/$1',
     '^~constants/(.*)$': '<rootDir>/src/constants/$1',
   },
+  moduleFileExtensions: ['ts', 'js', 'json'],
   rootDir: process.cwd(),
   testEnvironment: 'node',
   testPathIgnorePatterns: ['node_modules', 'dist', 'docs', 'runtime/StarlingMonkey/'],
-  testTimeout: 7000,
   transform: {
-    '^.+\\.(js)$': 'babel-jest',
+    '^.+\\.(ts|js)$': 'babel-jest',
   },
-  verbose: true,
 };
+export default config;

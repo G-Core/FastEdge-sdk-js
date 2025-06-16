@@ -1,29 +1,31 @@
-export type AssetCache = {
-    /**
-     * - Retrieves an asset by its key.
-     */
-    getAsset: (arg0: string) => any | null;
-    /**
-     * - Retrieves all asset keys.
-     */
-    getAssetKeys: () => string[];
-    /**
-     * - Loads an asset with a given key.
-     */
-    loadAsset: (arg0: string, arg1: any) => void;
-};
 /**
- * @typedef {Object} AssetCache
- * @property {function(string): any | null} getAsset - Retrieves an asset by its key.
- * @property {function(): string[]} getAssetKeys - Retrieves all asset keys.
- * @property {function(string, any): void} loadAsset - Loads an asset with a given key.
+ * Represents a cache for assets.
  */
+interface AssetCache<AssetType> {
+    /**
+     * Retrieves an asset by its key.
+     * @param assetKey - The key of the asset to retrieve.
+     * @returns The asset associated with the key, or `null` if not found.
+     */
+    getAsset(assetKey: string): AssetType | null;
+    /**
+     * Retrieves all asset keys.
+     * @returns An array of all asset keys.
+     */
+    getAssetKeys(): string[];
+    /**
+     * Loads an asset into the cache with a given key.
+     * @param assetKey - The key to associate with the asset.
+     * @param asset - The asset to load into the cache.
+     */
+    loadAsset(assetKey: string, asset: AssetType): void;
+}
 /**
  * Creates an asset cache.
- * @template AssetType
- * @param {Object.<string, AssetType>} [assets={}] - Initial assets to populate the cache.
- * @returns {AssetCache} AssetCache
+ * @template AssetType - The type of assets stored in the cache.
+ * @param assets - Initial assets to populate the cache.
+ * @returns An instance of `AssetCache`.
  */
-export function createAssetCache<AssetType>(assets?: {
-    [x: string]: AssetType;
-}): AssetCache;
+declare const createAssetCache: <AssetType>(assets?: Record<string, AssetType>) => AssetCache<AssetType>;
+export { createAssetCache };
+export type { AssetCache };

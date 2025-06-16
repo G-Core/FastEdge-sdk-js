@@ -1,32 +1,36 @@
-/**
- * @param {Record<string, string>} responseHeaders
- * @param {Readonly<string[]>} keys
- * @returns {Record<string, string>}
- */
-export function buildHeadersSubset(responseHeaders: Record<string, string>, keys: Readonly<string[]>): Record<string, string>;
-/**
- * https://httpwg.org/specs/rfc9110.html#field.if-modified-since
- * @param {import('../assets/static-assets.js').StaticAsset} asset
- * @param {number} ifModifiedSince
- * @returns {boolean}
- */
-export function checkIfModifiedSince(asset: import("../assets/static-assets.js").StaticAsset, ifModifiedSince: number): boolean;
+import type { StaticAsset } from '../assets/static-assets.ts';
 /**
  * https://httpwg.org/specs/rfc9110.html#field.if-none-match
- * @param {string} etag
- * @param {Array<string>} headerValue
- * @returns {boolean}
+ * @param request - The HTTP request object.
+ * @returns An array of entity tags from the `If-None-Match` header.
  */
-export function checkIfNoneMatch(etag: string, headerValue: Array<string>): boolean;
-/**
- * https://httpwg.org/specs/rfc9110.html#field.if-modified-since
- * @param {Request} request
- * @returns {number | null}
- */
-export function getIfModifiedSinceHeader(request: Request): number | null;
+declare const getIfNoneMatchHeader: (request: Request) => string[];
 /**
  * https://httpwg.org/specs/rfc9110.html#field.if-none-match
- * @param {Request} request
- * @returns {Array<string>}
+ * @param etag - The entity tag to check.
+ * @param headerValue - The array of entity tags from the `If-None-Match` header.
+ * @returns `true` if the condition is met, otherwise `false`.
  */
-export function getIfNoneMatchHeader(request: Request): Array<string>;
+declare const checkIfNoneMatch: (etag: string, headerValue: string[]) => boolean;
+/**
+ * https://httpwg.org/specs/rfc9110.html#field.if-modified-since
+ * @param request - The HTTP request object.
+ * @returns The parsed `If-Modified-Since` header value as a number of seconds, or `null` if invalid.
+ */
+declare const getIfModifiedSinceHeader: (request: Request) => number | null;
+/**
+ * https://httpwg.org/specs/rfc9110.html#field.if-modified-since
+ * @param asset - The static asset to check.
+ * @param ifModifiedSince - The `If-Modified-Since` header value as a number of seconds.
+ * @returns `true` if the asset has been modified since the given time, otherwise `false`.
+ */
+declare const checkIfModifiedSince: (asset: StaticAsset, ifModifiedSince: number) => boolean;
+/**
+ * Builds a subset of response headers based on the provided keys.
+ *
+ * @param responseHeaders - The full set of response headers.
+ * @param keys - The keys to include in the subset.
+ * @returns A subset of the response headers.
+ */
+declare const buildHeadersSubset: (responseHeaders: Record<string, string>, keys: Readonly<string[]>) => Record<string, string>;
+export { buildHeadersSubset, checkIfModifiedSince, checkIfNoneMatch, getIfModifiedSinceHeader, getIfNoneMatchHeader, };

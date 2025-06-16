@@ -1,42 +1,18 @@
-export type SourceAndInfo = {
-    /**
-     * ,
-     */
+import type { StaticAsset, StaticAssetMetadata } from './static-assets.ts';
+/**
+ * Represents the source and metadata of an asset.
+ */
+interface SourceAndInfo {
     source: Uint8Array;
-    /**
-     * ,
-     */
     hash: string;
     size: number;
-};
+}
 /**
+ * Creates an inline WASM asset.
  *
- * @param {import('./static-assets.js').StaticAssetMetadata} metadata
- * @returns
+ * @param metadata - The metadata of the asset.
+ * @returns An object representing the inline WASM asset.
  */
-export function createWasmInlineAsset(metadata: import("./static-assets.js").StaticAssetMetadata): {
-    assetKey: () => string;
-    getStoreEntry: () => Promise<import("./embedded-store-entry.js").EmbeddedStoreEntry>;
-    getMetadata: () => {
-        /**
-         * - Type of the asset.
-         */
-        type: string;
-        /**
-         * - Key of the asset.
-         */
-        assetKey: string;
-        /**
-         * - Content type of the asset.
-         */
-        contentType: string;
-        /**
-         * - Information about the file.
-         */
-        fileInfo: import("./static-assets.js").FileInfo;
-        /**
-         * - Farq: need to remove this, should be on file.
-         */
-        lastModifiedTime: number;
-    };
-};
+declare const createWasmInlineAsset: (metadata: StaticAssetMetadata) => StaticAsset;
+export { createWasmInlineAsset };
+export type { SourceAndInfo };

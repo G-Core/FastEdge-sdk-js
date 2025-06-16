@@ -1,50 +1,32 @@
-export type ByteReadableStream = {
-    /**
-     * - Gets a reader for the stream.
-     */
-    getReader: () => ReadableStreamDefaultReader<Uint8Array>;
-    /**
-     * - Checks if the stream is locked.
-     */
-    isLocked: () => boolean;
-    /**
-     * - Checks if the stream is disturbed.
-     */
-    isDisturbed: () => boolean;
-};
-export type EmbeddedStoreEntry = {
-    /**
-     * - Returns the body as a ByteReadableStream or null.
-     */
-    body: () => ((ReadableStream<Uint8Array> & ByteReadableStream) | null);
-    /**
-     * - Checks if the body has been used.
-     */
-    bodyUsed: () => boolean;
-    /**
-     * - Returns a promise that resolves with an ArrayBuffer.
-     */
-    arrayBuffer: () => Promise<ArrayBuffer>;
-    /**
-     * - Returns the content encoding or null.
-     */
-    contentEncoding: () => (string | null);
-    /**
-     * - Returns the hash of the entry.
-     */
-    hash: () => string;
-    /**
-     * - Returns the size of the entry.
-     */
-    size: () => number;
-};
 /**
- * Provides a Body-style interface to Uint8Array.
- * The is for files that have been embedded using readFileSync
- * @param {Uint8Array} array
- * @param {string | null} contentEncoding
- * @param {string} hash
- * @param {number} size
- * @returns {EmbeddedStoreEntry} EmbeddedStoreEntry
+ * Represents a readable stream for a `Uint8Array` with additional methods.
  */
-export function createEmbeddedStoreEntry(array: Uint8Array, contentEncoding: string | null, hash: string, size: number): EmbeddedStoreEntry;
+interface ByteReadableStream extends ReadableStream<Uint8Array> {
+    getReader(): ReadableStreamDefaultReader<Uint8Array>;
+    isLocked(): boolean;
+    isDisturbed(): boolean;
+}
+/**
+ * Represents an embedded store entry.
+ */
+interface EmbeddedStoreEntry {
+    body(): ReadableStream<Uint8Array> | null;
+    bodyUsed(): boolean;
+    arrayBuffer(): Promise<ArrayBuffer>;
+    contentEncoding(): string | null;
+    hash(): string;
+    size(): number;
+}
+/**
+ * Provides a Body-style interface to a `Uint8Array`.
+ * This is for files that have been embedded using `readFileSync`.
+ *
+ * @param array - The `Uint8Array` representing the body.
+ * @param contentEncoding - The content encoding of the body.
+ * @param hash - The hash of the body.
+ * @param size - The size of the body.
+ * @returns An `EmbeddedStoreEntry` instance.
+ */
+declare const createEmbeddedStoreEntry: (array: Uint8Array, contentEncoding: string | null, hash: string, size: number) => EmbeddedStoreEntry;
+export { createEmbeddedStoreEntry };
+export type { EmbeddedStoreEntry, ByteReadableStream };
