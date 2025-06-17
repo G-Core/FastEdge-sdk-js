@@ -16,584 +16,584 @@ extern void __wasm_import_gcore_fastedge_secret_get(uint8_t *, size_t, uint8_t *
 __attribute__((__import_module__("gcore:fastedge/secret"), __import_name__("get-effective-at")))
 extern void __wasm_import_gcore_fastedge_secret_get_effective_at(uint8_t *, size_t, int32_t, uint8_t *);
 
-// Imported Functions from `wasi:cli/environment@0.2.0`
+// Imported Functions from `wasi:cli/environment@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/environment@0.2.0"), __import_name__("get-environment")))
+__attribute__((__import_module__("wasi:cli/environment@0.2.3"), __import_name__("get-environment")))
 extern void __wasm_import_wasi_cli_environment_get_environment(uint8_t *);
 
-__attribute__((__import_module__("wasi:cli/environment@0.2.0"), __import_name__("get-arguments")))
+__attribute__((__import_module__("wasi:cli/environment@0.2.3"), __import_name__("get-arguments")))
 extern void __wasm_import_wasi_cli_environment_get_arguments(uint8_t *);
 
-__attribute__((__import_module__("wasi:cli/environment@0.2.0"), __import_name__("initial-cwd")))
+__attribute__((__import_module__("wasi:cli/environment@0.2.3"), __import_name__("initial-cwd")))
 extern void __wasm_import_wasi_cli_environment_initial_cwd(uint8_t *);
 
-// Imported Functions from `wasi:cli/exit@0.2.0`
+// Imported Functions from `wasi:cli/exit@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/exit@0.2.0"), __import_name__("exit")))
+__attribute__((__import_module__("wasi:cli/exit@0.2.3"), __import_name__("exit")))
 extern void __wasm_import_wasi_cli_exit_exit(int32_t);
 
-// Imported Functions from `wasi:io/error@0.2.0`
+// Imported Functions from `wasi:io/error@0.2.3`
 
-__attribute__((__import_module__("wasi:io/error@0.2.0"), __import_name__("[method]error.to-debug-string")))
+__attribute__((__import_module__("wasi:io/error@0.2.3"), __import_name__("[method]error.to-debug-string")))
 extern void __wasm_import_wasi_io_error_method_error_to_debug_string(int32_t, uint8_t *);
 
-// Imported Functions from `wasi:io/poll@0.2.0`
+// Imported Functions from `wasi:io/poll@0.2.3`
 
-__attribute__((__import_module__("wasi:io/poll@0.2.0"), __import_name__("[method]pollable.ready")))
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[method]pollable.ready")))
 extern int32_t __wasm_import_wasi_io_poll_method_pollable_ready(int32_t);
 
-__attribute__((__import_module__("wasi:io/poll@0.2.0"), __import_name__("[method]pollable.block")))
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[method]pollable.block")))
 extern void __wasm_import_wasi_io_poll_method_pollable_block(int32_t);
 
-__attribute__((__import_module__("wasi:io/poll@0.2.0"), __import_name__("poll")))
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("poll")))
 extern void __wasm_import_wasi_io_poll_poll(uint8_t *, size_t, uint8_t *);
 
-// Imported Functions from `wasi:io/streams@0.2.0`
+// Imported Functions from `wasi:io/streams@0.2.3`
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]input-stream.read")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]input-stream.read")))
 extern void __wasm_import_wasi_io_streams_method_input_stream_read(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]input-stream.blocking-read")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]input-stream.blocking-read")))
 extern void __wasm_import_wasi_io_streams_method_input_stream_blocking_read(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]input-stream.skip")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]input-stream.skip")))
 extern void __wasm_import_wasi_io_streams_method_input_stream_skip(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]input-stream.blocking-skip")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]input-stream.blocking-skip")))
 extern void __wasm_import_wasi_io_streams_method_input_stream_blocking_skip(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]input-stream.subscribe")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]input-stream.subscribe")))
 extern int32_t __wasm_import_wasi_io_streams_method_input_stream_subscribe(int32_t);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.check-write")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.check-write")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_check_write(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.write")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.write")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_write(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.blocking-write-and-flush")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.blocking-write-and-flush")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_blocking_write_and_flush(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.flush")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.flush")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_flush(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.blocking-flush")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.blocking-flush")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_blocking_flush(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.subscribe")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.subscribe")))
 extern int32_t __wasm_import_wasi_io_streams_method_output_stream_subscribe(int32_t);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.write-zeroes")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.write-zeroes")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_write_zeroes(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.blocking-write-zeroes-and-flush")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.blocking-write-zeroes-and-flush")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_blocking_write_zeroes_and_flush(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.splice")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.splice")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_splice(int32_t, int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[method]output-stream.blocking-splice")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[method]output-stream.blocking-splice")))
 extern void __wasm_import_wasi_io_streams_method_output_stream_blocking_splice(int32_t, int32_t, int64_t, uint8_t *);
 
-// Imported Functions from `wasi:cli/stdin@0.2.0`
+// Imported Functions from `wasi:cli/stdin@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/stdin@0.2.0"), __import_name__("get-stdin")))
+__attribute__((__import_module__("wasi:cli/stdin@0.2.3"), __import_name__("get-stdin")))
 extern int32_t __wasm_import_wasi_cli_stdin_get_stdin(void);
 
-// Imported Functions from `wasi:cli/stdout@0.2.0`
+// Imported Functions from `wasi:cli/stdout@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/stdout@0.2.0"), __import_name__("get-stdout")))
+__attribute__((__import_module__("wasi:cli/stdout@0.2.3"), __import_name__("get-stdout")))
 extern int32_t __wasm_import_wasi_cli_stdout_get_stdout(void);
 
-// Imported Functions from `wasi:cli/stderr@0.2.0`
+// Imported Functions from `wasi:cli/stderr@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/stderr@0.2.0"), __import_name__("get-stderr")))
+__attribute__((__import_module__("wasi:cli/stderr@0.2.3"), __import_name__("get-stderr")))
 extern int32_t __wasm_import_wasi_cli_stderr_get_stderr(void);
 
-// Imported Functions from `wasi:cli/terminal-stdin@0.2.0`
+// Imported Functions from `wasi:cli/terminal-stdin@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/terminal-stdin@0.2.0"), __import_name__("get-terminal-stdin")))
+__attribute__((__import_module__("wasi:cli/terminal-stdin@0.2.3"), __import_name__("get-terminal-stdin")))
 extern void __wasm_import_wasi_cli_terminal_stdin_get_terminal_stdin(uint8_t *);
 
-// Imported Functions from `wasi:cli/terminal-stdout@0.2.0`
+// Imported Functions from `wasi:cli/terminal-stdout@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/terminal-stdout@0.2.0"), __import_name__("get-terminal-stdout")))
+__attribute__((__import_module__("wasi:cli/terminal-stdout@0.2.3"), __import_name__("get-terminal-stdout")))
 extern void __wasm_import_wasi_cli_terminal_stdout_get_terminal_stdout(uint8_t *);
 
-// Imported Functions from `wasi:cli/terminal-stderr@0.2.0`
+// Imported Functions from `wasi:cli/terminal-stderr@0.2.3`
 
-__attribute__((__import_module__("wasi:cli/terminal-stderr@0.2.0"), __import_name__("get-terminal-stderr")))
+__attribute__((__import_module__("wasi:cli/terminal-stderr@0.2.3"), __import_name__("get-terminal-stderr")))
 extern void __wasm_import_wasi_cli_terminal_stderr_get_terminal_stderr(uint8_t *);
 
-// Imported Functions from `wasi:clocks/monotonic-clock@0.2.0`
+// Imported Functions from `wasi:clocks/monotonic-clock@0.2.3`
 
-__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.0"), __import_name__("now")))
+__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.3"), __import_name__("now")))
 extern int64_t __wasm_import_wasi_clocks_monotonic_clock_now(void);
 
-__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.0"), __import_name__("resolution")))
+__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.3"), __import_name__("resolution")))
 extern int64_t __wasm_import_wasi_clocks_monotonic_clock_resolution(void);
 
-__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.0"), __import_name__("subscribe-instant")))
+__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.3"), __import_name__("subscribe-instant")))
 extern int32_t __wasm_import_wasi_clocks_monotonic_clock_subscribe_instant(int64_t);
 
-__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.0"), __import_name__("subscribe-duration")))
+__attribute__((__import_module__("wasi:clocks/monotonic-clock@0.2.3"), __import_name__("subscribe-duration")))
 extern int32_t __wasm_import_wasi_clocks_monotonic_clock_subscribe_duration(int64_t);
 
-// Imported Functions from `wasi:clocks/wall-clock@0.2.0`
+// Imported Functions from `wasi:clocks/wall-clock@0.2.3`
 
-__attribute__((__import_module__("wasi:clocks/wall-clock@0.2.0"), __import_name__("now")))
+__attribute__((__import_module__("wasi:clocks/wall-clock@0.2.3"), __import_name__("now")))
 extern void __wasm_import_wasi_clocks_wall_clock_now(uint8_t *);
 
-__attribute__((__import_module__("wasi:clocks/wall-clock@0.2.0"), __import_name__("resolution")))
+__attribute__((__import_module__("wasi:clocks/wall-clock@0.2.3"), __import_name__("resolution")))
 extern void __wasm_import_wasi_clocks_wall_clock_resolution(uint8_t *);
 
-// Imported Functions from `wasi:filesystem/types@0.2.0`
+// Imported Functions from `wasi:filesystem/types@0.2.3`
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.read-via-stream")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.read-via-stream")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_read_via_stream(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.write-via-stream")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.write-via-stream")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_write_via_stream(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.append-via-stream")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.append-via-stream")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_append_via_stream(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.advise")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.advise")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_advise(int32_t, int64_t, int64_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.sync-data")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.sync-data")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_sync_data(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.get-flags")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.get-flags")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_get_flags(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.get-type")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.get-type")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_get_type(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.set-size")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.set-size")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_set_size(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.set-times")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.set-times")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_set_times(int32_t, int32_t, int64_t, int32_t, int32_t, int64_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.read")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.read")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_read(int32_t, int64_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.write")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.write")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_write(int32_t, uint8_t *, size_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.read-directory")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.read-directory")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_read_directory(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.sync")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.sync")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_sync(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.create-directory-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.create-directory-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_create_directory_at(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.stat")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.stat")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_stat(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.stat-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.stat-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_stat_at(int32_t, int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.set-times-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.set-times-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_set_times_at(int32_t, int32_t, uint8_t *, size_t, int32_t, int64_t, int32_t, int32_t, int64_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.link-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.link-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_link_at(int32_t, int32_t, uint8_t *, size_t, int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.open-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.open-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_open_at(int32_t, int32_t, uint8_t *, size_t, int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.readlink-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.readlink-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_readlink_at(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.remove-directory-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.remove-directory-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_remove_directory_at(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.rename-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.rename-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_rename_at(int32_t, uint8_t *, size_t, int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.symlink-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.symlink-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_symlink_at(int32_t, uint8_t *, size_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.unlink-file-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.unlink-file-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_unlink_file_at(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.is-same-object")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.is-same-object")))
 extern int32_t __wasm_import_wasi_filesystem_types_method_descriptor_is_same_object(int32_t, int32_t);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.metadata-hash")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.metadata-hash")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_metadata_hash(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]descriptor.metadata-hash-at")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]descriptor.metadata-hash-at")))
 extern void __wasm_import_wasi_filesystem_types_method_descriptor_metadata_hash_at(int32_t, int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[method]directory-entry-stream.read-directory-entry")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[method]directory-entry-stream.read-directory-entry")))
 extern void __wasm_import_wasi_filesystem_types_method_directory_entry_stream_read_directory_entry(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("filesystem-error-code")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("filesystem-error-code")))
 extern void __wasm_import_wasi_filesystem_types_filesystem_error_code(int32_t, uint8_t *);
 
-// Imported Functions from `wasi:filesystem/preopens@0.2.0`
+// Imported Functions from `wasi:filesystem/preopens@0.2.3`
 
-__attribute__((__import_module__("wasi:filesystem/preopens@0.2.0"), __import_name__("get-directories")))
+__attribute__((__import_module__("wasi:filesystem/preopens@0.2.3"), __import_name__("get-directories")))
 extern void __wasm_import_wasi_filesystem_preopens_get_directories(uint8_t *);
 
-// Imported Functions from `wasi:sockets/instance-network@0.2.0`
+// Imported Functions from `wasi:sockets/instance-network@0.2.3`
 
-__attribute__((__import_module__("wasi:sockets/instance-network@0.2.0"), __import_name__("instance-network")))
+__attribute__((__import_module__("wasi:sockets/instance-network@0.2.3"), __import_name__("instance-network")))
 extern int32_t __wasm_import_wasi_sockets_instance_network_instance_network(void);
 
-// Imported Functions from `wasi:sockets/udp@0.2.0`
+// Imported Functions from `wasi:sockets/udp@0.2.3`
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.start-bind")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.start-bind")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_start_bind(int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.finish-bind")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.finish-bind")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_finish_bind(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.stream")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.stream")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_stream(int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.local-address")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.local-address")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_local_address(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.remote-address")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.remote-address")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_remote_address(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.address-family")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.address-family")))
 extern int32_t __wasm_import_wasi_sockets_udp_method_udp_socket_address_family(int32_t);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.unicast-hop-limit")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.unicast-hop-limit")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_unicast_hop_limit(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.set-unicast-hop-limit")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.set-unicast-hop-limit")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_set_unicast_hop_limit(int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.receive-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.receive-buffer-size")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_receive_buffer_size(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.set-receive-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.set-receive-buffer-size")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_set_receive_buffer_size(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.send-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.send-buffer-size")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_send_buffer_size(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.set-send-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.set-send-buffer-size")))
 extern void __wasm_import_wasi_sockets_udp_method_udp_socket_set_send_buffer_size(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]udp-socket.subscribe")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]udp-socket.subscribe")))
 extern int32_t __wasm_import_wasi_sockets_udp_method_udp_socket_subscribe(int32_t);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]incoming-datagram-stream.receive")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]incoming-datagram-stream.receive")))
 extern void __wasm_import_wasi_sockets_udp_method_incoming_datagram_stream_receive(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]incoming-datagram-stream.subscribe")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]incoming-datagram-stream.subscribe")))
 extern int32_t __wasm_import_wasi_sockets_udp_method_incoming_datagram_stream_subscribe(int32_t);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]outgoing-datagram-stream.check-send")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]outgoing-datagram-stream.check-send")))
 extern void __wasm_import_wasi_sockets_udp_method_outgoing_datagram_stream_check_send(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]outgoing-datagram-stream.send")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]outgoing-datagram-stream.send")))
 extern void __wasm_import_wasi_sockets_udp_method_outgoing_datagram_stream_send(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[method]outgoing-datagram-stream.subscribe")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[method]outgoing-datagram-stream.subscribe")))
 extern int32_t __wasm_import_wasi_sockets_udp_method_outgoing_datagram_stream_subscribe(int32_t);
 
-// Imported Functions from `wasi:sockets/udp-create-socket@0.2.0`
+// Imported Functions from `wasi:sockets/udp-create-socket@0.2.3`
 
-__attribute__((__import_module__("wasi:sockets/udp-create-socket@0.2.0"), __import_name__("create-udp-socket")))
+__attribute__((__import_module__("wasi:sockets/udp-create-socket@0.2.3"), __import_name__("create-udp-socket")))
 extern void __wasm_import_wasi_sockets_udp_create_socket_create_udp_socket(int32_t, uint8_t *);
 
-// Imported Functions from `wasi:sockets/tcp@0.2.0`
+// Imported Functions from `wasi:sockets/tcp@0.2.3`
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.start-bind")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.start-bind")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_start_bind(int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.finish-bind")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.finish-bind")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_finish_bind(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.start-connect")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.start-connect")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_start_connect(int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.finish-connect")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.finish-connect")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_finish_connect(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.start-listen")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.start-listen")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_start_listen(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.finish-listen")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.finish-listen")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_finish_listen(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.accept")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.accept")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_accept(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.local-address")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.local-address")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_local_address(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.remote-address")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.remote-address")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_remote_address(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.is-listening")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.is-listening")))
 extern int32_t __wasm_import_wasi_sockets_tcp_method_tcp_socket_is_listening(int32_t);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.address-family")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.address-family")))
 extern int32_t __wasm_import_wasi_sockets_tcp_method_tcp_socket_address_family(int32_t);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-listen-backlog-size")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-listen-backlog-size")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_listen_backlog_size(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.keep-alive-enabled")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.keep-alive-enabled")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_keep_alive_enabled(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-keep-alive-enabled")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-keep-alive-enabled")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_keep_alive_enabled(int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.keep-alive-idle-time")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.keep-alive-idle-time")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_keep_alive_idle_time(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-keep-alive-idle-time")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-keep-alive-idle-time")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_keep_alive_idle_time(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.keep-alive-interval")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.keep-alive-interval")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_keep_alive_interval(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-keep-alive-interval")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-keep-alive-interval")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_keep_alive_interval(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.keep-alive-count")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.keep-alive-count")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_keep_alive_count(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-keep-alive-count")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-keep-alive-count")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_keep_alive_count(int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.hop-limit")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.hop-limit")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_hop_limit(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-hop-limit")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-hop-limit")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_hop_limit(int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.receive-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.receive-buffer-size")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_receive_buffer_size(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-receive-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-receive-buffer-size")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_receive_buffer_size(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.send-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.send-buffer-size")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_send_buffer_size(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.set-send-buffer-size")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.set-send-buffer-size")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_set_send_buffer_size(int32_t, int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.subscribe")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.subscribe")))
 extern int32_t __wasm_import_wasi_sockets_tcp_method_tcp_socket_subscribe(int32_t);
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[method]tcp-socket.shutdown")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[method]tcp-socket.shutdown")))
 extern void __wasm_import_wasi_sockets_tcp_method_tcp_socket_shutdown(int32_t, int32_t, uint8_t *);
 
-// Imported Functions from `wasi:sockets/tcp-create-socket@0.2.0`
+// Imported Functions from `wasi:sockets/tcp-create-socket@0.2.3`
 
-__attribute__((__import_module__("wasi:sockets/tcp-create-socket@0.2.0"), __import_name__("create-tcp-socket")))
+__attribute__((__import_module__("wasi:sockets/tcp-create-socket@0.2.3"), __import_name__("create-tcp-socket")))
 extern void __wasm_import_wasi_sockets_tcp_create_socket_create_tcp_socket(int32_t, uint8_t *);
 
-// Imported Functions from `wasi:sockets/ip-name-lookup@0.2.0`
+// Imported Functions from `wasi:sockets/ip-name-lookup@0.2.3`
 
-__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.0"), __import_name__("resolve-addresses")))
-extern void __wasm_import_wasi_sockets_ip_name_lookup_resolve_addresses(int32_t, uint8_t *, size_t, uint8_t *);
-
-__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.0"), __import_name__("[method]resolve-address-stream.resolve-next-address")))
+__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.3"), __import_name__("[method]resolve-address-stream.resolve-next-address")))
 extern void __wasm_import_wasi_sockets_ip_name_lookup_method_resolve_address_stream_resolve_next_address(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.0"), __import_name__("[method]resolve-address-stream.subscribe")))
+__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.3"), __import_name__("[method]resolve-address-stream.subscribe")))
 extern int32_t __wasm_import_wasi_sockets_ip_name_lookup_method_resolve_address_stream_subscribe(int32_t);
 
-// Imported Functions from `wasi:random/random@0.2.0`
+__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.3"), __import_name__("resolve-addresses")))
+extern void __wasm_import_wasi_sockets_ip_name_lookup_resolve_addresses(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:random/random@0.2.0"), __import_name__("get-random-bytes")))
+// Imported Functions from `wasi:random/random@0.2.3`
+
+__attribute__((__import_module__("wasi:random/random@0.2.3"), __import_name__("get-random-bytes")))
 extern void __wasm_import_wasi_random_random_get_random_bytes(int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:random/random@0.2.0"), __import_name__("get-random-u64")))
+__attribute__((__import_module__("wasi:random/random@0.2.3"), __import_name__("get-random-u64")))
 extern int64_t __wasm_import_wasi_random_random_get_random_u64(void);
 
-// Imported Functions from `wasi:random/insecure@0.2.0`
+// Imported Functions from `wasi:random/insecure@0.2.3`
 
-__attribute__((__import_module__("wasi:random/insecure@0.2.0"), __import_name__("get-insecure-random-bytes")))
+__attribute__((__import_module__("wasi:random/insecure@0.2.3"), __import_name__("get-insecure-random-bytes")))
 extern void __wasm_import_wasi_random_insecure_get_insecure_random_bytes(int64_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:random/insecure@0.2.0"), __import_name__("get-insecure-random-u64")))
+__attribute__((__import_module__("wasi:random/insecure@0.2.3"), __import_name__("get-insecure-random-u64")))
 extern int64_t __wasm_import_wasi_random_insecure_get_insecure_random_u64(void);
 
-// Imported Functions from `wasi:random/insecure-seed@0.2.0`
+// Imported Functions from `wasi:random/insecure-seed@0.2.3`
 
-__attribute__((__import_module__("wasi:random/insecure-seed@0.2.0"), __import_name__("insecure-seed")))
+__attribute__((__import_module__("wasi:random/insecure-seed@0.2.3"), __import_name__("insecure-seed")))
 extern void __wasm_import_wasi_random_insecure_seed_insecure_seed(uint8_t *);
 
-// Imported Functions from `wasi:http/types@0.2.0`
+// Imported Functions from `wasi:http/types@0.2.3`
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("http-error-code")))
-extern void __wasm_import_wasi_http_types_http_error_code(int32_t, uint8_t *);
-
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[constructor]fields")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[constructor]fields")))
 extern int32_t __wasm_import_wasi_http_types_constructor_fields(void);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[static]fields.from-list")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[static]fields.from-list")))
 extern void __wasm_import_wasi_http_types_static_fields_from_list(uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]fields.get")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]fields.get")))
 extern void __wasm_import_wasi_http_types_method_fields_get(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]fields.has")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]fields.has")))
 extern int32_t __wasm_import_wasi_http_types_method_fields_has(int32_t, uint8_t *, size_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]fields.set")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]fields.set")))
 extern void __wasm_import_wasi_http_types_method_fields_set(int32_t, uint8_t *, size_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]fields.delete")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]fields.delete")))
 extern void __wasm_import_wasi_http_types_method_fields_delete(int32_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]fields.append")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]fields.append")))
 extern void __wasm_import_wasi_http_types_method_fields_append(int32_t, uint8_t *, size_t, uint8_t *, size_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]fields.entries")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]fields.entries")))
 extern void __wasm_import_wasi_http_types_method_fields_entries(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]fields.clone")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]fields.clone")))
 extern int32_t __wasm_import_wasi_http_types_method_fields_clone(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-request.method")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-request.method")))
 extern void __wasm_import_wasi_http_types_method_incoming_request_method(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-request.path-with-query")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-request.path-with-query")))
 extern void __wasm_import_wasi_http_types_method_incoming_request_path_with_query(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-request.scheme")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-request.scheme")))
 extern void __wasm_import_wasi_http_types_method_incoming_request_scheme(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-request.authority")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-request.authority")))
 extern void __wasm_import_wasi_http_types_method_incoming_request_authority(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-request.headers")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-request.headers")))
 extern int32_t __wasm_import_wasi_http_types_method_incoming_request_headers(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-request.consume")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-request.consume")))
 extern void __wasm_import_wasi_http_types_method_incoming_request_consume(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[constructor]outgoing-request")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[constructor]outgoing-request")))
 extern int32_t __wasm_import_wasi_http_types_constructor_outgoing_request(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.body")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.body")))
 extern void __wasm_import_wasi_http_types_method_outgoing_request_body(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.method")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.method")))
 extern void __wasm_import_wasi_http_types_method_outgoing_request_method(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.set-method")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.set-method")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_request_set_method(int32_t, int32_t, uint8_t *, size_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.path-with-query")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.path-with-query")))
 extern void __wasm_import_wasi_http_types_method_outgoing_request_path_with_query(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.set-path-with-query")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.set-path-with-query")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_request_set_path_with_query(int32_t, int32_t, uint8_t *, size_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.scheme")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.scheme")))
 extern void __wasm_import_wasi_http_types_method_outgoing_request_scheme(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.set-scheme")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.set-scheme")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_request_set_scheme(int32_t, int32_t, int32_t, uint8_t *, size_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.authority")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.authority")))
 extern void __wasm_import_wasi_http_types_method_outgoing_request_authority(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.set-authority")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.set-authority")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_request_set_authority(int32_t, int32_t, uint8_t *, size_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-request.headers")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-request.headers")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_request_headers(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[constructor]request-options")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[constructor]request-options")))
 extern int32_t __wasm_import_wasi_http_types_constructor_request_options(void);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]request-options.connect-timeout")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]request-options.connect-timeout")))
 extern void __wasm_import_wasi_http_types_method_request_options_connect_timeout(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]request-options.set-connect-timeout")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]request-options.set-connect-timeout")))
 extern int32_t __wasm_import_wasi_http_types_method_request_options_set_connect_timeout(int32_t, int32_t, int64_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]request-options.first-byte-timeout")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]request-options.first-byte-timeout")))
 extern void __wasm_import_wasi_http_types_method_request_options_first_byte_timeout(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]request-options.set-first-byte-timeout")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]request-options.set-first-byte-timeout")))
 extern int32_t __wasm_import_wasi_http_types_method_request_options_set_first_byte_timeout(int32_t, int32_t, int64_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]request-options.between-bytes-timeout")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]request-options.between-bytes-timeout")))
 extern void __wasm_import_wasi_http_types_method_request_options_between_bytes_timeout(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]request-options.set-between-bytes-timeout")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]request-options.set-between-bytes-timeout")))
 extern int32_t __wasm_import_wasi_http_types_method_request_options_set_between_bytes_timeout(int32_t, int32_t, int64_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[static]response-outparam.set")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[static]response-outparam.set")))
 extern void __wasm_import_wasi_http_types_static_response_outparam_set(int32_t, int32_t, int32_t, int32_t, int64_t, uint8_t *, uint8_t *, size_t, int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-response.status")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-response.status")))
 extern int32_t __wasm_import_wasi_http_types_method_incoming_response_status(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-response.headers")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-response.headers")))
 extern int32_t __wasm_import_wasi_http_types_method_incoming_response_headers(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-response.consume")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-response.consume")))
 extern void __wasm_import_wasi_http_types_method_incoming_response_consume(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]incoming-body.stream")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]incoming-body.stream")))
 extern void __wasm_import_wasi_http_types_method_incoming_body_stream(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[static]incoming-body.finish")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[static]incoming-body.finish")))
 extern int32_t __wasm_import_wasi_http_types_static_incoming_body_finish(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]future-trailers.subscribe")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]future-trailers.subscribe")))
 extern int32_t __wasm_import_wasi_http_types_method_future_trailers_subscribe(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]future-trailers.get")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]future-trailers.get")))
 extern void __wasm_import_wasi_http_types_method_future_trailers_get(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[constructor]outgoing-response")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[constructor]outgoing-response")))
 extern int32_t __wasm_import_wasi_http_types_constructor_outgoing_response(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-response.status-code")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-response.status-code")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_response_status_code(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-response.set-status-code")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-response.set-status-code")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_response_set_status_code(int32_t, int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-response.headers")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-response.headers")))
 extern int32_t __wasm_import_wasi_http_types_method_outgoing_response_headers(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-response.body")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-response.body")))
 extern void __wasm_import_wasi_http_types_method_outgoing_response_body(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]outgoing-body.write")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]outgoing-body.write")))
 extern void __wasm_import_wasi_http_types_method_outgoing_body_write(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[static]outgoing-body.finish")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[static]outgoing-body.finish")))
 extern void __wasm_import_wasi_http_types_static_outgoing_body_finish(int32_t, int32_t, int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]future-incoming-response.subscribe")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]future-incoming-response.subscribe")))
 extern int32_t __wasm_import_wasi_http_types_method_future_incoming_response_subscribe(int32_t);
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[method]future-incoming-response.get")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[method]future-incoming-response.get")))
 extern void __wasm_import_wasi_http_types_method_future_incoming_response_get(int32_t, uint8_t *);
 
-// Imported Functions from `wasi:http/outgoing-handler@0.2.0`
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("http-error-code")))
+extern void __wasm_import_wasi_http_types_http_error_code(int32_t, uint8_t *);
 
-__attribute__((__import_module__("wasi:http/outgoing-handler@0.2.0"), __import_name__("handle")))
+// Imported Functions from `wasi:http/outgoing-handler@0.2.3`
+
+__attribute__((__import_module__("wasi:http/outgoing-handler@0.2.3"), __import_name__("handle")))
 extern void __wasm_import_wasi_http_outgoing_handler_handle(int32_t, int32_t, int32_t, uint8_t *);
 
-// Exported Functions from `wasi:cli/run@0.2.0`
+// Exported Functions from `wasi:cli/run@0.2.3`
 
 
-// Exported Functions from `wasi:http/incoming-handler@0.2.0`
+// Exported Functions from `wasi:http/incoming-handler@0.2.3`
 
 
 // Canonical ABI intrinsics
@@ -664,7 +664,7 @@ void wasi_cli_exit_result_void_void_free(wasi_cli_exit_result_void_void_t *ptr) 
   }
 }
 
-__attribute__((__import_module__("wasi:io/error@0.2.0"), __import_name__("[resource-drop]error")))
+__attribute__((__import_module__("wasi:io/error@0.2.3"), __import_name__("[resource-drop]error")))
 extern void __wasm_import_wasi_io_error_error_drop(int32_t handle);
 
 void wasi_io_error_error_drop_own(wasi_io_error_own_error_t handle) {
@@ -675,7 +675,7 @@ wasi_io_error_borrow_error_t wasi_io_error_borrow_error(wasi_io_error_own_error_
   return (wasi_io_error_borrow_error_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:io/poll@0.2.0"), __import_name__("[resource-drop]pollable")))
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[resource-drop]pollable")))
 extern void __wasm_import_wasi_io_poll_pollable_drop(int32_t handle);
 
 void wasi_io_poll_pollable_drop_own(wasi_io_poll_own_pollable_t handle) {
@@ -714,7 +714,7 @@ void wasi_io_streams_stream_error_free(wasi_io_streams_stream_error_t *ptr) {
   }
 }
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[resource-drop]input-stream")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[resource-drop]input-stream")))
 extern void __wasm_import_wasi_io_streams_input_stream_drop(int32_t handle);
 
 void wasi_io_streams_input_stream_drop_own(wasi_io_streams_own_input_stream_t handle) {
@@ -725,7 +725,7 @@ wasi_io_streams_borrow_input_stream_t wasi_io_streams_borrow_input_stream(wasi_i
   return (wasi_io_streams_borrow_input_stream_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:io/streams@0.2.0"), __import_name__("[resource-drop]output-stream")))
+__attribute__((__import_module__("wasi:io/streams@0.2.3"), __import_name__("[resource-drop]output-stream")))
 extern void __wasm_import_wasi_io_streams_output_stream_drop(int32_t handle);
 
 void wasi_io_streams_output_stream_drop_own(wasi_io_streams_own_output_stream_t handle) {
@@ -768,7 +768,7 @@ void wasi_io_streams_result_void_stream_error_free(wasi_io_streams_result_void_s
   }
 }
 
-__attribute__((__import_module__("wasi:cli/terminal-input@0.2.0"), __import_name__("[resource-drop]terminal-input")))
+__attribute__((__import_module__("wasi:cli/terminal-input@0.2.3"), __import_name__("[resource-drop]terminal-input")))
 extern void __wasm_import_wasi_cli_terminal_input_terminal_input_drop(int32_t handle);
 
 void wasi_cli_terminal_input_terminal_input_drop_own(wasi_cli_terminal_input_own_terminal_input_t handle) {
@@ -779,7 +779,7 @@ wasi_cli_terminal_input_borrow_terminal_input_t wasi_cli_terminal_input_borrow_t
   return (wasi_cli_terminal_input_borrow_terminal_input_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:cli/terminal-output@0.2.0"), __import_name__("[resource-drop]terminal-output")))
+__attribute__((__import_module__("wasi:cli/terminal-output@0.2.3"), __import_name__("[resource-drop]terminal-output")))
 extern void __wasm_import_wasi_cli_terminal_output_terminal_output_drop(int32_t handle);
 
 void wasi_cli_terminal_output_terminal_output_drop_own(wasi_cli_terminal_output_own_terminal_output_t handle) {
@@ -828,7 +828,7 @@ void wasi_filesystem_types_directory_entry_free(wasi_filesystem_types_directory_
   bindings_string_free(&ptr->name);
 }
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[resource-drop]descriptor")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[resource-drop]descriptor")))
 extern void __wasm_import_wasi_filesystem_types_descriptor_drop(int32_t handle);
 
 void wasi_filesystem_types_descriptor_drop_own(wasi_filesystem_types_own_descriptor_t handle) {
@@ -839,7 +839,7 @@ wasi_filesystem_types_borrow_descriptor_t wasi_filesystem_types_borrow_descripto
   return (wasi_filesystem_types_borrow_descriptor_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:filesystem/types@0.2.0"), __import_name__("[resource-drop]directory-entry-stream")))
+__attribute__((__import_module__("wasi:filesystem/types@0.2.3"), __import_name__("[resource-drop]directory-entry-stream")))
 extern void __wasm_import_wasi_filesystem_types_directory_entry_stream_drop(int32_t handle);
 
 void wasi_filesystem_types_directory_entry_stream_drop_own(wasi_filesystem_types_own_directory_entry_stream_t handle) {
@@ -957,7 +957,7 @@ void wasi_filesystem_preopens_list_tuple2_own_descriptor_string_free(wasi_filesy
   }
 }
 
-__attribute__((__import_module__("wasi:sockets/network@0.2.0"), __import_name__("[resource-drop]network")))
+__attribute__((__import_module__("wasi:sockets/network@0.2.3"), __import_name__("[resource-drop]network")))
 extern void __wasm_import_wasi_sockets_network_network_drop(int32_t handle);
 
 void wasi_sockets_network_network_drop_own(wasi_sockets_network_own_network_t handle) {
@@ -1008,7 +1008,7 @@ void wasi_sockets_udp_outgoing_datagram_free(wasi_sockets_udp_outgoing_datagram_
   wasi_sockets_udp_option_ip_socket_address_free(&ptr->remote_address);
 }
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[resource-drop]udp-socket")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[resource-drop]udp-socket")))
 extern void __wasm_import_wasi_sockets_udp_udp_socket_drop(int32_t handle);
 
 void wasi_sockets_udp_udp_socket_drop_own(wasi_sockets_udp_own_udp_socket_t handle) {
@@ -1019,7 +1019,7 @@ wasi_sockets_udp_borrow_udp_socket_t wasi_sockets_udp_borrow_udp_socket(wasi_soc
   return (wasi_sockets_udp_borrow_udp_socket_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[resource-drop]incoming-datagram-stream")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[resource-drop]incoming-datagram-stream")))
 extern void __wasm_import_wasi_sockets_udp_incoming_datagram_stream_drop(int32_t handle);
 
 void wasi_sockets_udp_incoming_datagram_stream_drop_own(wasi_sockets_udp_own_incoming_datagram_stream_t handle) {
@@ -1030,7 +1030,7 @@ wasi_sockets_udp_borrow_incoming_datagram_stream_t wasi_sockets_udp_borrow_incom
   return (wasi_sockets_udp_borrow_incoming_datagram_stream_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:sockets/udp@0.2.0"), __import_name__("[resource-drop]outgoing-datagram-stream")))
+__attribute__((__import_module__("wasi:sockets/udp@0.2.3"), __import_name__("[resource-drop]outgoing-datagram-stream")))
 extern void __wasm_import_wasi_sockets_udp_outgoing_datagram_stream_drop(int32_t handle);
 
 void wasi_sockets_udp_outgoing_datagram_stream_drop_own(wasi_sockets_udp_own_outgoing_datagram_stream_t handle) {
@@ -1111,7 +1111,7 @@ void wasi_sockets_tcp_ip_socket_address_free(wasi_sockets_tcp_ip_socket_address_
   wasi_sockets_network_ip_socket_address_free(ptr);
 }
 
-__attribute__((__import_module__("wasi:sockets/tcp@0.2.0"), __import_name__("[resource-drop]tcp-socket")))
+__attribute__((__import_module__("wasi:sockets/tcp@0.2.3"), __import_name__("[resource-drop]tcp-socket")))
 extern void __wasm_import_wasi_sockets_tcp_tcp_socket_drop(int32_t handle);
 
 void wasi_sockets_tcp_tcp_socket_drop_own(wasi_sockets_tcp_own_tcp_socket_t handle) {
@@ -1187,7 +1187,7 @@ void wasi_sockets_ip_name_lookup_ip_address_free(wasi_sockets_ip_name_lookup_ip_
   wasi_sockets_network_ip_address_free(ptr);
 }
 
-__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.0"), __import_name__("[resource-drop]resolve-address-stream")))
+__attribute__((__import_module__("wasi:sockets/ip-name-lookup@0.2.3"), __import_name__("[resource-drop]resolve-address-stream")))
 extern void __wasm_import_wasi_sockets_ip_name_lookup_resolve_address_stream_drop(int32_t handle);
 
 void wasi_sockets_ip_name_lookup_resolve_address_stream_drop_own(wasi_sockets_ip_name_lookup_own_resolve_address_stream_t handle) {
@@ -1196,12 +1196,6 @@ void wasi_sockets_ip_name_lookup_resolve_address_stream_drop_own(wasi_sockets_ip
 
 wasi_sockets_ip_name_lookup_borrow_resolve_address_stream_t wasi_sockets_ip_name_lookup_borrow_resolve_address_stream(wasi_sockets_ip_name_lookup_own_resolve_address_stream_t arg) {
   return (wasi_sockets_ip_name_lookup_borrow_resolve_address_stream_t) { arg.__handle };
-}
-
-void wasi_sockets_ip_name_lookup_result_own_resolve_address_stream_error_code_free(wasi_sockets_ip_name_lookup_result_own_resolve_address_stream_error_code_t *ptr) {
-  if (!ptr->is_err) {
-  } else {
-  }
 }
 
 void wasi_sockets_ip_name_lookup_option_ip_address_free(wasi_sockets_ip_name_lookup_option_ip_address_t *ptr) {
@@ -1213,6 +1207,12 @@ void wasi_sockets_ip_name_lookup_option_ip_address_free(wasi_sockets_ip_name_loo
 void wasi_sockets_ip_name_lookup_result_option_ip_address_error_code_free(wasi_sockets_ip_name_lookup_result_option_ip_address_error_code_t *ptr) {
   if (!ptr->is_err) {
     wasi_sockets_ip_name_lookup_option_ip_address_free(&ptr->val.ok);
+  } else {
+  }
+}
+
+void wasi_sockets_ip_name_lookup_result_own_resolve_address_stream_error_code_free(wasi_sockets_ip_name_lookup_result_own_resolve_address_stream_error_code_t *ptr) {
+  if (!ptr->is_err) {
   } else {
   }
 }
@@ -1344,6 +1344,10 @@ void wasi_http_types_field_key_free(wasi_http_types_field_key_t *ptr) {
   bindings_string_free(ptr);
 }
 
+void wasi_http_types_field_name_free(wasi_http_types_field_name_t *ptr) {
+  wasi_http_types_field_key_free(ptr);
+}
+
 void wasi_http_types_field_value_free(wasi_http_types_field_value_t *ptr) {
   size_t list_len = ptr->len;
   if (list_len > 0) {
@@ -1354,7 +1358,7 @@ void wasi_http_types_field_value_free(wasi_http_types_field_value_t *ptr) {
   }
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]fields")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]fields")))
 extern void __wasm_import_wasi_http_types_fields_drop(int32_t handle);
 
 void wasi_http_types_fields_drop_own(wasi_http_types_own_fields_t handle) {
@@ -1365,7 +1369,7 @@ wasi_http_types_borrow_fields_t wasi_http_types_borrow_fields(wasi_http_types_ow
   return (wasi_http_types_borrow_fields_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]incoming-request")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]incoming-request")))
 extern void __wasm_import_wasi_http_types_incoming_request_drop(int32_t handle);
 
 void wasi_http_types_incoming_request_drop_own(wasi_http_types_own_incoming_request_t handle) {
@@ -1376,7 +1380,7 @@ wasi_http_types_borrow_incoming_request_t wasi_http_types_borrow_incoming_reques
   return (wasi_http_types_borrow_incoming_request_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]outgoing-request")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]outgoing-request")))
 extern void __wasm_import_wasi_http_types_outgoing_request_drop(int32_t handle);
 
 void wasi_http_types_outgoing_request_drop_own(wasi_http_types_own_outgoing_request_t handle) {
@@ -1387,7 +1391,7 @@ wasi_http_types_borrow_outgoing_request_t wasi_http_types_borrow_outgoing_reques
   return (wasi_http_types_borrow_outgoing_request_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]request-options")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]request-options")))
 extern void __wasm_import_wasi_http_types_request_options_drop(int32_t handle);
 
 void wasi_http_types_request_options_drop_own(wasi_http_types_own_request_options_t handle) {
@@ -1398,7 +1402,7 @@ wasi_http_types_borrow_request_options_t wasi_http_types_borrow_request_options(
   return (wasi_http_types_borrow_request_options_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]response-outparam")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]response-outparam")))
 extern void __wasm_import_wasi_http_types_response_outparam_drop(int32_t handle);
 
 void wasi_http_types_response_outparam_drop_own(wasi_http_types_own_response_outparam_t handle) {
@@ -1409,7 +1413,7 @@ wasi_http_types_borrow_response_outparam_t wasi_http_types_borrow_response_outpa
   return (wasi_http_types_borrow_response_outparam_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]incoming-response")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]incoming-response")))
 extern void __wasm_import_wasi_http_types_incoming_response_drop(int32_t handle);
 
 void wasi_http_types_incoming_response_drop_own(wasi_http_types_own_incoming_response_t handle) {
@@ -1420,7 +1424,7 @@ wasi_http_types_borrow_incoming_response_t wasi_http_types_borrow_incoming_respo
   return (wasi_http_types_borrow_incoming_response_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]incoming-body")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]incoming-body")))
 extern void __wasm_import_wasi_http_types_incoming_body_drop(int32_t handle);
 
 void wasi_http_types_incoming_body_drop_own(wasi_http_types_own_incoming_body_t handle) {
@@ -1431,7 +1435,7 @@ wasi_http_types_borrow_incoming_body_t wasi_http_types_borrow_incoming_body(wasi
   return (wasi_http_types_borrow_incoming_body_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]future-trailers")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]future-trailers")))
 extern void __wasm_import_wasi_http_types_future_trailers_drop(int32_t handle);
 
 void wasi_http_types_future_trailers_drop_own(wasi_http_types_own_future_trailers_t handle) {
@@ -1442,7 +1446,7 @@ wasi_http_types_borrow_future_trailers_t wasi_http_types_borrow_future_trailers(
   return (wasi_http_types_borrow_future_trailers_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]outgoing-response")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]outgoing-response")))
 extern void __wasm_import_wasi_http_types_outgoing_response_drop(int32_t handle);
 
 void wasi_http_types_outgoing_response_drop_own(wasi_http_types_own_outgoing_response_t handle) {
@@ -1453,7 +1457,7 @@ wasi_http_types_borrow_outgoing_response_t wasi_http_types_borrow_outgoing_respo
   return (wasi_http_types_borrow_outgoing_response_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]outgoing-body")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]outgoing-body")))
 extern void __wasm_import_wasi_http_types_outgoing_body_drop(int32_t handle);
 
 void wasi_http_types_outgoing_body_drop_own(wasi_http_types_own_outgoing_body_t handle) {
@@ -1464,7 +1468,7 @@ wasi_http_types_borrow_outgoing_body_t wasi_http_types_borrow_outgoing_body(wasi
   return (wasi_http_types_borrow_outgoing_body_t) { arg.__handle };
 }
 
-__attribute__((__import_module__("wasi:http/types@0.2.0"), __import_name__("[resource-drop]future-incoming-response")))
+__attribute__((__import_module__("wasi:http/types@0.2.3"), __import_name__("[resource-drop]future-incoming-response")))
 extern void __wasm_import_wasi_http_types_future_incoming_response_drop(int32_t handle);
 
 void wasi_http_types_future_incoming_response_drop_own(wasi_http_types_own_future_incoming_response_t handle) {
@@ -1475,23 +1479,17 @@ wasi_http_types_borrow_future_incoming_response_t wasi_http_types_borrow_future_
   return (wasi_http_types_borrow_future_incoming_response_t) { arg.__handle };
 }
 
-void wasi_http_types_option_error_code_free(wasi_http_types_option_error_code_t *ptr) {
-  if (ptr->is_some) {
-    wasi_http_types_error_code_free(&ptr->val);
-  }
-}
-
-void bindings_tuple2_field_key_field_value_free(bindings_tuple2_field_key_field_value_t *ptr) {
-  wasi_http_types_field_key_free(&ptr->f0);
+void bindings_tuple2_field_name_field_value_free(bindings_tuple2_field_name_field_value_t *ptr) {
+  wasi_http_types_field_name_free(&ptr->f0);
   wasi_http_types_field_value_free(&ptr->f1);
 }
 
-void bindings_list_tuple2_field_key_field_value_free(bindings_list_tuple2_field_key_field_value_t *ptr) {
+void bindings_list_tuple2_field_name_field_value_free(bindings_list_tuple2_field_name_field_value_t *ptr) {
   size_t list_len = ptr->len;
   if (list_len > 0) {
-    bindings_tuple2_field_key_field_value_t *list_ptr = ptr->ptr;
+    bindings_tuple2_field_name_field_value_t *list_ptr = ptr->ptr;
     for (size_t i = 0; i < list_len; i++) {
-      bindings_tuple2_field_key_field_value_free(&list_ptr[i]);
+      bindings_tuple2_field_name_field_value_free(&list_ptr[i]);
     }
     free(list_ptr);
   }
@@ -1613,6 +1611,12 @@ void wasi_http_types_result_result_own_incoming_response_error_code_void_free(wa
 void wasi_http_types_option_result_result_own_incoming_response_error_code_void_free(wasi_http_types_option_result_result_own_incoming_response_error_code_void_t *ptr) {
   if (ptr->is_some) {
     wasi_http_types_result_result_own_incoming_response_error_code_void_free(&ptr->val);
+  }
+}
+
+void wasi_http_types_option_error_code_free(wasi_http_types_option_error_code_t *ptr) {
+  if (ptr->is_some) {
+    wasi_http_types_error_code_free(&ptr->val);
   }
 }
 
@@ -4942,33 +4946,6 @@ bool wasi_sockets_tcp_create_socket_create_tcp_socket(wasi_sockets_tcp_create_so
   }
 }
 
-bool wasi_sockets_ip_name_lookup_resolve_addresses(wasi_sockets_ip_name_lookup_borrow_network_t network, bindings_string_t *name, wasi_sockets_ip_name_lookup_own_resolve_address_stream_t *ret, wasi_sockets_ip_name_lookup_error_code_t *err) {
-  __attribute__((__aligned__(4)))
-  uint8_t ret_area[8];
-  uint8_t *ptr = (uint8_t *) &ret_area;
-  __wasm_import_wasi_sockets_ip_name_lookup_resolve_addresses((network).__handle, (uint8_t *) (*name).ptr, (*name).len, ptr);
-  wasi_sockets_ip_name_lookup_result_own_resolve_address_stream_error_code_t result;
-  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
-    case 0: {
-      result.is_err = false;
-      result.val.ok = (wasi_sockets_ip_name_lookup_own_resolve_address_stream_t) { *((int32_t*) (ptr + 4)) };
-      break;
-    }
-    case 1: {
-      result.is_err = true;
-      result.val.err = (int32_t) *((uint8_t*) (ptr + 4));
-      break;
-    }
-  }
-  if (!result.is_err) {
-    *ret = result.val.ok;
-    return 1;
-  } else {
-    *err = result.val.err;
-    return 0;
-  }
-}
-
 bool wasi_sockets_ip_name_lookup_method_resolve_address_stream_resolve_next_address(wasi_sockets_ip_name_lookup_borrow_resolve_address_stream_t self, wasi_sockets_ip_name_lookup_option_ip_address_t *ret, wasi_sockets_ip_name_lookup_error_code_t *err) {
   __attribute__((__aligned__(2)))
   uint8_t ret_area[22];
@@ -5041,6 +5018,33 @@ wasi_sockets_ip_name_lookup_own_pollable_t wasi_sockets_ip_name_lookup_method_re
   return (wasi_sockets_ip_name_lookup_own_pollable_t) { ret };
 }
 
+bool wasi_sockets_ip_name_lookup_resolve_addresses(wasi_sockets_ip_name_lookup_borrow_network_t network, bindings_string_t *name, wasi_sockets_ip_name_lookup_own_resolve_address_stream_t *ret, wasi_sockets_ip_name_lookup_error_code_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[8];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_wasi_sockets_ip_name_lookup_resolve_addresses((network).__handle, (uint8_t *) (*name).ptr, (*name).len, ptr);
+  wasi_sockets_ip_name_lookup_result_own_resolve_address_stream_error_code_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (wasi_sockets_ip_name_lookup_own_resolve_address_stream_t) { *((int32_t*) (ptr + 4)) };
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      result.val.err = (int32_t) *((uint8_t*) (ptr + 4));
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
 void wasi_random_random_get_random_bytes(uint64_t len, bindings_list_u8_t *ret) {
   __attribute__((__aligned__(4)))
   uint8_t ret_area[8];
@@ -5078,453 +5082,12 @@ void wasi_random_insecure_seed_insecure_seed(bindings_tuple2_u64_u64_t *ret) {
   };
 }
 
-bool wasi_http_types_http_error_code(wasi_http_types_borrow_io_error_t err_, wasi_http_types_error_code_t *ret) {
-  __attribute__((__aligned__(8)))
-  uint8_t ret_area[40];
-  uint8_t *ptr = (uint8_t *) &ret_area;
-  __wasm_import_wasi_http_types_http_error_code((err_).__handle, ptr);
-  wasi_http_types_option_error_code_t option21;
-  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
-    case 0: {
-      option21.is_some = false;
-      break;
-    }
-    case 1: {
-      option21.is_some = true;
-      wasi_http_types_error_code_t variant;
-      variant.tag = (int32_t) *((uint8_t*) (ptr + 8));
-      switch ((int32_t) variant.tag) {
-        case 0: {
-          break;
-        }
-        case 1: {
-          bindings_option_string_t option;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option.is_some = false;
-              break;
-            }
-            case 1: {
-              option.is_some = true;
-              option.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
-              break;
-            }
-          }
-          bindings_option_u16_t option0;
-          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
-            case 0: {
-              option0.is_some = false;
-              break;
-            }
-            case 1: {
-              option0.is_some = true;
-              option0.val = (uint16_t) ((int32_t) *((uint16_t*) (ptr + 30)));
-              break;
-            }
-          }
-          variant.val.dns_error = (wasi_http_types_dns_error_payload_t) {
-            (bindings_option_string_t) option,
-            (bindings_option_u16_t) option0,
-          };
-          break;
-        }
-        case 2: {
-          break;
-        }
-        case 3: {
-          break;
-        }
-        case 4: {
-          break;
-        }
-        case 5: {
-          break;
-        }
-        case 6: {
-          break;
-        }
-        case 7: {
-          break;
-        }
-        case 8: {
-          break;
-        }
-        case 9: {
-          break;
-        }
-        case 10: {
-          break;
-        }
-        case 11: {
-          break;
-        }
-        case 12: {
-          break;
-        }
-        case 13: {
-          break;
-        }
-        case 14: {
-          bindings_option_u8_t option1;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option1.is_some = false;
-              break;
-            }
-            case 1: {
-              option1.is_some = true;
-              option1.val = (uint8_t) ((int32_t) *((uint8_t*) (ptr + 17)));
-              break;
-            }
-          }
-          bindings_option_string_t option2;
-          switch ((int32_t) *((uint8_t*) (ptr + 20))) {
-            case 0: {
-              option2.is_some = false;
-              break;
-            }
-            case 1: {
-              option2.is_some = true;
-              option2.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 24))), (*((size_t*) (ptr + 28))) };
-              break;
-            }
-          }
-          variant.val.tls_alert_received = (wasi_http_types_tls_alert_received_payload_t) {
-            (bindings_option_u8_t) option1,
-            (bindings_option_string_t) option2,
-          };
-          break;
-        }
-        case 15: {
-          break;
-        }
-        case 16: {
-          break;
-        }
-        case 17: {
-          bindings_option_u64_t option3;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option3.is_some = false;
-              break;
-            }
-            case 1: {
-              option3.is_some = true;
-              option3.val = (uint64_t) (*((int64_t*) (ptr + 24)));
-              break;
-            }
-          }
-          variant.val.http_request_body_size = option3;
-          break;
-        }
-        case 18: {
-          break;
-        }
-        case 19: {
-          break;
-        }
-        case 20: {
-          break;
-        }
-        case 21: {
-          bindings_option_u32_t option4;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option4.is_some = false;
-              break;
-            }
-            case 1: {
-              option4.is_some = true;
-              option4.val = (uint32_t) (*((int32_t*) (ptr + 20)));
-              break;
-            }
-          }
-          variant.val.http_request_header_section_size = option4;
-          break;
-        }
-        case 22: {
-          wasi_http_types_option_field_size_payload_t option7;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option7.is_some = false;
-              break;
-            }
-            case 1: {
-              option7.is_some = true;
-              bindings_option_string_t option5;
-              switch ((int32_t) *((uint8_t*) (ptr + 20))) {
-                case 0: {
-                  option5.is_some = false;
-                  break;
-                }
-                case 1: {
-                  option5.is_some = true;
-                  option5.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 24))), (*((size_t*) (ptr + 28))) };
-                  break;
-                }
-              }
-              bindings_option_u32_t option6;
-              switch ((int32_t) *((uint8_t*) (ptr + 32))) {
-                case 0: {
-                  option6.is_some = false;
-                  break;
-                }
-                case 1: {
-                  option6.is_some = true;
-                  option6.val = (uint32_t) (*((int32_t*) (ptr + 36)));
-                  break;
-                }
-              }
-
-              option7.val = (wasi_http_types_field_size_payload_t) {
-                (bindings_option_string_t) option5,
-                (bindings_option_u32_t) option6,
-              };
-              break;
-            }
-          }
-          variant.val.http_request_header_size = option7;
-          break;
-        }
-        case 23: {
-          bindings_option_u32_t option8;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option8.is_some = false;
-              break;
-            }
-            case 1: {
-              option8.is_some = true;
-              option8.val = (uint32_t) (*((int32_t*) (ptr + 20)));
-              break;
-            }
-          }
-          variant.val.http_request_trailer_section_size = option8;
-          break;
-        }
-        case 24: {
-          bindings_option_string_t option9;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option9.is_some = false;
-              break;
-            }
-            case 1: {
-              option9.is_some = true;
-              option9.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
-              break;
-            }
-          }
-          bindings_option_u32_t option10;
-          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
-            case 0: {
-              option10.is_some = false;
-              break;
-            }
-            case 1: {
-              option10.is_some = true;
-              option10.val = (uint32_t) (*((int32_t*) (ptr + 32)));
-              break;
-            }
-          }
-          variant.val.http_request_trailer_size = (wasi_http_types_field_size_payload_t) {
-            (bindings_option_string_t) option9,
-            (bindings_option_u32_t) option10,
-          };
-          break;
-        }
-        case 25: {
-          break;
-        }
-        case 26: {
-          bindings_option_u32_t option11;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option11.is_some = false;
-              break;
-            }
-            case 1: {
-              option11.is_some = true;
-              option11.val = (uint32_t) (*((int32_t*) (ptr + 20)));
-              break;
-            }
-          }
-          variant.val.http_response_header_section_size = option11;
-          break;
-        }
-        case 27: {
-          bindings_option_string_t option12;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option12.is_some = false;
-              break;
-            }
-            case 1: {
-              option12.is_some = true;
-              option12.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
-              break;
-            }
-          }
-          bindings_option_u32_t option13;
-          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
-            case 0: {
-              option13.is_some = false;
-              break;
-            }
-            case 1: {
-              option13.is_some = true;
-              option13.val = (uint32_t) (*((int32_t*) (ptr + 32)));
-              break;
-            }
-          }
-          variant.val.http_response_header_size = (wasi_http_types_field_size_payload_t) {
-            (bindings_option_string_t) option12,
-            (bindings_option_u32_t) option13,
-          };
-          break;
-        }
-        case 28: {
-          bindings_option_u64_t option14;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option14.is_some = false;
-              break;
-            }
-            case 1: {
-              option14.is_some = true;
-              option14.val = (uint64_t) (*((int64_t*) (ptr + 24)));
-              break;
-            }
-          }
-          variant.val.http_response_body_size = option14;
-          break;
-        }
-        case 29: {
-          bindings_option_u32_t option15;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option15.is_some = false;
-              break;
-            }
-            case 1: {
-              option15.is_some = true;
-              option15.val = (uint32_t) (*((int32_t*) (ptr + 20)));
-              break;
-            }
-          }
-          variant.val.http_response_trailer_section_size = option15;
-          break;
-        }
-        case 30: {
-          bindings_option_string_t option16;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option16.is_some = false;
-              break;
-            }
-            case 1: {
-              option16.is_some = true;
-              option16.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
-              break;
-            }
-          }
-          bindings_option_u32_t option17;
-          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
-            case 0: {
-              option17.is_some = false;
-              break;
-            }
-            case 1: {
-              option17.is_some = true;
-              option17.val = (uint32_t) (*((int32_t*) (ptr + 32)));
-              break;
-            }
-          }
-          variant.val.http_response_trailer_size = (wasi_http_types_field_size_payload_t) {
-            (bindings_option_string_t) option16,
-            (bindings_option_u32_t) option17,
-          };
-          break;
-        }
-        case 31: {
-          bindings_option_string_t option18;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option18.is_some = false;
-              break;
-            }
-            case 1: {
-              option18.is_some = true;
-              option18.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
-              break;
-            }
-          }
-          variant.val.http_response_transfer_coding = option18;
-          break;
-        }
-        case 32: {
-          bindings_option_string_t option19;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option19.is_some = false;
-              break;
-            }
-            case 1: {
-              option19.is_some = true;
-              option19.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
-              break;
-            }
-          }
-          variant.val.http_response_content_coding = option19;
-          break;
-        }
-        case 33: {
-          break;
-        }
-        case 34: {
-          break;
-        }
-        case 35: {
-          break;
-        }
-        case 36: {
-          break;
-        }
-        case 37: {
-          break;
-        }
-        case 38: {
-          bindings_option_string_t option20;
-          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
-            case 0: {
-              option20.is_some = false;
-              break;
-            }
-            case 1: {
-              option20.is_some = true;
-              option20.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
-              break;
-            }
-          }
-          variant.val.internal_error = option20;
-          break;
-        }
-      }
-
-      option21.val = variant;
-      break;
-    }
-  }
-  *ret = option21.val;
-  return option21.is_some;
-}
-
 wasi_http_types_own_fields_t wasi_http_types_constructor_fields(void) {
   int32_t ret = __wasm_import_wasi_http_types_constructor_fields();
   return (wasi_http_types_own_fields_t) { ret };
 }
 
-bool wasi_http_types_static_fields_from_list(bindings_list_tuple2_field_key_field_value_t *entries, wasi_http_types_own_fields_t *ret, wasi_http_types_header_error_t *err) {
+bool wasi_http_types_static_fields_from_list(bindings_list_tuple2_field_name_field_value_t *entries, wasi_http_types_own_fields_t *ret, wasi_http_types_header_error_t *err) {
   __attribute__((__aligned__(4)))
   uint8_t ret_area[8];
   uint8_t *ptr = (uint8_t *) &ret_area;
@@ -5565,7 +5128,7 @@ bool wasi_http_types_static_fields_from_list(bindings_list_tuple2_field_key_fiel
   }
 }
 
-void wasi_http_types_method_fields_get(wasi_http_types_borrow_fields_t self, wasi_http_types_field_key_t *name, bindings_list_field_value_t *ret) {
+void wasi_http_types_method_fields_get(wasi_http_types_borrow_fields_t self, wasi_http_types_field_name_t *name, bindings_list_field_value_t *ret) {
   __attribute__((__aligned__(4)))
   uint8_t ret_area[8];
   uint8_t *ptr = (uint8_t *) &ret_area;
@@ -5573,12 +5136,12 @@ void wasi_http_types_method_fields_get(wasi_http_types_borrow_fields_t self, was
   *ret = (bindings_list_field_value_t) { (wasi_http_types_field_value_t*)(*((uint8_t **) (ptr + 0))), (*((size_t*) (ptr + 4))) };
 }
 
-bool wasi_http_types_method_fields_has(wasi_http_types_borrow_fields_t self, wasi_http_types_field_key_t *name) {
+bool wasi_http_types_method_fields_has(wasi_http_types_borrow_fields_t self, wasi_http_types_field_name_t *name) {
   int32_t ret = __wasm_import_wasi_http_types_method_fields_has((self).__handle, (uint8_t *) (*name).ptr, (*name).len);
   return ret;
 }
 
-bool wasi_http_types_method_fields_set(wasi_http_types_borrow_fields_t self, wasi_http_types_field_key_t *name, bindings_list_field_value_t *value, wasi_http_types_header_error_t *err) {
+bool wasi_http_types_method_fields_set(wasi_http_types_borrow_fields_t self, wasi_http_types_field_name_t *name, bindings_list_field_value_t *value, wasi_http_types_header_error_t *err) {
   __attribute__((__aligned__(1)))
   uint8_t ret_area[2];
   uint8_t *ptr = (uint8_t *) &ret_area;
@@ -5617,7 +5180,7 @@ bool wasi_http_types_method_fields_set(wasi_http_types_borrow_fields_t self, was
   }
 }
 
-bool wasi_http_types_method_fields_delete(wasi_http_types_borrow_fields_t self, wasi_http_types_field_key_t *name, wasi_http_types_header_error_t *err) {
+bool wasi_http_types_method_fields_delete(wasi_http_types_borrow_fields_t self, wasi_http_types_field_name_t *name, wasi_http_types_header_error_t *err) {
   __attribute__((__aligned__(1)))
   uint8_t ret_area[2];
   uint8_t *ptr = (uint8_t *) &ret_area;
@@ -5656,7 +5219,7 @@ bool wasi_http_types_method_fields_delete(wasi_http_types_borrow_fields_t self, 
   }
 }
 
-bool wasi_http_types_method_fields_append(wasi_http_types_borrow_fields_t self, wasi_http_types_field_key_t *name, wasi_http_types_field_value_t *value, wasi_http_types_header_error_t *err) {
+bool wasi_http_types_method_fields_append(wasi_http_types_borrow_fields_t self, wasi_http_types_field_name_t *name, wasi_http_types_field_value_t *value, wasi_http_types_header_error_t *err) {
   __attribute__((__aligned__(1)))
   uint8_t ret_area[2];
   uint8_t *ptr = (uint8_t *) &ret_area;
@@ -5695,12 +5258,12 @@ bool wasi_http_types_method_fields_append(wasi_http_types_borrow_fields_t self, 
   }
 }
 
-void wasi_http_types_method_fields_entries(wasi_http_types_borrow_fields_t self, bindings_list_tuple2_field_key_field_value_t *ret) {
+void wasi_http_types_method_fields_entries(wasi_http_types_borrow_fields_t self, bindings_list_tuple2_field_name_field_value_t *ret) {
   __attribute__((__aligned__(4)))
   uint8_t ret_area[8];
   uint8_t *ptr = (uint8_t *) &ret_area;
   __wasm_import_wasi_http_types_method_fields_entries((self).__handle, ptr);
-  *ret = (bindings_list_tuple2_field_key_field_value_t) { (bindings_tuple2_field_key_field_value_t*)(*((uint8_t **) (ptr + 0))), (*((size_t*) (ptr + 4))) };
+  *ret = (bindings_list_tuple2_field_name_field_value_t) { (bindings_tuple2_field_name_field_value_t*)(*((uint8_t **) (ptr + 0))), (*((size_t*) (ptr + 4))) };
 }
 
 wasi_http_types_own_fields_t wasi_http_types_method_fields_clone(wasi_http_types_borrow_fields_t self) {
@@ -8681,6 +8244,447 @@ bool wasi_http_types_method_future_incoming_response_get(wasi_http_types_borrow_
   return option22.is_some;
 }
 
+bool wasi_http_types_http_error_code(wasi_http_types_borrow_io_error_t err_, wasi_http_types_error_code_t *ret) {
+  __attribute__((__aligned__(8)))
+  uint8_t ret_area[40];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_wasi_http_types_http_error_code((err_).__handle, ptr);
+  wasi_http_types_option_error_code_t option21;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      option21.is_some = false;
+      break;
+    }
+    case 1: {
+      option21.is_some = true;
+      wasi_http_types_error_code_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 8));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          bindings_option_string_t option;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option.is_some = false;
+              break;
+            }
+            case 1: {
+              option.is_some = true;
+              option.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
+              break;
+            }
+          }
+          bindings_option_u16_t option0;
+          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
+            case 0: {
+              option0.is_some = false;
+              break;
+            }
+            case 1: {
+              option0.is_some = true;
+              option0.val = (uint16_t) ((int32_t) *((uint16_t*) (ptr + 30)));
+              break;
+            }
+          }
+          variant.val.dns_error = (wasi_http_types_dns_error_payload_t) {
+            (bindings_option_string_t) option,
+            (bindings_option_u16_t) option0,
+          };
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
+          break;
+        }
+        case 4: {
+          break;
+        }
+        case 5: {
+          break;
+        }
+        case 6: {
+          break;
+        }
+        case 7: {
+          break;
+        }
+        case 8: {
+          break;
+        }
+        case 9: {
+          break;
+        }
+        case 10: {
+          break;
+        }
+        case 11: {
+          break;
+        }
+        case 12: {
+          break;
+        }
+        case 13: {
+          break;
+        }
+        case 14: {
+          bindings_option_u8_t option1;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option1.is_some = false;
+              break;
+            }
+            case 1: {
+              option1.is_some = true;
+              option1.val = (uint8_t) ((int32_t) *((uint8_t*) (ptr + 17)));
+              break;
+            }
+          }
+          bindings_option_string_t option2;
+          switch ((int32_t) *((uint8_t*) (ptr + 20))) {
+            case 0: {
+              option2.is_some = false;
+              break;
+            }
+            case 1: {
+              option2.is_some = true;
+              option2.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 24))), (*((size_t*) (ptr + 28))) };
+              break;
+            }
+          }
+          variant.val.tls_alert_received = (wasi_http_types_tls_alert_received_payload_t) {
+            (bindings_option_u8_t) option1,
+            (bindings_option_string_t) option2,
+          };
+          break;
+        }
+        case 15: {
+          break;
+        }
+        case 16: {
+          break;
+        }
+        case 17: {
+          bindings_option_u64_t option3;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option3.is_some = false;
+              break;
+            }
+            case 1: {
+              option3.is_some = true;
+              option3.val = (uint64_t) (*((int64_t*) (ptr + 24)));
+              break;
+            }
+          }
+          variant.val.http_request_body_size = option3;
+          break;
+        }
+        case 18: {
+          break;
+        }
+        case 19: {
+          break;
+        }
+        case 20: {
+          break;
+        }
+        case 21: {
+          bindings_option_u32_t option4;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option4.is_some = false;
+              break;
+            }
+            case 1: {
+              option4.is_some = true;
+              option4.val = (uint32_t) (*((int32_t*) (ptr + 20)));
+              break;
+            }
+          }
+          variant.val.http_request_header_section_size = option4;
+          break;
+        }
+        case 22: {
+          wasi_http_types_option_field_size_payload_t option7;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option7.is_some = false;
+              break;
+            }
+            case 1: {
+              option7.is_some = true;
+              bindings_option_string_t option5;
+              switch ((int32_t) *((uint8_t*) (ptr + 20))) {
+                case 0: {
+                  option5.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option5.is_some = true;
+                  option5.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 24))), (*((size_t*) (ptr + 28))) };
+                  break;
+                }
+              }
+              bindings_option_u32_t option6;
+              switch ((int32_t) *((uint8_t*) (ptr + 32))) {
+                case 0: {
+                  option6.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option6.is_some = true;
+                  option6.val = (uint32_t) (*((int32_t*) (ptr + 36)));
+                  break;
+                }
+              }
+
+              option7.val = (wasi_http_types_field_size_payload_t) {
+                (bindings_option_string_t) option5,
+                (bindings_option_u32_t) option6,
+              };
+              break;
+            }
+          }
+          variant.val.http_request_header_size = option7;
+          break;
+        }
+        case 23: {
+          bindings_option_u32_t option8;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option8.is_some = false;
+              break;
+            }
+            case 1: {
+              option8.is_some = true;
+              option8.val = (uint32_t) (*((int32_t*) (ptr + 20)));
+              break;
+            }
+          }
+          variant.val.http_request_trailer_section_size = option8;
+          break;
+        }
+        case 24: {
+          bindings_option_string_t option9;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option9.is_some = false;
+              break;
+            }
+            case 1: {
+              option9.is_some = true;
+              option9.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
+              break;
+            }
+          }
+          bindings_option_u32_t option10;
+          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
+            case 0: {
+              option10.is_some = false;
+              break;
+            }
+            case 1: {
+              option10.is_some = true;
+              option10.val = (uint32_t) (*((int32_t*) (ptr + 32)));
+              break;
+            }
+          }
+          variant.val.http_request_trailer_size = (wasi_http_types_field_size_payload_t) {
+            (bindings_option_string_t) option9,
+            (bindings_option_u32_t) option10,
+          };
+          break;
+        }
+        case 25: {
+          break;
+        }
+        case 26: {
+          bindings_option_u32_t option11;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option11.is_some = false;
+              break;
+            }
+            case 1: {
+              option11.is_some = true;
+              option11.val = (uint32_t) (*((int32_t*) (ptr + 20)));
+              break;
+            }
+          }
+          variant.val.http_response_header_section_size = option11;
+          break;
+        }
+        case 27: {
+          bindings_option_string_t option12;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option12.is_some = false;
+              break;
+            }
+            case 1: {
+              option12.is_some = true;
+              option12.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
+              break;
+            }
+          }
+          bindings_option_u32_t option13;
+          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
+            case 0: {
+              option13.is_some = false;
+              break;
+            }
+            case 1: {
+              option13.is_some = true;
+              option13.val = (uint32_t) (*((int32_t*) (ptr + 32)));
+              break;
+            }
+          }
+          variant.val.http_response_header_size = (wasi_http_types_field_size_payload_t) {
+            (bindings_option_string_t) option12,
+            (bindings_option_u32_t) option13,
+          };
+          break;
+        }
+        case 28: {
+          bindings_option_u64_t option14;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option14.is_some = false;
+              break;
+            }
+            case 1: {
+              option14.is_some = true;
+              option14.val = (uint64_t) (*((int64_t*) (ptr + 24)));
+              break;
+            }
+          }
+          variant.val.http_response_body_size = option14;
+          break;
+        }
+        case 29: {
+          bindings_option_u32_t option15;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option15.is_some = false;
+              break;
+            }
+            case 1: {
+              option15.is_some = true;
+              option15.val = (uint32_t) (*((int32_t*) (ptr + 20)));
+              break;
+            }
+          }
+          variant.val.http_response_trailer_section_size = option15;
+          break;
+        }
+        case 30: {
+          bindings_option_string_t option16;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option16.is_some = false;
+              break;
+            }
+            case 1: {
+              option16.is_some = true;
+              option16.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
+              break;
+            }
+          }
+          bindings_option_u32_t option17;
+          switch ((int32_t) *((uint8_t*) (ptr + 28))) {
+            case 0: {
+              option17.is_some = false;
+              break;
+            }
+            case 1: {
+              option17.is_some = true;
+              option17.val = (uint32_t) (*((int32_t*) (ptr + 32)));
+              break;
+            }
+          }
+          variant.val.http_response_trailer_size = (wasi_http_types_field_size_payload_t) {
+            (bindings_option_string_t) option16,
+            (bindings_option_u32_t) option17,
+          };
+          break;
+        }
+        case 31: {
+          bindings_option_string_t option18;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option18.is_some = false;
+              break;
+            }
+            case 1: {
+              option18.is_some = true;
+              option18.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
+              break;
+            }
+          }
+          variant.val.http_response_transfer_coding = option18;
+          break;
+        }
+        case 32: {
+          bindings_option_string_t option19;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option19.is_some = false;
+              break;
+            }
+            case 1: {
+              option19.is_some = true;
+              option19.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
+              break;
+            }
+          }
+          variant.val.http_response_content_coding = option19;
+          break;
+        }
+        case 33: {
+          break;
+        }
+        case 34: {
+          break;
+        }
+        case 35: {
+          break;
+        }
+        case 36: {
+          break;
+        }
+        case 37: {
+          break;
+        }
+        case 38: {
+          bindings_option_string_t option20;
+          switch ((int32_t) *((uint8_t*) (ptr + 16))) {
+            case 0: {
+              option20.is_some = false;
+              break;
+            }
+            case 1: {
+              option20.is_some = true;
+              option20.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 20))), (*((size_t*) (ptr + 24))) };
+              break;
+            }
+          }
+          variant.val.internal_error = option20;
+          break;
+        }
+      }
+
+      option21.val = variant;
+      break;
+    }
+  }
+  *ret = option21.val;
+  return option21.is_some;
+}
+
 bool wasi_http_outgoing_handler_handle(wasi_http_outgoing_handler_own_outgoing_request_t request, wasi_http_outgoing_handler_own_request_options_t *maybe_options, wasi_http_outgoing_handler_own_future_incoming_response_t *ret, wasi_http_outgoing_handler_error_code_t *err) {
   __attribute__((__aligned__(8)))
   uint8_t ret_area[40];
@@ -9142,7 +9146,7 @@ bool wasi_http_outgoing_handler_handle(wasi_http_outgoing_handler_own_outgoing_r
   }
 }
 
-__attribute__((__export_name__("wasi:cli/run@0.2.0#run")))
+__attribute__((__export_name__("wasi:cli/run@0.2.3#run")))
 int32_t __wasm_export_exports_wasi_cli_run_run(void) {
   exports_wasi_cli_run_result_void_void_t ret;
   ret.is_err = !exports_wasi_cli_run_run();
@@ -9155,7 +9159,7 @@ int32_t __wasm_export_exports_wasi_cli_run_run(void) {
   return result;
 }
 
-__attribute__((__export_name__("wasi:http/incoming-handler@0.2.0#handle")))
+__attribute__((__export_name__("wasi:http/incoming-handler@0.2.3#handle")))
 void __wasm_export_exports_wasi_http_incoming_handler_handle(int32_t arg, int32_t arg0) {
   exports_wasi_http_incoming_handler_handle((exports_wasi_http_incoming_handler_own_incoming_request_t) { arg }, (exports_wasi_http_incoming_handler_own_response_outparam_t) { arg0 });
 }
