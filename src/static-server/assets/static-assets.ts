@@ -1,8 +1,8 @@
 import { createAssetCache } from './asset-cache.ts';
 import { createWasmInlineAsset } from './asset-loader.ts';
 
-import type { EmbeddedStoreEntry } from './embedded-store-entry.ts';
 import type { AssetCache } from './asset-cache.ts';
+import type { EmbeddedStoreEntry } from './embedded-store-entry.ts';
 
 /**
  * Represents information about a file.

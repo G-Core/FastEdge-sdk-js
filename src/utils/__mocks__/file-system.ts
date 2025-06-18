@@ -18,11 +18,12 @@ const getTmpDir = async (): Promise<string> => 'tmp_dir';
  * @param filePath - The base path for the temporary file.
  * @returns The resolved path to the temporary file.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const resolveTmpDir = (filePath: string): string => path.join('temp_root', 'temp.bundle.js');
 
 /**
  * Normalizes and resolves the path for Unix/Windows compatibility.
- * @param base - The base path.
+ * @param _base - The base path.
  * @param providedPath - The provided path to normalize.
  * @returns The normalized and resolved path.
  */

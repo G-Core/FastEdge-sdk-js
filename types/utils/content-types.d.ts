@@ -6,6 +6,10 @@ interface ContentTypeDefinition {
     contentType: string;
 }
 /**
+ * Retrieves the default content types.
+ * @returns An array of default content type definitions.
+ */
+/**
  * Retrieves known content types, combining custom and default content types.
  * @param customContentTypes - Custom content types to include.
  * @returns An array of known content type definitions.

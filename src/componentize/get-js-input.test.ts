@@ -23,7 +23,6 @@ describe('get-js-input - get javascript input contents as a string', () => {
   it('should just read the provided js into contents', async () => {
     expect.assertions(3);
     (readFile as jest.Mock).mockResolvedValue('provided_js_content');
-    // readFile.mockResolvedValue('provided_js_content');
     const contents = await getJsInputContents('input.js', false);
     expect(readFile).toHaveBeenCalledWith('input.js', 'utf8');
     expect(esBundle).not.toHaveBeenCalled();

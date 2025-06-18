@@ -32,6 +32,8 @@ interface ComponentizeOptions {
 
 /**
  * Converts JavaScript input into a WebAssembly component.
+ * Ensure that jsInput and output are valid file paths before calling componentize.
+ * (see: src/utils/input-path-verification.ts:validateFilePaths)
  *
  * @param jsInput - The path to the JavaScript input file.
  * @param output - The path to the output WebAssembly file.
@@ -43,8 +45,10 @@ async function componentize(
   opts: ComponentizeOptions = {},
 ): Promise<void> {
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     debug = false,
     wasmEngine = npxPackagePath('./lib/fastedge-runtime.wasm'),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enableStdout = false,
     enablePBL = false,
     preBundleJSInput = true,
@@ -76,6 +80,7 @@ async function componentize(
         '--wasm-bulk-memory=true',
         '--inherit-env=true',
         '--dir=.',
+        // '--dir=../', // Farq: NEED to iterate config file and add these paths for static building...
         `--dir=${useUnixPath(dirname(wizerInput))}`,
         '-r _start=wizer.resume',
         `-o=${useUnixPath(wasmOutputDir)}`,
@@ -87,7 +92,10 @@ async function componentize(
         shell: true,
         encoding: 'utf-8',
         env: {
+          // ENABLE_EXPERIMENTAL_HIGH_RESOLUTION_TIME_METHODS:
+          //   enableExperimentalHighResolutionTimeMethods ? "1" : "0",
           ENABLE_PBL: enablePBL ? '1' : '0',
+          // ...process.env,
         },
       },
     );
@@ -98,6 +106,7 @@ async function componentize(
     process.exitCode = wizerProcess.status;
   } catch (error) {
     if (process.env.NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
       console.error('Error: Failed to compile JavaScript to Wasm:', (error as Error).message);
     }
     process.exit(1);

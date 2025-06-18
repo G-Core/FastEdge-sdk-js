@@ -1,3 +1,5 @@
+import { UnderlyingSource } from 'node:stream/web';
+
 /**
  * Represents a readable stream for a `Uint8Array` with additional methods.
  */
@@ -29,7 +31,6 @@ const createReadableStreamForBytes = (array: Uint8Array): ByteReadableStream => 
   let _disturbed = false;
 
   const underlyingSource: UnderlyingSource<Uint8Array> = {
-    // @ts-expect-error - Uint8Array extends ArrayBufferLike, this interface works for our purpose
     async start(controller: ReadableStreamDefaultController<Uint8Array>) {
       controller.enqueue(array);
       controller.close();
@@ -53,7 +54,7 @@ const createReadableStreamForBytes = (array: Uint8Array): ByteReadableStream => 
 
     // Override cancel to track if the stream is disturbed
     const _cancel = reader.cancel.bind(reader);
-    reader.cancel = async (reason?: any) => {
+    reader.cancel = async (reason?: unknown) => {
       await _cancel(reason);
       _disturbed = true;
     };
@@ -140,6 +141,7 @@ const createEmbeddedStoreEntry = (
     body: () => _body as ReadableStream<Uint8Array> | null,
     bodyUsed: () => _consumed,
     arrayBuffer,
+    // eslint-disable-next-line capitalized-comments
     // text,
     // json,
     contentEncoding: () => _contentEncoding,

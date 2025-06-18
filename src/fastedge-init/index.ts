@@ -44,4 +44,4 @@ async function initializeFastEdgeApp(): Promise<void> {
   colorLog('success', 'FastEdge initialization completed successfully');
 }
 
-initializeFastEdgeApp();
+await initializeFastEdgeApp();

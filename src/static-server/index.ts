@@ -1,4 +1,5 @@
 import { normalizeServerConfig } from '../utils/config-helpers.ts';
+
 import {
   buildHeadersSubset,
   checkIfModifiedSince,
@@ -6,8 +7,9 @@ import {
   getIfModifiedSinceHeader,
   getIfNoneMatchHeader,
 } from './utils/headers.ts';
-import type { StaticAsset } from './assets/static-assets.ts';
+
 import type { AssetCache } from './assets/asset-cache.ts';
+import type { StaticAsset } from './assets/static-assets.ts';
 
 /**
  * Represents the type of headers.
@@ -156,7 +158,7 @@ const getStaticServer = (
   assetCache: AssetCache<StaticAsset>,
 ): StaticServer => {
   const _serverConfig = normalizeServerConfig(serverConfig);
-  const _assetCache = assetCache; // @ts-ignore
+  const _assetCache = assetCache;
   const _extendedCache = serverConfig.extendedCache;
 
   /**
@@ -166,7 +168,6 @@ const getStaticServer = (
    * @returns A `StaticAsset`
    */
   const getMatchingAsset = (path: string): StaticAsset | null => {
-    // @ts-ignore
     const assetKey = _serverConfig.publicDirPrefix + path;
 
     if (!assetKey.endsWith('/')) {
@@ -248,7 +249,6 @@ const getStaticServer = (
     }
 
     // Sort keys, larger numbers to come first
-    // @ts-ignore
     const keysSorted = [...priorityMap.keys()].sort((qValueA, qValueB) => qValueB - qValueA);
 
     return keysSorted.map((qValue) => priorityMap.get(qValue));
@@ -372,12 +372,6 @@ const getStaticServer = (
 export { getStaticServer };
 export { createStaticAssetsCache } from './assets/static-assets.ts';
 
+export type { AssetCache } from './assets/asset-cache.ts';
 export type { StaticAssetManifest } from './assets/static-assets.ts';
-export type {
-  AssetCache,
-  AssetInit,
-  ContentCompressionTypes,
-  HeadersType,
-  ServerConfig,
-  StaticServer,
-};
+export type { AssetInit, ContentCompressionTypes, HeadersType, ServerConfig, StaticServer };

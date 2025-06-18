@@ -1,4 +1,5 @@
 import { componentize } from 'src/componentize/index.ts';
+
 import { validateFilePaths } from '~utils/input-path-verification.ts';
 
 /**

@@ -61,9 +61,9 @@ const defaultContentTypes: ContentTypeDefinition[] = [
  * Retrieves the default content types.
  * @returns An array of default content type definitions.
  */
-function getDefaultContentTypes(): ContentTypeDefinition[] {
-  return defaultContentTypes;
-}
+// function getDefaultContentTypes(): ContentTypeDefinition[] {
+//   return defaultContentTypes;
+// }
 
 /**
  * Retrieves known content types, combining custom and default content types.

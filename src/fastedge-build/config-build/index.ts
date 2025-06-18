@@ -3,11 +3,11 @@ import { pathToFileURL } from 'node:url';
 import { createStaticManifest } from './build-manifest/create-static-manifest.ts';
 import { buildWasm } from './build-wasm.ts';
 
+import type { ContentTypeDefinition } from '~utils/content-types.ts';
+
 import { normalizeBuildConfig } from '~utils/config-helpers.ts';
 import { isFile, resolveOsPath } from '~utils/file-system.ts';
 import { colorLog } from '~utils/prompts.ts';
-
-import type { ContentTypeDefinition } from '~utils/content-types.ts';
 
 /**
  * Represents the configuration object for building.
@@ -82,6 +82,7 @@ async function buildFromConfigFiles(configFilePaths: string[] = []): Promise<voi
   for (const configFilePath of configFilePaths) {
     const configPath = resolveOsPath(configFilePath);
     // Await in loop is correct, it must run sequentially - it overwrites files within each build cycle
+    // eslint-disable-next-line no-await-in-loop
     await buildFromConfig(await loadConfig(configPath));
   }
   process.exit(0);

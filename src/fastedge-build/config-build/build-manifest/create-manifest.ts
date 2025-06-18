@@ -1,19 +1,19 @@
 import path from 'node:path';
 
+import type { BuildConfig } from '~fastedge-build/config-build/index.ts';
+import type { StaticAssetManifest } from '~static-server/index.ts';
+
 import { getKnownContentTypes, testFileContentType } from '~utils/content-types.ts';
 import { createFileInfo } from '~utils/file-info.ts';
 import { getFilesRecursively } from '~utils/file-system.ts';
 import { colorLog } from '~utils/prompts.ts';
-
-import type { StaticAssetManifest } from '~static-server/index.ts';
-import type { BuildConfig } from '~fastedge-build/config-build/index.ts';
 
 /**
  * Create a readable string from an object on a single line.
  * @param obj - The object to stringify.
  * @returns The stringified object.
  */
-function prettierObjectString(obj: Object): string {
+function prettierObjectString(obj: object): string {
   const contentsStr = Object.entries(obj).reduce((acc, [key, value]) => {
     let strVal = value;
     if (typeof value === 'string') {

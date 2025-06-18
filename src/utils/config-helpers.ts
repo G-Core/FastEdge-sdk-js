@@ -81,7 +81,8 @@ function normalizeArrayOfPaths(pathsArray: Array<string> = []): Array<string> {
  */
 function isValidRegex(pattern: string): boolean {
   try {
-    new RegExp(pattern);
+    // eslint-disable-next-line no-new
+    new RegExp(pattern, 'u');
     return true;
   } catch {
     return false;
@@ -115,6 +116,7 @@ function normalizePathsOrRegex(inputsArray: string[] = []): Array<string | RegEx
       if (strInput.startsWith('regex:')) {
         const regexp = convertToRegex(strInput.slice(6));
         if (typeof regexp === 'string') {
+          // eslint-disable-next-line no-console
           console.warn('caution', `Invalid regex pattern: ${strInput}`);
           return '';
         }
@@ -134,7 +136,7 @@ function normalizePathsOrRegex(inputsArray: string[] = []): Array<string | RegEx
  */
 function normalizeConfig<T>(
   config: Partial<T>,
-  normalizeFns: Record<string, (value: any) => any>,
+  normalizeFns: Record<string, (value: unknown) => unknown>,
 ): T {
   return Object.entries(config).reduce((acc, [key, value]) => {
     const normalizeFn = normalizeFns[key];
@@ -163,6 +165,7 @@ interface BuildConfig {
  * @returns The normalized build configuration.
  */
 function normalizeBuildConfig(config: Partial<BuildConfig> = {}): BuildConfig {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buildConfigNormalizeFns: Record<string, (value: any) => any> = {
     ignoreDotFiles: defaultedBoolean(true),
     ignoreWellKnown: defaultedBoolean(false),
@@ -190,6 +193,7 @@ interface ServerConfig {
  * @returns The normalized server configuration.
  */
 function normalizeServerConfig(config: Partial<ServerConfig> = {}): ServerConfig {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const serverConfigNormalizeFns: Record<string, (value: any) => any> = {
     extendedCache: normalizePathsOrRegex,
     compression: normalizeStringArray,

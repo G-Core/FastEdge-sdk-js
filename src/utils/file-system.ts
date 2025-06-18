@@ -1,4 +1,4 @@
-import { readdirSync, Dirent } from 'node:fs';
+import { Dirent, readdirSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path, { resolve } from 'node:path';
@@ -54,6 +54,7 @@ async function isDirectory(path: string, withContent: boolean = false): Promise<
       return true;
     }
     return false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       return false;
@@ -71,6 +72,7 @@ async function createOutputDirectory(outputPath: string): Promise<void> {
     await mkdir(path.dirname(outputPath), {
       recursive: true,
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     colorLog(
       'error',
@@ -91,6 +93,7 @@ async function isFile(filePath: string, allowNonexistent: boolean = false): Prom
   try {
     const stats = await stat(filePath);
     return stats.isFile();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       return allowNonexistent;

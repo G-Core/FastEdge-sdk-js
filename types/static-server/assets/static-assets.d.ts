@@ -1,5 +1,5 @@
-import type { EmbeddedStoreEntry } from './embedded-store-entry.ts';
 import type { AssetCache } from './asset-cache.ts';
+import type { EmbeddedStoreEntry } from './embedded-store-entry.ts';
 /**
  * Represents information about a file.
  */
@@ -17,7 +17,6 @@ interface StaticAssetMetadata {
     assetKey: string;
     contentType: string;
     fileInfo: FileInfo;
-    lastModifiedTime: number;
 }
 /**
  * Represents a static asset.

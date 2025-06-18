@@ -10,6 +10,8 @@
     "./src/componentize/",
     "./src/constants/",
     "./src/fastedge-build/",
-    "./src/fastedge-init/"
+    "./src/fastedge-init/",
+    "./types/index.d.ts",
+    "./types/static-server/"
   ]
 }

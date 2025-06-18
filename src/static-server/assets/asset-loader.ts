@@ -25,10 +25,11 @@ interface SourceAndInfo {
 const findMatchingSourceAndInfo = (
   acceptEncodingsGroups: Array<ContentCompressionTypes[]> | null,
   defaultSourceAndInfo: SourceAndInfo,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   sourceAndInfoForEncodingFn: (encoding: ContentCompressionTypes) => SourceAndInfo | null,
 ): { sourceAndInfo: SourceAndInfo; contentEncoding: string | null } => {
-  let sourceAndInfo = defaultSourceAndInfo;
-  let contentEncoding: string | null = null;
+  const sourceAndInfo = defaultSourceAndInfo;
+  const contentEncoding: string | null = null;
 
   // Compression logic (currently not implemented)
   if (acceptEncodingsGroups != null) {
@@ -85,6 +86,7 @@ const createWasmInlineAsset = (metadata: StaticAssetMetadata): StaticAsset => {
     return createEmbeddedStoreEntry(source, contentEncoding, hash, size);
   };
 
+  // eslint-disable-next-line capitalized-comments
   // const getText = () => {
   //   if (!_metadata.text) {
   //     throw new Error("Can't getText() for non-text content");
@@ -99,10 +101,11 @@ const createWasmInlineAsset = (metadata: StaticAssetMetadata): StaticAsset => {
 
   return {
     assetKey: _metadata.assetKey,
+    // eslint-disable-next-line capitalized-comments
     // assetKey: () => _metadata.assetKey,
     getMetadata: () => _metadata,
     getStoreEntry,
-    // farq: I think we can remove these, everything is being inlined at present.
+    // Farq: I think we can remove these, everything is being inlined at present.
     // text/json/bytes etc comes from kvStore implementation
     // isLocal: () => true,
     // getBytes: () => _sourceAndInfo.source,

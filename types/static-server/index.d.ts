@@ -1,5 +1,5 @@
-import type { StaticAsset } from './assets/static-assets.ts';
 import type { AssetCache } from './assets/asset-cache.ts';
+import type { StaticAsset } from './assets/static-assets.ts';
 /**
  * Represents the type of headers.
  */
@@ -49,5 +49,6 @@ interface StaticServer {
 declare const getStaticServer: (serverConfig: ServerConfig, assetCache: AssetCache<StaticAsset>) => StaticServer;
 export { getStaticServer };
 export { createStaticAssetsCache } from './assets/static-assets.ts';
+export type { AssetCache } from './assets/asset-cache.ts';
 export type { StaticAssetManifest } from './assets/static-assets.ts';
-export type { AssetCache, AssetInit, ContentCompressionTypes, HeadersType, ServerConfig, StaticServer, };
+export type { AssetInit, ContentCompressionTypes, HeadersType, ServerConfig, StaticServer };

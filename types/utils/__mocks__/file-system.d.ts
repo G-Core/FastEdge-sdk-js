@@ -17,7 +17,7 @@ declare const getTmpDir: () => Promise<string>;
 declare const resolveTmpDir: (filePath: string) => string;
 /**
  * Normalizes and resolves the path for Unix/Windows compatibility.
- * @param base - The base path.
+ * @param _base - The base path.
  * @param providedPath - The provided path to normalize.
  * @returns The normalized and resolved path.
  */

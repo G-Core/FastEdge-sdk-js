@@ -6,9 +6,8 @@ import { componentNew } from '@bytecodealliance/jco';
 
 import { addWasmMetadata } from './add-wasm-metadata.ts';
 import { getJsInputContents } from './get-js-input.ts';
-import { precompile } from './precompile.ts';
-
 import { componentize } from './index.ts';
+import { precompile } from './precompile.ts';
 
 import { validateFileExists } from '~utils/input-path-verification.ts';
 

@@ -42,13 +42,9 @@ const createAssetCache = <AssetType>(
       _assets[assetKey] = asset;
     },
 
-    getAsset: (assetKey: string): AssetType | null => {
-      return _assets[assetKey] ?? null;
-    },
+    getAsset: (assetKey: string): AssetType | null => _assets[assetKey] ?? null,
 
-    getAssetKeys: (): string[] => {
-      return Object.keys(_assets);
-    },
+    getAssetKeys: (): string[] => Object.keys(_assets),
   };
 };
 

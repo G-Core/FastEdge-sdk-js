@@ -1,9 +1,9 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 import fs from 'node:fs';
 import path from 'node:path';
-
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 const HOST_VERSIONS = ['0.2.0', '0.2.2', '0.2.3'];
 const dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../');

@@ -3,10 +3,10 @@ import path from 'node:path';
 
 import { createManifestFileMap, prettierObjectString } from './create-manifest.ts';
 
+import type { BuildConfig } from '~fastedge-build/config-build/index.ts';
+
 import { createOutputDirectory } from '~utils/file-system.ts';
 import { colorLog } from '~utils/prompts.ts';
-
-import type { BuildConfig } from '~fastedge-build/config-build/index.ts';
 
 /**
  * Creates a static manifest file based on the provided configuration.

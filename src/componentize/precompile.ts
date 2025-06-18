@@ -4,7 +4,7 @@
   There are no modifications made to this source code.
 */
 
-import { parse } from 'acorn';
+import { Literal, parse } from 'acorn';
 import { simple as simpleWalk } from 'acorn-walk';
 import MagicString from 'magic-string';
 import regexpuc from 'regexpu-core';
@@ -38,7 +38,7 @@ export function precompile(source: string, filename: string = '<input>'): string
 
   const precompileCalls: string[] = [];
   simpleWalk(ast, {
-    Literal(node: any) {
+    Literal(node: Literal): void {
       if (!node.regex) return;
 
       let transpiledPattern: string;

@@ -1,4 +1,5 @@
 import { spawnSync, SpawnSyncReturns } from 'node:child_process';
+
 import { createOutputDirectory, isFile } from '~utils/file-system.ts';
 import { colorLog } from '~utils/prompts.ts';
 
@@ -23,7 +24,7 @@ function containsJavascriptSyntaxErrors(jsInput: string): boolean {
   }
 
   colorLog('warning', `${nodeProcess.stderr}`);
-  colorLog('error', `SyntaxError: JavaScript code`);
+  colorLog('error', `SyntaxError: Javascript code`);
   colorLog('error', `Error: "${jsInput}" contains JS errors`);
   return true;
 }
@@ -86,8 +87,8 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsconfigPath?: string):
     }
 
     colorLog('warning', `${nodeProcess.stdout}`);
-    colorLog('error', `SyntaxError: TypeScript code`);
-    colorLog('error', `Error: "${tsInput}" contains TypeScript errors`);
+    colorLog('error', `SyntaxError: Typescript code`);
+    colorLog('error', `Error: "${tsInput}" contains Typescript errors`);
     return true;
   }
 

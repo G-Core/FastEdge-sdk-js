@@ -1,4 +1,5 @@
 import { createConfigFile } from './create-config.ts';
+
 import { isFile } from '~utils/file-system.ts';
 import { colorLog, inputPrompt } from '~utils/prompts.ts';
 
