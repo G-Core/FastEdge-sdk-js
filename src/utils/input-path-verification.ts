@@ -40,6 +40,8 @@ function isTypeScriptInstalled(): boolean {
     encoding: 'utf-8',
   });
 
+  console.log('Farq: result', result);
+  console.log('Farq: result.status', result.status);
   if (result.status === 0) {
     return true;
   }

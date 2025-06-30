@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -100,9 +101,27 @@ describe('fastedge-build', () => {
       expect(stderr[1]).toContain('Error: "input.js" contains JS errors');
       await cleanup();
     });
+    it('should exit with an error if TypeScript is not installed', async () => {
+      expect.assertions(3);
+      const { execute, cleanup, writeFile } = await prepareEnvironment();
+      await writeFile('input.ts', 'function() { console.log("Hello World"); }');
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      const { code, stderr } = await execute(
+        'node',
+        './bin/fastedge-build.js input.ts dist/output.wasm',
+      );
+      expect(code).toBe(1);
+      expect(stderr[0]).toContain('TypeScript is not installed.');
+      expect(stderr[1]).toContain('Please run "npm install typescript"');
+      await cleanup();
+    });
     it('should exit with an error if the TypeScript is not valid', async () => {
       expect.assertions(4);
-      const { execute, cleanup, writeFile } = await prepareEnvironment();
+      const { execute, cleanup, writeFile, path } = await prepareEnvironment();
+      spawnSync('npm', ['install', 'typescript'], {
+        stdio: 'inherit',
+        cwd: path,
+      });
       await writeFile(
         'input.ts',
         'interface Test { hasTypes: boolean; } function test(data: Test) { console.log("Hello World", data.unknown ); }',
