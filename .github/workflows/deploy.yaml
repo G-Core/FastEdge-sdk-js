@@ -26,7 +26,7 @@ jobs:
       - name: Validate branch name
         run: |
           branch_name=$(echo $GITHUB_REF | cut -d'/' -f3)
-          if [[ $branch_name =~ ^[0-9]+(\.[0-9]+)?\.x$ ]] || [[ $branch_name == "main" ]] || [[ $branch_name == "next" ]] || [[ $branch_name == "next-major" ]] || [[ $branch_name == "beta" ]] || [[ $branch_name == "alpha" ]]; then
+          if [[ $branch_name =~ ^[0-9]+(\.[0-9]+)?\.x$ ]] || [[ $branch_name =~ ^[0-9]+\.x.x$ ]] || [[ $branch_name == "main" ]] || [[ $branch_name == "next" ]] || [[ $branch_name == "next-major" ]] || [[ $branch_name == "beta" ]] || [[ $branch_name == "alpha" ]]; then
             echo "Branch name is valid"
           else
             echo "Branch name is invalid"
