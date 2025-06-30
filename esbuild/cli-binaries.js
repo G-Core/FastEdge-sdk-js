@@ -4,8 +4,8 @@ import path from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const entryPoints = [
-  { src: "./src/fastedge-build/index.js", dest: "./bin/fastedge-build.js" },
-  { src: "./src/fastedge-init/index.js", dest: "./bin/fastedge-init.js" },
+  { src: "./src/fastedge-build/index.ts", dest: "./bin/fastedge-build.js" },
+  { src: "./src/fastedge-init/index.ts", dest: "./bin/fastedge-init.js" },
 ];
 
 async function buildAll() {

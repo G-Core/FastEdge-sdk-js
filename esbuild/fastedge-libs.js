@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { writeFileSync } from "node:fs";
 
 const libFolder = "./lib/";
-const entryPoints = [{ src: "./src/static-server/index.js", filename: "static-server.js" }];
+const entryPoints = [{ src: "./src/static-server/index.ts", filename: "static-server.js" }];
 
 async function buildAll() {
   for (const { src, filename } of entryPoints) {
@@ -11,17 +11,7 @@ async function buildAll() {
       bundle: true,
       outfile: `${libFolder}${filename}`,
       format: "esm",
-      external: [
-        "fastedge::fs",
-        //   "@bytecodealliance/wizer",
-        //   "@bytecodealliance/jco",
-        //   "esbuild",
-        //   "regexpu-core",
-        //   "acorn",
-        //   "magic-string",
-        //   "acorn-walk",
-      ],
-      // sourcemap: true,
+      external: ["fastedge::fs"],
       logLevel: "info",
     });
   }

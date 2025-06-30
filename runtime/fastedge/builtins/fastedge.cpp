@@ -2,7 +2,7 @@
 
 #include <cstdlib>
 
-#include "../host-api/host_api_fastedge.h"
+#include "../host-api/include/fastedge_host_api.h"
 
 
 using fastedge::fastedge::FastEdge;

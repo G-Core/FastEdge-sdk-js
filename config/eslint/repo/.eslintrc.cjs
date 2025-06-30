@@ -13,7 +13,7 @@ module.exports = {
     browser: true,
     es2021: true,
   },
-  extends: ['eslint:recommended'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
   globals: {
     global: 'readonly',
     process: 'readonly',
@@ -21,7 +21,7 @@ module.exports = {
   },
   ignorePatterns: [
     '**/node_modules/**',
-    'config/eslint/repo/rules/**',
+    'config/eslint/**',
     'config/jest/**',
     'docs/**',
     'esbuild/**',
@@ -34,6 +34,7 @@ module.exports = {
     '**/runtime/StarlingMonkey/**',
   ],
   plugins: [
+    '@typescript-eslint',
     ...ban.plugins,
     ...importPlugin.plugins,
     ...jest.plugins,
@@ -80,8 +81,10 @@ module.exports = {
       },
     },
   ],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
+    warnOnUnsupportedTypeScriptVersion: false,
   },
 };

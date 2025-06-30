@@ -14,3 +14,5 @@ integration-tests/test-files/output.wasm
 /runtime/fastedge/build-*
 *.a
 yarn-error.log
+
+.vscode/

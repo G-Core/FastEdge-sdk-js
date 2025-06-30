@@ -1,6 +1,6 @@
 {
   "name": "@gcoredev/fastedge-sdk-js",
-  "version": "1.0.1",
+  "version": "1.3.0",
   "engines": {
     "node": "18 - 23",
     "npm": "^8 || ^9 || ^10"
@@ -33,28 +33,34 @@
   "scripts": {
     "build:cli": "node esbuild/cli-binaries.js",
     "build:dev": "npm-run-all -p build:js build:monkey:dev",
-    "build:js": "npm-run-all -p build:cli build:libs build:types",
+    "build:js": "npm-run-all -s typecheck -p build:cli build:libs build:types",
     "build:monkey:dev": "./runtime/fastedge/build.sh --debug",
     "build:monkey:prod": "./runtime/fastedge/build.sh",
     "build:libs": "node esbuild/fastedge-libs.js",
-    "build:types": "tsc -p ./src/static-server/tsconfig.json && node ./scripts/rename-static-server-types.js",
-    "generate:wit-world": "./create-wit-bindings.sh",
+    "build:types": "tsc -p ./tsconfig.build.json && node ./scripts/inject-fastedge-reference-types.js",
+    "typecheck": "tsc -p ./tsconfig.typecheck.json ",
+    "generate:wit-world": "npm-run-all -s wit:merge wit:bindings",
+    "wit:merge": "./runtime/fastedge/host-api/scripts/merge-wit-bindings.js",
+    "wit:bindings": "./runtime/fastedge/host-api/scripts/create-wit-bindings.sh",
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
     "semantic-release": "semantic-release",
     "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
     "test:unit": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- src/",
     "test:integration": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- integration-tests/",
-    "test": "NODE_ENV=test jest -c ./config/jest/jest.config.js",
     "prepare": "husky"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.23.9",
+    "@babel/core": "^7.27.4",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-typescript": "^7.27.1",
     "@gmrchk/cli-testing-library": "^0.1.2",
+    "@jest/globals": "^30.0.0",
     "@jest/transform": "^29.7.0",
     "@semantic-release/changelog": "^6.0.3",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
     "babel-jest": "^29.7.0",
-    "babel-plugin-transform-import-meta": "^2.2.1",
+    "babel-plugin-transform-import-meta": "^2.3.3",
     "conventional-changelog-eslint": "^5.0.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "eslint": "^8.56.0",
@@ -70,6 +76,7 @@
     "husky": "^9.0.11",
     "jest": "^29.7.0",
     "semantic-release": "^23.0.7",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {

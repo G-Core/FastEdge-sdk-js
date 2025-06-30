@@ -11,7 +11,7 @@ Clang18 / Cmake / Rust / wasm32-wasi toolchain etc..
 ### Creating the Compiler image (from the rootdir):
 
 ```sh
-docker build -t harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.1 -f ./compiler/Dockerfile .
+docker build -t harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.2 -f ./compiler/Dockerfile .
 ```
 
 #### Pushing it to Harbor
@@ -19,14 +19,14 @@ docker build -t harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.1 -f ./compil
 ```sh
 docker login https://harbor.p.gc.onl/
 
-docker push harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.1
+docker push harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.2
 ```
 
 ## How to use it locally:
 
 ### Creating a Build Image (from the rootdir):
 
-This uses the compiler image from above `harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.1`
+This uses the compiler image from above `harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.2`
 
 and loads the codebase ready for compiling.
 
