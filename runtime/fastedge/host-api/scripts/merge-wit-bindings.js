@@ -7,11 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 const HOST_VERSIONS = ['0.2.0', '0.2.2', '0.2.3'];
 const dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../');
-console.log('Farq: dirname', dirname);
 const witDir = path.join(dirname, 'wit');
 const starlingHostApisDir = path.resolve(dirname, '../../StarlingMonkey/host-apis');
-console.log('Farq: witDir', witDir);
-console.log('Farq: starlingHostApisDir', starlingHostApisDir);
 
 function clearExistingWitFiles() {
   // Remove all files from the ./wit directory
