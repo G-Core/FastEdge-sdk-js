@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -102,7 +103,11 @@ describe('fastedge-build', () => {
     });
     it('should exit with an error if the TypeScript is not valid', async () => {
       expect.assertions(4);
-      const { execute, cleanup, writeFile } = await prepareEnvironment();
+      const { execute, cleanup, writeFile, path } = await prepareEnvironment();
+      spawnSync('npm', ['install', 'typescript'], {
+        stdio: 'inherit',
+        cwd: path,
+      });
       await writeFile(
         'input.ts',
         'interface Test { hasTypes: boolean; } function test(data: Test) { console.log("Hello World", data.unknown ); }',
