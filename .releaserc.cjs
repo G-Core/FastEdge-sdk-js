@@ -15,9 +15,15 @@ module.exports = {
     [
       '@semantic-release/github',
       {
-        assets: packageJson.files.map((fileGlob) => ({
-          path: fileGlob,
-        })),
+        assets: [
+          ...packageJson.files
+            .filter((fileGlob) => fileGlob !== 'types')
+            .map((fileGlob) => {
+              return {
+                path: fileGlob,
+              };
+            }),
+        ],
       },
     ],
     '@semantic-release/npm',
