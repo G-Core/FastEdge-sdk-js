@@ -288,8 +288,7 @@ declare type RequestInfo = Request | string;
  * Constructor parameter for
  * [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request)
  *
- * This contains information to send along with the request (Headers, body, etc...), as well as
- * Fastly specific information.
+ * This contains information to send along with the request (Headers, body, etc...),
  * @group Fetch API
  */
 declare interface RequestInit {
@@ -319,14 +318,6 @@ declare interface RequestInit {
   // signal?: AbortSignal | null;
   // /** Can only be null. Used to disassociate request from any Window. */
   // window?: null;
-
-  /** The Fastly configured backend the request should be sent to. */
-  backend?: string;
-  cacheOverride?: import('fastly:cache-override').CacheOverride;
-  cacheKey?: string;
-  fastly?: {
-    decompressGzip?: boolean;
-  };
   manualFramingHeaders?: boolean;
 }
 
@@ -369,9 +360,6 @@ interface Request extends Body {
   // /** Creates a copy of the current Request object. */
   clone(): Request;
 
-  // Fastly extensions
-  backend?: string;
-  setCacheOverride(override: import('fastly:cache-override').CacheOverride): void;
   setCacheKey(key: string): void;
   setManualFramingHeaders(manual: boolean): void;
 }
@@ -412,20 +400,6 @@ interface Response extends Body {
   readonly statusText: string;
   // readonly type: ResponseType;
   readonly url: string;
-  /**
-   * Fastly-specific property - obtain the IP address used for the request
-   *
-   * Undefined for user-created responses and when the response is returned from the cache.
-   * Set cacheOverride: new CacheOverride("pass") to ensure a value.
-   */
-  readonly ip: string | undefined;
-  /**
-   * Fastly-specific property - Obtain the port used for the request
-   *
-   * Undefined for user-created responses and when the response is returned from the cache.
-   * Set cacheOverride: new CacheOverride("pass") to ensure a value.
-   */
-  readonly port: number | undefined;
   // clone(): Response;
   setManualFramingHeaders(manual: boolean): void;
 }
@@ -935,12 +909,6 @@ declare function clearInterval(intervalID?: number): void;
 
 /**
  * Fetch resources from backends.
- *
- * **Note**: Fastly Compute requires all outgoing requests to go to a predefined
- * {@link https://developer.fastly.com/reference/glossary#term-backend | backend}, passed in
- * via the {@link RequestInit.backend | backend} property on the `init` object.
- *
- * **Note**: Can only be used when processing requests, not during build-time initialization.
  *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch | fetch on MDN}
  *
