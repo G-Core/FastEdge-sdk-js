@@ -7,6 +7,7 @@
     "outDir": "./types/"
   },
   "exclude": [
+    "**/__mocks__/",
     "./src/componentize/",
     "./src/constants/",
     "./src/fastedge-build/",
