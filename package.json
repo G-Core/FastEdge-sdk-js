@@ -7,8 +7,8 @@
   },
   "license": "Apache-2.0",
   "main": "lib/index.js",
-  "types": "types/index.d.ts",
   "type": "module",
+  "types": "types/index.d.ts",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -45,7 +45,8 @@
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
     "semantic-release": "semantic-release",
     "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
-    "test:unit": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- src/",
+    "test:unit:dev": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- src/",
+    "test:unit": "NODE_ENV=test RUN_SLOW_TESTS=true jest -c ./config/jest/jest.config.js -- src/",
     "test:integration": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- integration-tests/",
     "prepare": "husky"
   },

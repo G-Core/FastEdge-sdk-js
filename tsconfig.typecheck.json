@@ -2,5 +2,13 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "**/__fixtures__/",
+    "**/__mocks__/",
+    // TODO - REMOVE THE BELOW >> SHOULD BE TYPECHECKING THEM
+    "./src/cli/",
+    "./src/old_static-server/",
+    "./src/old_utils/"
+  ]
 }

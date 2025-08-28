@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "checkJs": true,
+    "strict": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "~componentize/*": ["./src/componentize/*"],
+      "~constants/*": ["./src/constants/*"],
+      "~fastedge-assets/*": ["./src/cli/fastedge-assets/*"],
+      "~fastedge-build/*": ["./src/cli/fastedge-build/*"],
+      "~fastedge-init/*": ["./src/cli/fastedge-init/*"],
+      "~static-server/*": ["./src/server/static-server/*"],
+      "~utils/*": ["./src/utils/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
+  },
+  "include": ["./src/**/*.ts", "./types/*.d.ts"],
+  "exclude": ["./node_modules", "./docs/**", "./runtime"]
+}

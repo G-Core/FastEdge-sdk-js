@@ -6,18 +6,13 @@ import { dirname } from 'node:path';
 import { componentNew } from '@bytecodealliance/jco';
 import wizer from '@bytecodealliance/wizer';
 
-import { addWasmMetadata } from './add-wasm-metadata.ts';
-import { getJsInputContents } from './get-js-input.ts';
-import { precompile } from './precompile.ts';
+import { addWasmMetadata } from '~componentize/add-wasm-metadata.ts';
+import { getJsInputContents } from '~componentize/get-js-input.ts';
+import { precompile } from '~componentize/precompile.ts';
 
-import {
-  getTmpDir,
-  npxPackagePath,
-  resolveOsPath,
-  resolveTmpDir,
-  useUnixPath,
-} from '~utils/file-system.ts';
+import { getTmpDir, resolveOsPath, resolveTmpDir, useUnixPath } from '~utils/file-system.ts';
 import { validateFileExists } from '~utils/input-path-verification.ts';
+import { npxPackagePath } from '~utils/npx-path.ts';
 
 /**
  * Options for the `componentize` function.

@@ -4,14 +4,15 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 import { componentNew } from '@bytecodealliance/jco';
 
-import { addWasmMetadata } from './add-wasm-metadata.ts';
-import { getJsInputContents } from './get-js-input.ts';
-import { componentize } from './index.ts';
-import { precompile } from './precompile.ts';
+import { addWasmMetadata } from '~componentize/add-wasm-metadata.ts';
+import { componentize } from '~componentize/componentize.ts';
+import { getJsInputContents } from '~componentize/get-js-input.ts';
+import { precompile } from '~componentize/precompile.ts';
 
 import { validateFileExists } from '~utils/input-path-verification.ts';
 
 jest.mock('~utils/file-system');
+jest.mock('~utils/npx-path');
 jest.mock('node:fs', () => ({
   rmSync: jest.fn(),
 }));
@@ -23,20 +24,20 @@ jest.mock('node:fs/promises', () => ({
   writeFile: jest.fn(),
   unlink: jest.fn(),
 }));
-jest.mock('./get-js-input', () => ({
+jest.mock('~componentize/get-js-input', () => ({
   getJsInputContents: jest.fn().mockReturnValue('{_user_provided_js_content_}'),
 }));
 
 // This is just mocked here.. Integration tests from fastedge-build will test this in detail
 jest.mock('~utils/input-path-verification', () => ({
-  validateFileExists: jest.fn().mockResolvedValue(true),
+  validateFileExists: jest.fn().mockImplementation(() => Promise.resolve(true)),
 }));
 
-jest.mock('./precompile', () => ({
+jest.mock('~componentize/precompile', () => ({
   precompile: jest.fn().mockReturnValue('{_precompiled_application_}'),
 }));
 
-jest.mock('./add-wasm-metadata', () => ({
+jest.mock('~componentize/add-wasm-metadata', () => ({
   addWasmMetadata: jest.fn(),
 }));
 

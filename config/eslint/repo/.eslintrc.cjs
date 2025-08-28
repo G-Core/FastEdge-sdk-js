@@ -80,6 +80,13 @@ module.exports = {
         sourceType: 'script',
       },
     },
+    {
+      // Allow the usage of 'any' within test files.
+      files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {

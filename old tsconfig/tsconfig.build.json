@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./types/"
+  },
+  "exclude": [
+    "**/__mocks__/",
+    "./src/componentize/",
+    "./src/constants/",
+    "./src/fastedge-build/",
+    "./src/fastedge-init/",
+    "./types/index.d.ts",
+    "./types/static-server/"
+  ]
+}

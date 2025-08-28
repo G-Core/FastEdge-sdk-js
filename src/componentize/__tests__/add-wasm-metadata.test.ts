@@ -2,9 +2,9 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 import { metadataAdd } from '@bytecodealliance/jco';
 
-import { addWasmMetadata } from './add-wasm-metadata.ts';
+import { addWasmMetadata } from '~componentize/add-wasm-metadata.ts';
 
-jest.mock('~utils/file-system.ts');
+jest.mock('~utils/npx-path.ts');
 jest.mock('node:fs/promises', () => ({
   writeFile: jest.fn(),
   readFile: jest

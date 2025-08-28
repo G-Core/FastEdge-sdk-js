@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-import { esBundle } from './es-bundle.ts';
+import { esBundle } from '~componentize/es-bundle.ts';
 
 /**
  * Reads the contents of a JavaScript input file, optionally bundling it first.

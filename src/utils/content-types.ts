@@ -1,5 +1,4 @@
-/* eslint-disable require-unicode-regexp */
-import { colorLog } from '~utils/prompts.ts';
+import { colorLog } from '~utils/color-log.ts';
 
 /**
  * Represents a content type definition.
@@ -106,7 +105,9 @@ function getKnownContentTypes(
     }
   }
 
-  colorLog('info', `Applying ${finalContentTypes.length} custom content type(s).`);
+  if (process.env.NODE_ENV !== 'test') {
+    colorLog('info', `Applying ${finalContentTypes.length} custom content type(s).`);
+  }
 
   // Order matters: customContentTypes first, followed by defaultContentTypes
   for (const contentType of defaultContentTypes) {
@@ -127,10 +128,11 @@ function testFileContentType(
   assetKey: string,
 ): { contentType: string } | null {
   for (const contentType of contentTypes ?? defaultContentTypes) {
+    const _assetKey = assetKey.toLowerCase();
     let matched = false;
     contentType.test instanceof RegExp
-      ? (matched = contentType.test.test(assetKey))
-      : (matched = contentType.test(assetKey));
+      ? (matched = contentType.test.test(_assetKey))
+      : (matched = contentType.test(_assetKey));
 
     if (matched) {
       return { contentType: contentType.contentType };

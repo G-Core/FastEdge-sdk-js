@@ -7,12 +7,16 @@
     "outDir": "./types/"
   },
   "exclude": [
+    "**/__fixtures__/",
     "**/__mocks__/",
+    "**/__tests__/",
     "./src/componentize/",
     "./src/constants/",
-    "./src/fastedge-build/",
-    "./src/fastedge-init/",
+    "./src/cli/",
     "./types/index.d.ts",
-    "./types/static-server/"
+    "./types/static-server/",
+    // TODO - CHECK WHAT SHOULD AND SHOULD NOT BE INCLUDED >>
+    "./src/old_static-server/",
+    "./src/old_utils/"
   ]
 }

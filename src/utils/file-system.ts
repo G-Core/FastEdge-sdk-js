@@ -1,17 +1,16 @@
 import { Dirent, readdirSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import path, { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
-import { colorLog } from '~utils/prompts.ts';
+import { colorLog } from '~utils/color-log.ts';
 
 /**
  * Normalizes and resolves the path for Unix/Windows compatibility.
  * @param paths - The paths to normalize and resolve.
  * @returns The normalized and resolved path.
  */
-const resolveOsPath = (...paths: string[]): string => path.normalize(resolve(...paths));
+const resolveOsPath = (...paths: string[]): string => path.normalize(path.resolve(...paths));
 
 /**
  * Replaces backslashes with forward slashes - Wizer requires Unix paths.
@@ -19,23 +18,6 @@ const resolveOsPath = (...paths: string[]): string => path.normalize(resolve(...
  * @returns The Unix-compatible path.
  */
 const useUnixPath = (path: string): string => path.replace(/\\/gu, '/');
-
-/**
- * Resolves the path to a file within the NPX package.
- * @param filePath - The file path to resolve.
- * @returns The resolved NPX package path.
- */
-const npxPackagePath = (filePath: string): string => {
-  const __dirname = path
-    .dirname(fileURLToPath(import.meta.url))
-    .replace(/[\\/]bin([\\/][^\\/]*)?$/u, '');
-
-  try {
-    return path.resolve(__dirname, filePath);
-  } catch {
-    throw new Error(`Failed to resolve the npxPackagePath: ${filePath}`);
-  }
-};
 
 /**
  * Checks if the given path is a directory.
@@ -144,7 +126,7 @@ function getFilesRecursively(
       const relative = `/${path.relative(inputPath, fullpath)}`;
 
       // Remove ignoreDirs file trees
-      if (ignoreDirs.includes(relative)) continue;
+      if (ignoreDirs.includes(relative) || ignoreDirs.includes(fullpath)) continue;
 
       // Remove .well-known file trees
       const removeWellKnown = ignoreWellKnown && name === '.well-known';
@@ -172,7 +154,6 @@ export {
   getTmpDir,
   isDirectory,
   isFile,
-  npxPackagePath,
   resolveOsPath,
   resolveTmpDir,
   useUnixPath,

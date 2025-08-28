@@ -1,11 +1,11 @@
 import { readFile } from 'node:fs/promises';
 
-import { esBundle } from './es-bundle.ts';
-import { getJsInputContents } from './get-js-input.ts';
+import { esBundle } from '~componentize/es-bundle.ts';
+import { getJsInputContents } from '~componentize/get-js-input.ts';
 
 jest.mock('node:fs/promises');
 
-jest.mock('./es-bundle', () => ({
+jest.mock('~componentize/es-bundle', () => ({
   esBundle: jest.fn().mockResolvedValue('bundled_js_content'), // Mock the pre-bundle module's function
 }));
 
