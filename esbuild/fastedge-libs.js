@@ -2,7 +2,12 @@ import { build } from "esbuild";
 import { writeFileSync } from "node:fs";
 
 const libFolder = "./lib/";
-const entryPoints = [{ src: "./src/static-server/index.ts", filename: "static-server.js" }];
+const entryPoints = [
+  {
+    src: "./src/server/static-assets/static-server/create-static-server.ts",
+    filename: "create-static-server.js",
+  },
+];
 
 async function buildAll() {
   for (const { src, filename } of entryPoints) {

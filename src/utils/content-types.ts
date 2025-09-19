@@ -1,5 +1,4 @@
-/* eslint-disable require-unicode-regexp */
-import { colorLog } from '~utils/prompts.ts';
+import { colorLog } from '~utils/color-log.ts';
 
 /**
  * Represents a content type definition.
@@ -13,40 +12,40 @@ interface ContentTypeDefinition {
  * Text-based content types.
  */
 const textFormats: ContentTypeDefinition[] = [
-  { test: /.txt$/, contentType: 'text/plain' },
-  { test: /.htm(l)?$/, contentType: 'text/html' },
-  { test: /.xml$/, contentType: 'application/xml' },
-  { test: /.json$/, contentType: 'application/json' },
-  { test: /.map$/, contentType: 'application/json' },
-  { test: /.js$/, contentType: 'application/javascript' },
-  { test: /.css$/, contentType: 'text/css' },
-  { test: /.svg$/, contentType: 'image/svg+xml' },
+  { test: /.txt$/u, contentType: 'text/plain' },
+  { test: /.htm(l)?$/u, contentType: 'text/html' },
+  { test: /.xml$/u, contentType: 'application/xml' },
+  { test: /.json$/u, contentType: 'application/json' },
+  { test: /.map$/u, contentType: 'application/json' },
+  { test: /.js$/u, contentType: 'application/javascript' },
+  { test: /.css$/u, contentType: 'text/css' },
+  { test: /.svg$/u, contentType: 'image/svg+xml' },
 ];
 
 /**
  * Binary-based content types.
  */
 const binaryFormats: ContentTypeDefinition[] = [
-  { test: /.bmp$/, contentType: 'image/bmp' },
-  { test: /.png$/, contentType: 'image/png' },
-  { test: /.gif$/, contentType: 'image/gif' },
-  { test: /.jp(e)?g$/, contentType: 'image/jpeg' },
-  { test: /.ico$/, contentType: 'image/vnd.microsoft.icon' },
-  { test: /.tif(f)?$/, contentType: 'image/png' },
-  { test: /.aac$/, contentType: 'audio/aac' },
-  { test: /.mp3$/, contentType: 'audio/mpeg' },
-  { test: /.avi$/, contentType: 'video/x-msvideo' },
-  { test: /.mp4$/, contentType: 'video/mp4' },
-  { test: /.mpeg$/, contentType: 'video/mpeg' },
-  { test: /.webm$/, contentType: 'video/webm' },
-  { test: /.pdf$/, contentType: 'application/pdf' },
-  { test: /.tar$/, contentType: 'application/x-tar' },
-  { test: /.zip$/, contentType: 'application/zip' },
-  { test: /.eot$/, contentType: 'application/vnd.ms-fontobject' },
-  { test: /.otf$/, contentType: 'font/otf' },
-  { test: /.ttf$/, contentType: 'font/ttf' },
-  { test: /.woff$/, contentType: 'font/woff' },
-  { test: /.woff2$/, contentType: 'font/woff2' },
+  { test: /.bmp$/u, contentType: 'image/bmp' },
+  { test: /.png$/u, contentType: 'image/png' },
+  { test: /.gif$/u, contentType: 'image/gif' },
+  { test: /.jp(e)?g$/u, contentType: 'image/jpeg' },
+  { test: /.ico$/u, contentType: 'image/vnd.microsoft.icon' },
+  { test: /.tif(f)?$/u, contentType: 'image/png' },
+  { test: /.aac$/u, contentType: 'audio/aac' },
+  { test: /.mp3$/u, contentType: 'audio/mpeg' },
+  { test: /.avi$/u, contentType: 'video/x-msvideo' },
+  { test: /.mp4$/u, contentType: 'video/mp4' },
+  { test: /.mpeg$/u, contentType: 'video/mpeg' },
+  { test: /.webm$/u, contentType: 'video/webm' },
+  { test: /.pdf$/u, contentType: 'application/pdf' },
+  { test: /.tar$/u, contentType: 'application/x-tar' },
+  { test: /.zip$/u, contentType: 'application/zip' },
+  { test: /.eot$/u, contentType: 'application/vnd.ms-fontobject' },
+  { test: /.otf$/u, contentType: 'font/otf' },
+  { test: /.ttf$/u, contentType: 'font/ttf' },
+  { test: /.woff$/u, contentType: 'font/woff' },
+  { test: /.woff2$/u, contentType: 'font/woff2' },
 ];
 
 /**
@@ -106,7 +105,9 @@ function getKnownContentTypes(
     }
   }
 
-  colorLog('info', `Applying ${finalContentTypes.length} custom content type(s).`);
+  if (process.env.NODE_ENV !== 'test') {
+    colorLog('info', `Applying ${finalContentTypes.length} custom content type(s).`);
+  }
 
   // Order matters: customContentTypes first, followed by defaultContentTypes
   for (const contentType of defaultContentTypes) {
@@ -127,10 +128,11 @@ function testFileContentType(
   assetKey: string,
 ): { contentType: string } | null {
   for (const contentType of contentTypes ?? defaultContentTypes) {
+    const _assetKey = assetKey.toLowerCase();
     let matched = false;
     contentType.test instanceof RegExp
-      ? (matched = contentType.test.test(assetKey))
-      : (matched = contentType.test(assetKey));
+      ? (matched = contentType.test.test(_assetKey))
+      : (matched = contentType.test(_assetKey));
 
     if (matched) {
       return { contentType: contentType.contentType };

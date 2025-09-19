@@ -31,6 +31,7 @@ module.exports = {
     'integration-tests/test-files/**',
     'bin/**',
     'lib/**',
+    '**/runtime/fastedge/**',
     '**/runtime/StarlingMonkey/**',
   ],
   plugins: [
@@ -78,6 +79,13 @@ module.exports = {
       files: ['.eslintrc.{js,cjs}'],
       parserOptions: {
         sourceType: 'script',
+      },
+    },
+    {
+      // Allow the usage of 'any' within test files.
+      files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
       },
     },
   ],

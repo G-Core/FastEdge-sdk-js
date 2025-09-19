@@ -14,19 +14,21 @@ const removeTrailingSlash = (str: string): string => str.replace(/\/+$/u, '');
 
 /**
  * Takes a path string and ensures it has no trailing slash and has a single preceding slash.
- * (No dot-slash prefix allowed.)
+ * (No dot-slash prefix allowed.) This will be used for asset keys and URL paths.
  * @param path - The path to normalize.
- * @param prefix - Prefix to add to the normalized value.
  * @returns The normalized path.
  */
-function normalizePath(path: string = '', prefix: string = ''): string {
+function normalizePath(path: string = ''): string {
+  if (path === '.' || path === '/' || path === '\\') {
+    return '/';
+  }
   let normalizedPath = removeDotSlashPrefix(path);
   normalizedPath = removeTrailingSlash(normalizedPath);
   // Add a preceding slash if it does not exist
   if (!normalizedPath.startsWith('/')) {
     normalizedPath = `/${normalizedPath}`;
   }
-  return `${prefix}${normalizedPath}`;
+  return normalizedPath;
 }
 
 /**
@@ -40,20 +42,14 @@ function defaultedBoolean(defaultValue: boolean): (value?: boolean) => boolean {
 
 /**
  * Normalize a string value or return null if not set.
- * @param normalizeValue - Whether to normalize the value.
- * @param prefix - Prefix to add to the normalized value.
- * @returns A function that normalizes the string or returns null.
+ * @param value - The value to normalize.
+ * @returns The normalized string or null.
  */
-function normalizeString(
-  normalizeValue: boolean = true,
-  prefix: string = '',
-): (value?: string | null) => string | null {
-  return (value?: string | null): string | null => {
-    if (typeof value === 'string' && value.length > 0) {
-      return normalizeValue ? normalizePath(value, prefix) : value;
-    }
-    return null;
-  };
+function normalizeString(value?: string | null): string {
+  if (typeof value === 'string' && value.length > 0) {
+    return value;
+  }
+  return '';
 }
 
 /**
@@ -62,7 +58,7 @@ function normalizeString(
  * @returns The normalized array.
  */
 function normalizeStringArray(arr: Array<string> = []): Array<string> {
-  return arr;
+  return arr.map(normalizeString);
 }
 
 /**
@@ -124,8 +120,18 @@ function normalizePathsOrRegex(inputsArray: string[] = []): Array<string | RegEx
       }
       return normalizePath(strInput);
     })
-    .filter(Boolean);
+    .filter((item): item is string | RegExp => Boolean(item));
 }
+
+const normalizeFns = {
+  booleanTruthy: defaultedBoolean(true),
+  booleanFalsy: defaultedBoolean(false),
+  path: normalizePath,
+  pathsArray: normalizeArrayOfPaths,
+  pathsOrRegexArray: normalizePathsOrRegex,
+  string: normalizeString,
+  stringArray: normalizeStringArray,
+};
 
 /**
  * Normalizes a configuration object using provided normalization functions.
@@ -134,76 +140,23 @@ function normalizePathsOrRegex(inputsArray: string[] = []): Array<string | RegEx
  * @param normalizeFns - The normalization functions.
  * @returns The normalized configuration object.
  */
-function normalizeConfig<T>(
+function normalizeConfig<T extends Record<string, unknown>>(
   config: Partial<T>,
-  normalizeFns: Record<string, (value: unknown) => unknown>,
+  normalize: Record<keyof T, keyof typeof normalizeFns>,
 ): T {
-  return Object.entries(config).reduce((acc, [key, value]) => {
-    const normalizeFn = normalizeFns[key];
-    return {
-      ...acc,
-      [key]: normalizeFn ? normalizeFn(value) : value,
-    };
-  }, {} as T);
+  const result = { ...config } as T;
+  // Only normalize keys that are explicitly configured
+  // eslint-disable-next-line unicorn/no-array-for-each
+  (Object.keys(normalize) as Array<keyof T>).forEach((key) => {
+    const normalizeFnKey = normalize[key];
+    const normalizeFn = normalizeFns[normalizeFnKey];
+    if (normalizeFn) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result[key] = normalizeFn(config[key] as any) as T[keyof T];
+    }
+  });
+
+  return result;
 }
 
-/**
- * Build configuration interface.
- */
-interface BuildConfig {
-  input: string;
-  output: string;
-  publicDir: string;
-  ignoreDotFiles: boolean;
-  ignoreDirs: string[];
-  ignoreWellKnown: boolean;
-}
-
-/**
- * Normalizes the build configuration object.
- * @param config - The configuration object to normalize.
- * @returns The normalized build configuration.
- */
-function normalizeBuildConfig(config: Partial<BuildConfig> = {}): BuildConfig {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buildConfigNormalizeFns: Record<string, (value: any) => any> = {
-    ignoreDotFiles: defaultedBoolean(true),
-    ignoreWellKnown: defaultedBoolean(false),
-    ignoreDirs: normalizeArrayOfPaths,
-  };
-  return normalizeConfig<BuildConfig>(config, buildConfigNormalizeFns);
-}
-
-/**
- * Server configuration interface.
- */
-interface ServerConfig {
-  extendedCache: Array<string | RegExp>;
-  publicDirPrefix: string;
-  compression: string[];
-  notFoundPage: string | null;
-  autoExt: string[];
-  autoIndex: string[];
-  spaEntrypoint: string | null;
-}
-
-/**
- * Normalizes the server configuration object.
- * @param config - The configuration object to normalize.
- * @returns The normalized server configuration.
- */
-function normalizeServerConfig(config: Partial<ServerConfig> = {}): ServerConfig {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const serverConfigNormalizeFns: Record<string, (value: any) => any> = {
-    extendedCache: normalizePathsOrRegex,
-    compression: normalizeStringArray,
-    notFoundPage: normalizeString(),
-    autoExt: normalizeStringArray,
-    autoIndex: normalizeStringArray,
-    spaEntrypoint: normalizeString(),
-  };
-  return normalizeConfig<ServerConfig>(config, serverConfigNormalizeFns);
-}
-
-export { normalizeBuildConfig, normalizePath, normalizeServerConfig };
-export type { BuildConfig, ServerConfig };
+export { normalizeConfig, normalizePath };
