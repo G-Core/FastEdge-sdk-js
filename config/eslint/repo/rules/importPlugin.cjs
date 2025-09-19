@@ -28,7 +28,7 @@ module.exports = {
         js: 'never',
         jsx: 'never',
         ts: 'always',
-        tsx: 'never',
+        tsx: 'always',
         css: 'always',
         json: 'always',
         png: 'always',

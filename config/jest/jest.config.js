@@ -1,11 +1,13 @@
 const config = {
   moduleDirectories: ['node_modules'],
   moduleNameMapper: {
-    '^~utils/(.*)$': '<rootDir>/src/utils/$1',
-    '^~fastedge-build/(.*)$': '<rootDir>/src/fastedge-build/$1',
-    '^~fastedge-init/(.*)$': '<rootDir>/src/fastedge-init/$1',
-    '^~static-server/(.*)$': '<rootDir>/src/static-server/$1',
+    '^~componentize/(.*)$': '<rootDir>/src/componentize/$1',
     '^~constants/(.*)$': '<rootDir>/src/constants/$1',
+    '^~fastedge-assets/(.*)$': '<rootDir>/src/cli/fastedge-assets/$1',
+    '^~fastedge-build/(.*)$': '<rootDir>/src/cli/fastedge-build/$1',
+    '^~fastedge-init/(.*)$': '<rootDir>/src/cli/fastedge-init/$1',
+    '^~static-assets/(.*)$': '<rootDir>/src/server/static-assets/$1',
+    '^~utils/(.*)$': '<rootDir>/src/utils/$1',
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   rootDir: process.cwd(),

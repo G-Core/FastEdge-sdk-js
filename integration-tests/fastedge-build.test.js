@@ -133,7 +133,7 @@ describe('fastedge-build', () => {
       const { code, stderr } = await execute('node', './bin/fastedge-build.js -c');
       expect(code).toBe(0);
       expect(stderr[0]).toContain(
-        'Error: Config file not found at {{base}}/.fastedge/build-config.js. Skipping build.',
+        'Error: Config file not found at {{base}}/.fastedge/build-config.js. Skipping file.',
       );
       await cleanup();
     });
@@ -143,7 +143,7 @@ describe('fastedge-build', () => {
       await writeFile('./input.js', 'function Hello() { console.log("Hello World"); }');
       await writeFile(
         './.fastedge/build-config.js',
-        'export const config = { "type": "http", "input": "input.js", "output": "./dist/fastedge.wasm" };',
+        'export const config = { "type": "http", "entryPoint": "input.js", "wasmOutput": "./dist/fastedge.wasm" };',
       );
       await writeFile('./package.json', '{ "type": "module" }');
       const { code } = await execute('node', './bin/fastedge-build.js -c');

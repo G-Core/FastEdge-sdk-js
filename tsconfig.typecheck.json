@@ -2,5 +2,6 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true
-  }
+  },
+  "exclude": ["**/__fixtures__/", "**/__mocks__/"]
 }

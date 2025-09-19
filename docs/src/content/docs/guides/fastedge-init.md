@@ -30,8 +30,8 @@ including the created `build-config.js` file.
 // .fastegde/build-config.js
 const config = {
   type: 'http',
-  input: 'src/index.js',
-  output: '.fastedge/dist/main.wasm',
+  entryPoint: 'src/index.js',
+  wasmOutput: '.fastedge/dist/main.wasm',
 };
 
 const serverConfig = {

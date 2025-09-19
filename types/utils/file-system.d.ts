@@ -11,12 +11,6 @@ declare const resolveOsPath: (...paths: string[]) => string;
  */
 declare const useUnixPath: (path: string) => string;
 /**
- * Resolves the path to a file within the NPX package.
- * @param filePath - The file path to resolve.
- * @returns The resolved NPX package path.
- */
-declare const npxPackagePath: (filePath: string) => string;
-/**
  * Checks if the given path is a directory.
  * @param path - The path to check.
  * @param withContent - Whether to check if the directory contains files.
@@ -57,4 +51,4 @@ declare function getFilesRecursively(inputPath: string, opts: {
     ignoreDotFiles?: boolean;
     ignoreWellKnown?: boolean;
 }): string[];
-export { createOutputDirectory, getFilesRecursively, getTmpDir, isDirectory, isFile, npxPackagePath, resolveOsPath, resolveTmpDir, useUnixPath, };
+export { createOutputDirectory, getFilesRecursively, getTmpDir, isDirectory, isFile, resolveOsPath, resolveTmpDir, useUnixPath, };
