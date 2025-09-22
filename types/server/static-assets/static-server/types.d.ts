@@ -2,6 +2,7 @@ import { ContentCompressionTypes, StaticAsset } from '../asset-loader/inline-ass
 interface ServerConfig extends Record<string, unknown> {
     extendedCache: Array<string | RegExp>;
     publicDirPrefix: string;
+    routePrefix?: string;
     compression: string[];
     notFoundPage: string | null;
     autoExt: string[];
@@ -24,11 +25,14 @@ interface AssetInit {
  * Represents the static server.
  */
 interface StaticServer {
+    serveRequest(request: Request): Promise<void | Response>;
+    readFileString(path: string): Promise<string>;
+}
+interface InternalStaticServer extends StaticServer {
     getMatchingAsset(path: string): StaticAsset | null;
     findAcceptEncodings(request: Request): Array<ContentCompressionTypes>;
     testExtendedCache(pathname: string): boolean;
     handlePreconditions(request: Request, asset: StaticAsset, responseHeaders: HeadersType): Response | null;
     serveAsset(request: Request, asset: StaticAsset, init?: AssetInit): Promise<Response>;
-    serveRequest(request: Request): Promise<Response | null>;
 }
-export type { AssetInit, HeadersType, ServerConfig, StaticServer };
+export type { AssetInit, HeadersType, InternalStaticServer, ServerConfig, StaticServer };

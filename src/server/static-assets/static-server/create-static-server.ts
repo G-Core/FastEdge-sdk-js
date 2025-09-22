@@ -25,6 +25,7 @@ const createStaticServer = (
 function normalizeServerConfig(config: Partial<ServerConfig>): ServerConfig {
   return normalizeConfig<ServerConfig>(config, {
     publicDirPrefix: 'string',
+    routePrefix: 'path',
     extendedCache: 'pathsOrRegexArray',
     compression: 'stringArray',
     notFoundPage: 'path',

@@ -9,6 +9,7 @@ interface BuildConfig extends Partial<AssetCacheConfig> {
   type?: BuildType;
   entryPoint: string;
   wasmOutput: string;
+  tsConfigPath?: string;
 }
 
 export type { BuildConfig, BuildType };

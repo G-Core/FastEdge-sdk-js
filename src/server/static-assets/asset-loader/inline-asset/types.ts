@@ -29,6 +29,7 @@ interface StaticAssetMetadata {
   assetKey: string; // Key of the asset
   contentType: string; // Content type of the asset
   fileInfo: FileInfo; // Information about the file
+  isText: boolean; // Indicates if the asset is text
 }
 
 /**
@@ -39,6 +40,7 @@ interface StaticAsset {
   assetKey: string; // Key of the asset
   getMetadata(): StaticAssetMetadata; // Gets the metadata of the asset
   getEmbeddedStoreEntry(arg: unknown): Promise<EmbeddedStoreEntry>; // Gets the store entry of the asset
+  getText(): string; // Gets the text content of the asset
 }
 
 export type { ContentCompressionTypes, SourceAndInfo, StaticAsset, StaticAssetMetadata };

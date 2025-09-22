@@ -11,8 +11,8 @@ import { loadConfig } from '~utils/load-config-file.ts';
  * Builds a WebAssembly file from the provided input and output paths.
  * @param options - The input and output file paths.
  */
-async function buildWasm({ entryPoint, wasmOutput }: BuildConfig): Promise<void> {
-  await validateFilePaths(entryPoint, wasmOutput);
+async function buildWasm({ entryPoint, wasmOutput, tsConfigPath }: BuildConfig): Promise<void> {
+  await validateFilePaths(entryPoint, wasmOutput, tsConfigPath);
   if (process.env.NODE_ENV !== 'test') {
     await componentize(entryPoint, wasmOutput);
   }
@@ -29,12 +29,12 @@ async function buildFromConfig(config: BuildConfig | null): Promise<void> {
     case 'static': {
       await createStaticAssetsManifest(config);
       await buildWasm(config);
-      colorLog('success', `Success: Built ${config.output}`);
+      colorLog('success', `Success: Built ${config.wasmOutput}`);
       break;
     }
     case 'http': {
       await buildWasm(config);
-      colorLog('success', `Success: Built ${config.output}`);
+      colorLog('success', `Success: Built ${config.wasmOutput}`);
       break;
     }
     default: {

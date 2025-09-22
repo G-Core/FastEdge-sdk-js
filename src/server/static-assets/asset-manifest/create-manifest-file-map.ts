@@ -83,6 +83,7 @@ function createManifestFileMap(asssetCacheConfig: AssetCacheConfig): StaticAsset
       );
       contentTypeInfo = {
         contentType: 'application/octet-stream',
+        isText: false,
       };
     }
 

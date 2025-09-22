@@ -25,6 +25,7 @@ interface StaticAssetMetadata {
     assetKey: string;
     contentType: string;
     fileInfo: FileInfo;
+    isText: boolean;
 }
 /**
  * Represents an inlined static asset.
@@ -33,6 +34,7 @@ interface StaticAsset {
     type: string;
     assetKey: string;
     getMetadata(): StaticAssetMetadata;
-    getStoreEntry(arg: unknown): Promise<EmbeddedStoreEntry>;
+    getEmbeddedStoreEntry(arg: unknown): Promise<EmbeddedStoreEntry>;
+    getText(): string;
 }
 export type { ContentCompressionTypes, SourceAndInfo, StaticAsset, StaticAssetMetadata };

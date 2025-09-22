@@ -26,7 +26,16 @@ async function createStaticAssetsManifest(
   const { assetManifestPath: providedOutputPath } = asssetCacheConfig;
   if (providedOutputPath?.length) {
     const allowNonExistentFile = true;
-    const { assetManifestPath: normalizedOutputPath } = config;
+    let { assetManifestPath: normalizedOutputPath } = config;
+    // Ensure that normalizedOutputPath ends with .js/.ts/.cjs/.mjs else add .js
+    if (!/\.(js|ts|cjs|mjs)$/u.test(normalizedOutputPath)) {
+      colorLog(
+        'warning',
+        `The provided assetManifestPath '${normalizedOutputPath}' does not end with .js, .ts, .cjs, or .mjs. Adding .js extension.`,
+      );
+      normalizedOutputPath += '.js';
+    }
+    // Check if the provided path is a file
     const outputIsAFile = await isFile(normalizedOutputPath, allowNonExistentFile);
     if (!outputIsAFile) {
       colorLog(

@@ -18,9 +18,14 @@ async function validateFileExists(filePath: string): Promise<void> {
  * Validates the input and output file paths.
  * @param input - The path to the input file.
  * @param output - The path to the output file.
+ * @param tsConfigPath - The path to the TypeScript configuration file (optional).
  * @throws An error if the paths are invalid.
  */
-async function validateFilePaths(input: string, output: string): Promise<void> {
+async function validateFilePaths(
+  input: string,
+  output: string,
+  tsConfigPath?: string,
+): Promise<void> {
   if (!(await isFile(input))) {
     colorLog('error', `Error: Input "${input}" is not a file`);
     process.exit(1);
@@ -40,7 +45,7 @@ async function validateFilePaths(input: string, output: string): Promise<void> {
     }
   }
 
-  if (containsSyntaxErrors(input)) {
+  if (containsSyntaxErrors(input, tsConfigPath)) {
     process.exit(1);
   }
 }

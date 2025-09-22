@@ -21,6 +21,7 @@ const createTestMetadata = (overrides?: Partial<StaticAssetMetadata>): StaticAss
   assetKey: 'test-asset',
   type: 'wasm-inline',
   contentType: 'text/html; charset=utf-8',
+  isText: true,
   fileInfo: {
     assetPath: '/path/to/test.html',
     hash: 'sha256-abcdef123456',
@@ -347,6 +348,7 @@ describe('inline-asset', () => {
           assetKey: 'minimal',
           type: 'wasm-inline',
           contentType: 'text/plain',
+          isText: true,
           fileInfo: {
             assetPath: '/minimal.txt',
             hash: 'hash',
@@ -430,50 +432,80 @@ describe('inline-asset', () => {
         }
       });
     });
-  });
 
-  describe('error handling', () => {
-    it('should propagate file system errors', () => {
-      expect.assertions(1);
-      const metadata = {
-        assetKey: 'error-file',
-        type: 'wasm-inline',
-        contentType: 'text/plain',
-        fileInfo: {
-          assetPath: '/nonexistent/file.txt',
-          hash: 'hash',
-          lastModifiedTime: testLastModified(),
-          size: 100,
-        },
-      };
+    describe('error handling', () => {
+      it('should propagate file system errors', () => {
+        expect.assertions(1);
+        const metadata = {
+          assetKey: 'error-file',
+          type: 'wasm-inline',
+          contentType: 'text/plain',
+          isText: true,
+          fileInfo: {
+            assetPath: '/nonexistent/file.txt',
+            hash: 'hash',
+            lastModifiedTime: testLastModified(),
+            size: 100,
+          },
+        };
 
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('ENOENT: no such file or directory');
+        mockReadFileSync.mockImplementation(() => {
+          throw new Error('ENOENT: no such file or directory');
+        });
+
+        expect(() => createWasmInlineAsset(metadata)).toThrow('ENOENT: no such file or directory');
       });
 
-      expect(() => createWasmInlineAsset(metadata)).toThrow('ENOENT: no such file or directory');
+      it('should handle permission errors', () => {
+        expect.assertions(1);
+        const metadata = {
+          assetKey: 'permission-denied',
+          type: 'wasm-inline',
+          contentType: 'text/plain',
+          isText: true,
+          fileInfo: {
+            assetPath: '/restricted/file.txt',
+            hash: 'hash',
+            lastModifiedTime: testLastModified(),
+            size: 100,
+          },
+        };
+
+        mockReadFileSync.mockImplementation(() => {
+          throw new Error('EACCES: permission denied');
+        });
+
+        expect(() => createWasmInlineAsset(metadata)).toThrow('EACCES: permission denied');
+      });
     });
 
-    it('should handle permission errors', () => {
-      expect.assertions(1);
-      const metadata = {
-        assetKey: 'permission-denied',
-        type: 'wasm-inline',
-        contentType: 'text/plain',
-        text: true,
-        fileInfo: {
-          assetPath: '/restricted/file.txt',
-          hash: 'hash',
-          lastModifiedTime: testLastModified(),
-          size: 100,
-        },
-      };
+    describe('text content handling', () => {
+      it('should decode text content with getText()', () => {
+        expect.assertions(2);
+        const testString = 'Hello, WASM!';
+        const metadata = createTestMetadata({
+          isText: true,
+          contentType: 'text/plain',
+        });
+        // Encode string as Uint8Array
+        const encoded = new TextEncoder().encode(testString);
+        mockReadFileSync.mockReturnValue(encoded);
 
-      mockReadFileSync.mockImplementation(() => {
-        throw new Error('EACCES: permission denied');
+        const asset = createWasmInlineAsset(metadata);
+        expect(asset.getText()).toBe(testString);
+        expect(() => asset.getText()).not.toThrow();
       });
 
-      expect(() => createWasmInlineAsset(metadata)).toThrow('EACCES: permission denied');
+      it('should throw error for getText() on non-text asset', () => {
+        expect.assertions(1);
+        const metadata = createTestMetadata({
+          isText: false,
+          contentType: 'application/octet-stream',
+        });
+        mockReadFileSync.mockReturnValue(new Uint8Array([1, 2, 3]));
+        const asset = createWasmInlineAsset(metadata);
+        expect(() => asset.getText()).toThrow("Can't getText() for non-text content");
+      });
     });
   });
 });

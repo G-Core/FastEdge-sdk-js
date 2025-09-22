@@ -15,11 +15,13 @@ interface ParsedArgs {
   '--help'?: boolean;
   '--input'?: string;
   '--output'?: string;
+  '--tsconfig'?: string;
   '--config'?: string[];
 }
 
 let inputFileName = '';
 let outputFileName = '';
+let tsConfigPath = '';
 let configFiles: string[] = [];
 let args: ParsedArgs;
 
@@ -31,6 +33,7 @@ try {
       '--help': Boolean,
       '--input': String,
       '--output': String,
+      '--tsconfig': String,
       '--config': [String],
 
       // Aliases
@@ -38,6 +41,7 @@ try {
       '-h': '--help',
       '-i': '--input',
       '-o': '--output',
+      '-t': '--tsconfig',
       '-c': '--config',
     },
     {
@@ -80,6 +84,10 @@ if (args['--output']) {
   outputFileName = args['--output'];
 }
 
+if (args['--tsconfig']) {
+  tsConfigPath = args['--tsconfig'];
+}
+
 if (args._.length === 2) {
   [inputFileName, outputFileName] = args._;
 }
@@ -96,6 +104,7 @@ if (inputFileName && outputFileName) {
   await buildWasm({
     entryPoint: inputFileName,
     wasmOutput: outputFileName,
+    tsConfigPath,
   });
   colorLog('success', `Build success!!`);
   colorLog('info', `"${inputFileName}" -> "${outputFileName}"`);

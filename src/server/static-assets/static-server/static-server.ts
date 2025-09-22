@@ -108,10 +108,10 @@ const handlePreconditions = (
  * @param assetCache - The asset cache.
  * @returns A `StaticServer` instance.
  */
-const getStaticServer = (
+const getStaticServer = <T = StaticServer>(
   serverConfig: ServerConfig,
   assetCache: AssetCache<StaticAsset>,
-): StaticServer => {
+): T => {
   const _serverConfig = serverConfig;
   const _assetCache = assetCache;
   const _extendedCache = serverConfig.extendedCache;
@@ -123,7 +123,19 @@ const getStaticServer = (
    * @returns A `StaticAsset`
    */
   const getMatchingAsset = (path: string): StaticAsset | null => {
-    const assetKey = _serverConfig.publicDirPrefix + path;
+    let assetKey = path;
+
+    if (_serverConfig.routePrefix) {
+      assetKey = assetKey.replace(_serverConfig.routePrefix, '');
+    }
+
+    if (_serverConfig.publicDirPrefix) {
+      assetKey = `${_serverConfig.publicDirPrefix}${assetKey}`;
+    }
+
+    if (!assetKey.startsWith('/')) {
+      assetKey = `/${assetKey}`;
+    }
 
     if (!assetKey.endsWith('/')) {
       // A path that does not end in a slash can match an asset directly
@@ -220,6 +232,14 @@ const getStaticServer = (
       return x === pathname;
     });
 
+  const readFileString = async (path: string): Promise<string> => {
+    const asset = getMatchingAsset(path);
+    if (asset != null) {
+      return asset.getText();
+    }
+    throw new Error('Asset not found');
+  };
+
   const serveAsset = async (
     request: Request,
     asset: StaticAsset,
@@ -270,10 +290,10 @@ const getStaticServer = (
     });
   };
 
-  const serveRequest = async (request: Request): Promise<Response | null> => {
+  const serveRequest = async (request: Request): Promise<void | Response> => {
     // Only handle GET and HEAD
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      return null;
+      return;
     }
 
     const url = new URL(request.url);
@@ -310,17 +330,17 @@ const getStaticServer = (
         }
       }
     }
-    return null;
   };
 
   return {
     findAcceptEncodings,
     getMatchingAsset,
     handlePreconditions,
+    readFileString,
     serveAsset,
     serveRequest,
     testExtendedCache,
-  };
+  } as T;
 };
 
 export { getStaticServer };

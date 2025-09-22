@@ -126,11 +126,46 @@ describe('createStaticAssetsManifest', () => {
     expect(result).toBe(manifest);
   });
 
+  it('should ensure assetManifestPath has a js extension if it is not provided', async () => {
+    expect.assertions(4);
+    const config: Partial<AssetCacheConfig> = {
+      publicDir,
+      assetManifestPath: '/custom/path/manifest',
+    };
+    const normalizedConfig: AssetCacheConfig = {
+      publicDir,
+      ignoreDotFiles: false,
+      ignoreWellKnown: false,
+      ignorePaths: [],
+      contentTypes: [],
+      assetManifestPath: '/custom/path/manifest',
+    };
+    const manifest: StaticAssetManifest = {
+      '/foo.txt': { assetKey: '/foo.txt', contentType: 'text/plain' } as any,
+    };
+
+    mockNormalizeConfig.mockReturnValue(normalizedConfig);
+    mockCreateManifestFileMap.mockResolvedValue(manifest);
+    mockIsFile.mockResolvedValue(true);
+
+    const expectedManifestBuildOutput = path.resolve(`.${config.assetManifestPath}.js`);
+
+    const result = await createStaticAssetsManifest(config);
+
+    expect(mockIsFile).toHaveBeenCalledWith(`${config.assetManifestPath}.js`, true);
+    expect(mockCreateOutputDirectory).toHaveBeenCalledWith(expectedManifestBuildOutput);
+    expect(writeFileSync).toHaveBeenCalledWith(
+      expectedManifestBuildOutput,
+      expect.stringContaining('const staticAssetManifest = {'),
+    );
+    expect(result).toBe(manifest);
+  });
+
   it('should fallback to default assetManifestPath if provided assetManifestPath is not a file', async () => {
     expect.assertions(5);
     const config: Partial<AssetCacheConfig> = {
       publicDir,
-      assetManifestPath: '/not/a/file',
+      assetManifestPath: '/not/a/file.js',
     };
     const normalizedConfig: AssetCacheConfig = {
       publicDir,

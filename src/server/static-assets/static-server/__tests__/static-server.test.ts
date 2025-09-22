@@ -1,9 +1,11 @@
 import { getStaticServer } from '../static-server.ts';
 
-import type { ServerConfig } from '../types.ts';
+import type { InternalStaticServer, ServerConfig } from '../types.ts';
 
 import type { AssetCache } from '~static-assets/asset-loader/asset-cache/asset-cache.ts';
 import type { StaticAsset } from '~static-assets/asset-loader/inline-asset/inline-asset.ts';
+
+const MOCK_TEXT_CONTENT = 'mock text content';
 
 function mockAsset(metadata: any, storeEntry?: any): StaticAsset {
   return {
@@ -14,6 +16,12 @@ function mockAsset(metadata: any, storeEntry?: any): StaticAsset {
         contentEncoding: () => null,
         hash: () => 'mockhash',
       },
+    getText: () => {
+      if (metadata.contentType?.startsWith('text/')) {
+        return MOCK_TEXT_CONTENT;
+      }
+      throw new Error("Can't getText() for non-text content");
+    },
   } as unknown as StaticAsset;
 }
 
@@ -30,7 +38,7 @@ function makeRequest(url: string, method = 'GET', headers: Record<string, string
 describe('getStaticServer', () => {
   let serverConfig: ServerConfig;
   let assetCache: AssetCache<StaticAsset>;
-  let server: ReturnType<typeof getStaticServer>;
+  let server: InternalStaticServer;
 
   beforeEach(() => {
     serverConfig = {
@@ -46,7 +54,6 @@ describe('getStaticServer', () => {
     assetCache = mockAssetCache({});
     server = getStaticServer(serverConfig, assetCache);
   });
-
   describe('getMatchingAsset', () => {
     it('should match asset directly', () => {
       expect.assertions(1);
@@ -134,6 +141,65 @@ describe('getStaticServer', () => {
     it('should not match unrelated path', () => {
       expect.assertions(1);
       expect(server.testExtendedCache('/public/other/file.txt')).toBe(false);
+    });
+  });
+
+  describe('readFileString', () => {
+    it('should return text content for existing text asset', async () => {
+      expect.assertions(1);
+      const asset = mockAsset({ contentType: 'text/plain', fileInfo: { lastModifiedTime: 123 } });
+      assetCache = mockAssetCache({ '/public/test.txt': asset });
+      server = getStaticServer(serverConfig, assetCache);
+
+      const result = await server.readFileString('/public/test.txt');
+      expect(result).toBe(MOCK_TEXT_CONTENT);
+    });
+
+    it('should return text content for paths without leading slash', async () => {
+      expect.assertions(1);
+      const asset = mockAsset({ contentType: 'text/plain', fileInfo: { lastModifiedTime: 123 } });
+      assetCache = mockAssetCache({ '/public/test.txt': asset });
+      server = getStaticServer(serverConfig, assetCache);
+
+      const result = await server.readFileString('public/test.txt');
+      expect(result).toBe(MOCK_TEXT_CONTENT);
+    });
+
+    it('should throw error when asset not found', async () => {
+      expect.assertions(1);
+      assetCache = mockAssetCache({});
+      server = getStaticServer(serverConfig, assetCache);
+
+      await expect(server.readFileString('/public/nonexistent.txt')).rejects.toThrow(
+        'Asset not found',
+      );
+    });
+
+    it('should propagate getText() error for non-text content', async () => {
+      expect.assertions(1);
+      const asset = mockAsset({
+        contentType: 'image/png',
+        fileInfo: { lastModifiedTime: 123 },
+      });
+      assetCache = mockAssetCache({ '/public/image.png': asset });
+      server = getStaticServer(serverConfig, assetCache);
+
+      await expect(server.readFileString('/public/image.png')).rejects.toThrow(
+        "Can't getText() for non-text content",
+      );
+    });
+
+    it('should handle publicDirPrefix configuration', async () => {
+      expect.assertions(1);
+      const asset = mockAsset({ contentType: 'text/plain', fileInfo: { lastModifiedTime: 123 } });
+
+      // Update server config to include publicDirPrefix
+      const configWithPrefix = { ...serverConfig, publicDirPrefix: '/static' };
+      assetCache = mockAssetCache({ '/static/test.txt': asset });
+      server = getStaticServer(configWithPrefix, assetCache);
+
+      const result = await server.readFileString('/test.txt');
+      expect(result).toBe(MOCK_TEXT_CONTENT);
     });
   });
 
@@ -299,7 +365,7 @@ describe('getStaticServer', () => {
       expect.assertions(1);
       const req = makeRequest('http://localhost/public/test.html', 'POST');
       const resp = await server.serveRequest(req);
-      expect(resp).toBeNull();
+      expect(resp).toBeUndefined();
     });
 
     it('should return null if no asset and no fallback', async () => {
@@ -313,7 +379,7 @@ describe('getStaticServer', () => {
         Accept: 'text/html',
       });
       const resp = await server.serveRequest(req);
-      expect(resp).toBeNull();
+      expect(resp).toBeUndefined();
     });
   });
 });
