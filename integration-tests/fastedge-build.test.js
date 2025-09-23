@@ -70,12 +70,36 @@ describe('fastedge-build', () => {
       expect(distFolderExists).toBe(true);
       await cleanup();
     });
-    it.each(['js', 'jsx', 'cjs', 'mjs', 'ts', 'tsx'])(
-      'should handle all valid file extensions ".%s"',
+    it.each(['js', 'cjs', 'mjs'])(
+      'should handle all valid javascript file extensions ".%s"',
       async (ext) => {
         expect.assertions(3);
         const { execute, cleanup, writeFile } = await prepareEnvironment();
         const filename = `input.${ext}`;
+        await writeFile(filename, 'function hello() { console.log("Hello World"); }');
+        await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+        const { code, stdout, stderr } = await execute(
+          'node',
+          `./bin/fastedge-build.js ${filename} dist/output.wasm`,
+        );
+        expect(code).toBe(0);
+        expect(stderr).toHaveLength(0);
+        expect(stdout[0]).toContain('Build success!!');
+        await cleanup();
+      },
+    );
+
+    it.each(['jsx', 'ts', 'tsx'])(
+      // .jsx is supported using tsc compiler
+      'should handle all valid typescript file extensions ".%s"',
+      async (ext) => {
+        expect.assertions(3);
+        const { execute, cleanup, path, writeFile } = await prepareEnvironment();
+        const filename = `input.${ext}`;
+        spawnSync('npm', ['install', 'typescript'], {
+          stdio: 'inherit',
+          cwd: path,
+        });
         await writeFile(filename, 'function hello() { console.log("Hello World"); }');
         await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
         const { code, stdout, stderr } = await execute(
