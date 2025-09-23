@@ -45,6 +45,7 @@ describe('fastedge-build', () => {
       await cleanup();
     });
   });
+
   describe('validates files and paths exist', () => {
     it('should error if input file does not exist', async () => {
       expect.assertions(2);
@@ -69,21 +70,44 @@ describe('fastedge-build', () => {
       expect(distFolderExists).toBe(true);
       await cleanup();
     });
-    it('should exit with an error if the input is not a ".js" or ".ts" file', async () => {
-      expect.assertions(2);
-      const { execute, cleanup, writeFile } = await prepareEnvironment();
-      await writeFile('input.jsx', 'function() { console.log("Hello World"); }');
-      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
-      const { code, stderr } = await execute(
-        'node',
-        './bin/fastedge-build.js input.jsx dist/output.wasm',
-      );
-      expect(code).toBe(1);
-      expect(stderr[0]).toContain(
-        'Error: "input.jsx" is not a valid file type - must be ".js" or ".ts"',
-      );
-      await cleanup();
-    });
+    it.each(['js', 'jsx', 'cjs', 'mjs', 'ts', 'tsx'])(
+      'should handle all valid file extensions ".%s"',
+      async (ext) => {
+        expect.assertions(3);
+        const { execute, cleanup, writeFile } = await prepareEnvironment();
+        const filename = `input.${ext}`;
+        await writeFile(filename, 'function hello() { console.log("Hello World"); }');
+        await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+        const { code, stdout, stderr } = await execute(
+          'node',
+          `./bin/fastedge-build.js ${filename} dist/output.wasm`,
+        );
+        expect(code).toBe(0);
+        expect(stderr).toHaveLength(0);
+        expect(stdout[0]).toContain('Build success!!');
+        await cleanup();
+      },
+    );
+    it.each(['txt', 'wasm', 'pdf', 'xml', 'jpg'])(
+      'should exit with an error if the input is not a Javascript file ".%s"',
+      async (ext) => {
+        expect.assertions(2);
+        const { execute, cleanup, writeFile } = await prepareEnvironment();
+        const filename = `input.${ext}`;
+        await writeFile(filename, 'function() { console.log("Hello World"); }');
+        await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+        const { code, stderr } = await execute(
+          'node',
+          `./bin/fastedge-build.js ${filename} dist/output.wasm`,
+        );
+        expect(code).toBe(1);
+        expect(stderr[0]).toContain(
+          `Error: "${filename}" is not a valid file type - must be ".js" or ".ts"`,
+        );
+        await cleanup();
+      },
+    );
+
     it('should exit with an error if the Javascript is not valid', async () => {
       expect.assertions(6);
       const { execute, cleanup, writeFile } = await prepareEnvironment();
@@ -101,6 +125,7 @@ describe('fastedge-build', () => {
       expect(stderr[1]).toContain('Error: "input.js" contains JS errors');
       await cleanup();
     });
+
     it('should exit with an error if the TypeScript is not valid', async () => {
       expect.assertions(4);
       const { execute, cleanup, writeFile, path } = await prepareEnvironment();

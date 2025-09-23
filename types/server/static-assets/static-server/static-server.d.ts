@@ -8,5 +8,5 @@ import type { StaticAsset } from '~static-assets/asset-loader/inline-asset/inlin
  * @param assetCache - The asset cache.
  * @returns A `StaticServer` instance.
  */
-declare const getStaticServer: (serverConfig: ServerConfig, assetCache: AssetCache<StaticAsset>) => StaticServer;
+declare const getStaticServer: <T = StaticServer>(serverConfig: ServerConfig, assetCache: AssetCache<StaticAsset>) => T;
 export { getStaticServer };

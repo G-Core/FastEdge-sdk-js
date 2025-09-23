@@ -9,9 +9,11 @@ describe('content-types', () => {
         expect.assertions(2);
         expect(testFileContentType(undefined, 'test.html')).toStrictEqual({
           contentType: 'text/html',
+          isText: true,
         });
         expect(testFileContentType(undefined, 'test.htm')).toStrictEqual({
           contentType: 'text/html',
+          isText: true,
         });
       });
 
@@ -19,6 +21,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'script.js')).toStrictEqual({
           contentType: 'application/javascript',
+          isText: true,
         });
       });
 
@@ -26,6 +29,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'style.css')).toStrictEqual({
           contentType: 'text/css',
+          isText: true,
         });
       });
 
@@ -33,9 +37,11 @@ describe('content-types', () => {
         expect.assertions(2);
         expect(testFileContentType(undefined, 'data.json')).toStrictEqual({
           contentType: 'application/json',
+          isText: true,
         });
         expect(testFileContentType(undefined, 'sourcemap.map')).toStrictEqual({
           contentType: 'application/json',
+          isText: true,
         });
       });
 
@@ -43,6 +49,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'config.xml')).toStrictEqual({
           contentType: 'application/xml',
+          isText: true,
         });
       });
 
@@ -50,6 +57,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'readme.txt')).toStrictEqual({
           contentType: 'text/plain',
+          isText: true,
         });
       });
 
@@ -57,6 +65,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'icon.svg')).toStrictEqual({
           contentType: 'image/svg+xml',
+          isText: true,
         });
       });
     });
@@ -66,6 +75,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'image.png')).toStrictEqual({
           contentType: 'image/png',
+          isText: false,
         });
       });
 
@@ -73,9 +83,11 @@ describe('content-types', () => {
         expect.assertions(2);
         expect(testFileContentType(undefined, 'photo.jpg')).toStrictEqual({
           contentType: 'image/jpeg',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'photo.jpeg')).toStrictEqual({
           contentType: 'image/jpeg',
+          isText: false,
         });
       });
 
@@ -83,6 +95,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'animation.gif')).toStrictEqual({
           contentType: 'image/gif',
+          isText: false,
         });
       });
 
@@ -90,6 +103,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'bitmap.bmp')).toStrictEqual({
           contentType: 'image/bmp',
+          isText: false,
         });
       });
 
@@ -97,6 +111,7 @@ describe('content-types', () => {
         expect.assertions(1);
         expect(testFileContentType(undefined, 'favicon.ico')).toStrictEqual({
           contentType: 'image/vnd.microsoft.icon',
+          isText: false,
         });
       });
 
@@ -104,9 +119,11 @@ describe('content-types', () => {
         expect.assertions(2);
         expect(testFileContentType(undefined, 'image.tif')).toStrictEqual({
           contentType: 'image/png', // Note: your code maps TIFF to PNG
+          isText: false,
         });
         expect(testFileContentType(undefined, 'image.tiff')).toStrictEqual({
           contentType: 'image/png',
+          isText: false,
         });
       });
     });
@@ -116,9 +133,11 @@ describe('content-types', () => {
         expect.assertions(2);
         expect(testFileContentType(undefined, 'audio.aac')).toStrictEqual({
           contentType: 'audio/aac',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'music.mp3')).toStrictEqual({
           contentType: 'audio/mpeg',
+          isText: false,
         });
       });
 
@@ -126,15 +145,19 @@ describe('content-types', () => {
         expect.assertions(4);
         expect(testFileContentType(undefined, 'video.avi')).toStrictEqual({
           contentType: 'video/x-msvideo',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'video.mp4')).toStrictEqual({
           contentType: 'video/mp4',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'video.mpeg')).toStrictEqual({
           contentType: 'video/mpeg',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'video.webm')).toStrictEqual({
           contentType: 'video/webm',
+          isText: false,
         });
       });
     });
@@ -144,18 +167,23 @@ describe('content-types', () => {
         expect.assertions(5);
         expect(testFileContentType(undefined, 'font.eot')).toStrictEqual({
           contentType: 'application/vnd.ms-fontobject',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'font.otf')).toStrictEqual({
           contentType: 'font/otf',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'font.ttf')).toStrictEqual({
           contentType: 'font/ttf',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'font.woff')).toStrictEqual({
           contentType: 'font/woff',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'font.woff2')).toStrictEqual({
           contentType: 'font/woff2',
+          isText: false,
         });
       });
     });
@@ -165,12 +193,15 @@ describe('content-types', () => {
         expect.assertions(3);
         expect(testFileContentType(undefined, 'document.pdf')).toStrictEqual({
           contentType: 'application/pdf',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'archive.tar')).toStrictEqual({
           contentType: 'application/x-tar',
+          isText: false,
         });
         expect(testFileContentType(undefined, 'package.zip')).toStrictEqual({
           contentType: 'application/zip',
+          isText: false,
         });
       });
     });
@@ -189,9 +220,11 @@ describe('content-types', () => {
         expect.assertions(2);
         expect(testFileContentType(undefined, 'file.min.js')).toStrictEqual({
           contentType: 'application/javascript',
+          isText: true,
         });
         expect(testFileContentType(undefined, 'styles.responsive.css')).toStrictEqual({
           contentType: 'text/css',
+          isText: true,
         });
       });
 
@@ -199,9 +232,11 @@ describe('content-types', () => {
         expect.assertions(2);
         expect(testFileContentType(undefined, 'FILE.JS')).toStrictEqual({
           contentType: 'application/javascript',
+          isText: true,
         });
         expect(testFileContentType(undefined, 'IMAGE.PNG')).toStrictEqual({
           contentType: 'image/png',
+          isText: false,
         });
       });
 
@@ -223,6 +258,7 @@ describe('content-types', () => {
         expect(testFileContentType(undefined, '.htaccess')).toBeNull();
         expect(testFileContentType(undefined, '.env.js')).toStrictEqual({
           contentType: 'application/javascript',
+          isText: true,
         });
       });
     });
@@ -234,12 +270,14 @@ describe('content-types', () => {
           {
             test: /\.custom$/u,
             contentType: 'application/custom',
+            isText: false,
           },
         ];
 
         const knownTypes = getKnownContentTypes(customTypes);
         expect(testFileContentType(knownTypes, 'file.custom')).toStrictEqual({
           contentType: 'application/custom',
+          isText: false,
         });
       });
 
@@ -249,12 +287,14 @@ describe('content-types', () => {
           {
             test: /\.js$/u,
             contentType: 'text/custom-javascript',
+            isText: true,
           },
         ];
 
         const knownTypes = getKnownContentTypes(customTypes);
         expect(testFileContentType(knownTypes, 'script.js')).toStrictEqual({
           contentType: 'text/custom-javascript',
+          isText: true,
         });
       });
 
@@ -264,15 +304,18 @@ describe('content-types', () => {
           {
             test: (assetKey: string) => assetKey.includes('special'),
             contentType: 'application/special',
+            isText: false,
           },
         ];
 
         const knownTypes = getKnownContentTypes(customTypes);
         expect(testFileContentType(knownTypes, 'special-file.txt')).toStrictEqual({
           contentType: 'application/special',
+          isText: false,
         });
         expect(testFileContentType(knownTypes, 'normal-file.txt')).toStrictEqual({
           contentType: 'text/plain',
+          isText: true,
         });
       });
 
@@ -282,22 +325,27 @@ describe('content-types', () => {
           {
             test: (assetKey: string) => assetKey.endsWith('.config.js'),
             contentType: 'application/config+javascript',
+            isText: true,
           },
           {
             test: (assetKey: string) => assetKey.startsWith('api/') && assetKey.endsWith('.json'),
             contentType: 'application/api+json',
+            isText: false,
           },
         ];
 
         const knownTypes = getKnownContentTypes(customTypes);
         expect(testFileContentType(knownTypes, 'webpack.config.js')).toStrictEqual({
           contentType: 'application/config+javascript',
+          isText: true,
         });
         expect(testFileContentType(knownTypes, 'api/users.json')).toStrictEqual({
           contentType: 'application/api+json',
+          isText: false,
         });
         expect(testFileContentType(knownTypes, 'regular.js')).toStrictEqual({
           contentType: 'application/javascript',
+          isText: true,
         });
       });
 
@@ -307,16 +355,19 @@ describe('content-types', () => {
           {
             test: /\.js$/u,
             contentType: 'application/first-js',
+            isText: true,
           },
           {
             test: /\.js$/u,
             contentType: 'application/second-js',
+            isText: true,
           },
         ];
 
         const knownTypes = getKnownContentTypes(customTypes);
         expect(testFileContentType(knownTypes, 'script.js')).toStrictEqual({
           contentType: 'application/first-js',
+          isText: true,
         });
       });
     });
@@ -352,6 +403,7 @@ describe('content-types', () => {
         {
           test: /\.custom$/u,
           contentType: 'application/custom',
+          isText: false,
         },
       ];
 
@@ -372,14 +424,17 @@ describe('content-types', () => {
         {
           test: /\.custom1$/u,
           contentType: 'application/custom1',
+          isText: false,
         },
         {
           test: /\.custom2$/u,
           contentType: 'application/custom2',
+          isText: false,
         },
         {
           test: (key: string) => key.includes('special'),
           contentType: 'application/special',
+          isText: true,
         },
       ];
 
@@ -498,10 +553,12 @@ describe('content-types', () => {
         {
           test: /\.custom$/u,
           contentType: 'application/custom',
+          isText: false,
         },
         {
           test: /\.special$/u,
           contentType: 'application/special',
+          isText: false,
         },
       ];
 

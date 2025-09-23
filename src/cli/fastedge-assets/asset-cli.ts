@@ -52,7 +52,7 @@ try {
   process.exit(0);
 }
 
-if (args['--help']) {
+if (args['--help'] || (Object.keys(args).length === 1 && args._.length === 0)) {
   printHelp();
   process.exit(0);
 }

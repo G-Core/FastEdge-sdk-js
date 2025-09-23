@@ -21,6 +21,7 @@ const createTestMetadata = (overrides?: Partial<StaticAssetMetadata>): StaticAss
   assetKey: 'test-asset',
   type: 'wasm-inline',
   contentType: 'text/html',
+  isText: true,
   fileInfo: {
     assetPath: '/test.html',
     hash: 'hash123',
@@ -48,6 +49,7 @@ describe('createStaticAssetsCache', () => {
     type: 'wasm-inline',
     getMetadata: jest.fn(),
     getEmbeddedStoreEntry: jest.fn(),
+    getText: jest.fn(),
   } as jest.Mocked<StaticAsset>;
 
   beforeEach(() => {
@@ -294,6 +296,7 @@ describe('createStaticAssetsCache', () => {
         assetKey: 'minimal',
         type: 'wasm-inline',
         contentType: 'text/plain',
+        isText: true,
         fileInfo: {
           assetPath: '/minimal.txt',
           hash: 'hash',
@@ -318,6 +321,7 @@ describe('createStaticAssetsCache', () => {
         assetKey: 'maximal-asset-with-very-long-name-that-includes-many-details',
         type: 'wasm-inline',
         contentType: 'text/html; charset=utf-8; boundary=something',
+        isText: true,
         fileInfo: {
           assetPath: '/very/deep/nested/folder/structure/with/many/levels/file.html',
           hash: `sha256-${'a'.repeat(64)}`,

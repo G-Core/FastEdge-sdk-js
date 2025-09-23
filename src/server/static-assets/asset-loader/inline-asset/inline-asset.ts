@@ -82,30 +82,20 @@ const createWasmInlineAsset = (metadata: StaticAssetMetadata): StaticAsset => {
   };
 
   // eslint-disable-next-line capitalized-comments
-  // const getText = () => {
-  //   if (!_metadata.text) {
-  //     throw new Error("Can't getText() for non-text content");
-  //   }
-  //   return decoder.decode(_sourceAndInfo.source);
-  // };
-
-  // const getJson = () => {
-  //   const text = getText();
-  //   return JSON.parse(text);
-  // };
+  const getText = (): string => {
+    if (!_metadata.isText) {
+      throw new Error("Can't getText() for non-text content");
+    }
+    const sourceArr = _sourceAndInfo.source;
+    const decoder = new TextDecoder();
+    return decoder.decode(sourceArr);
+  };
 
   return {
     assetKey: _metadata.assetKey,
-    // eslint-disable-next-line capitalized-comments
-    // assetKey: () => _metadata.assetKey,
     getMetadata: () => _metadata,
     getEmbeddedStoreEntry,
-    // Farq: I think we can remove these, everything is being inlined at present.
-    // text/json/bytes etc comes from kvStore implementation
-    // isLocal: () => true,
-    // getBytes: () => _sourceAndInfo.source,
-    // getText,
-    // getJson,
+    getText,
     type: _metadata.type,
   };
 };

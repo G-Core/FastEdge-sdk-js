@@ -54,7 +54,7 @@ function isTypeScriptInstalled(): boolean {
  * @param tsconfigPath - The path to the TypeScript configuration file (optional).
  * @returns `true` if the file contains syntax errors, otherwise `false`.
  */
-function containsTypeScriptSyntaxErrors(tsInput: string, tsconfigPath?: string): boolean {
+function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string): boolean {
   if (isTypeScriptInstalled()) {
     const includeFastEdgeTypes =
       process.env.NODE_ENV === 'test'
@@ -64,6 +64,7 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsconfigPath?: string):
     const defaultTscBuildFlags = [
       '--noEmit',
       '--skipLibCheck',
+      '--allowJs',
       '--strict',
       '--target',
       'esnext',
@@ -73,7 +74,7 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsconfigPath?: string):
       tsInput,
     ];
 
-    const tscBuildFlags = tsconfigPath ? ['--project', tsconfigPath] : defaultTscBuildFlags;
+    const tscBuildFlags = tsConfigPath ? ['--project', tsConfigPath] : defaultTscBuildFlags;
 
     const nodeProcess: SpawnSyncReturns<string> = spawnSync('npx', ['tsc', ...tscBuildFlags], {
       stdio: [null, null, null],
@@ -100,13 +101,13 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsconfigPath?: string):
  * @param tsconfigPath - The path to the TypeScript configuration file (optional).
  * @returns `true` if the file contains syntax errors, otherwise `false`.
  */
-function containsSyntaxErrors(jsInput: string, tsconfigPath?: string): boolean {
-  if (jsInput.endsWith('.js')) {
+function containsSyntaxErrors(jsInput: string, tsConfigPath?: string): boolean {
+  if (/\.(js|cjs|mjs)$/u.test(jsInput)) {
     return containsJavascriptSyntaxErrors(jsInput);
   }
 
-  if (jsInput.endsWith('.ts')) {
-    return containsTypeScriptSyntaxErrors(jsInput, tsconfigPath);
+  if (/\.(ts|tsx|jsx)$/u.test(jsInput)) {
+    return containsTypeScriptSyntaxErrors(jsInput, tsConfigPath);
   }
 
   colorLog('error', `Error: "${jsInput}" is not a valid file type - must be ".js" or ".ts"`);

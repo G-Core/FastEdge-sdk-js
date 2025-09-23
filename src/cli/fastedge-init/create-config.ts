@@ -29,6 +29,7 @@ interface ConfigTypeObject {
     notFoundPage?: string;
     autoExt?: string[];
     autoIndex?: string[];
+    [key: string]: unknown;
   };
 }
 
@@ -40,12 +41,15 @@ type DefaultConfig = Record<ConfigObjType, ConfigTypeObject>;
 /** Default configuration object */
 const defaultConfig: DefaultConfig = {
   build: {
-    http: {},
+    http: {
+      tsConfigPath: './tsconfig.json',
+    },
     static: {
       entryPoint: '.fastedge/static-index.js',
       ignoreDotFiles: true,
       ignoreDirs: ['./node_modules'],
       ignoreWellKnown: false,
+      tsConfigPath: './tsconfig.json',
     },
   },
   server: {

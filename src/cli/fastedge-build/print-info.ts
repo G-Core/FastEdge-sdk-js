@@ -11,6 +11,7 @@ const USAGE_TEXT = `\nUsage: fastedge-build [options]
   --version, -v   Print the version number
   --input, -i     <input-file> Js filepath to build (e.g. ./src/index.js)
   --output, -o    <output-file> Output filepath for wasm (e.g. ./dist/main.wasm)
+  --tsconfig, -t  <tsconfig-file> Path to a TypeScript config file (default: ./tsconfig.json)
   --config, -c    <config-file> Path to a build config file (default: ./.fastedge/build-config.js)
 `;
 
