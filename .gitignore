@@ -12,6 +12,7 @@ integration-tests/test-files/output.wasm
 # compiler_flags
 
 /runtime/fastedge/build-*
+/runtime/fastedge/deps/
 *.a
 yarn-error.log
 
