@@ -25,6 +25,7 @@
   },
   "files": [
     "types",
+    "bin/fastedge-assets.js",
     "bin/fastedge-build.js",
     "bin/fastedge-init.js",
     "lib/*.wasm",

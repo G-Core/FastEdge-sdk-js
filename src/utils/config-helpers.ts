@@ -3,14 +3,14 @@
  * @param str - The string to process.
  * @returns The string without the './' prefix.
  */
-const removeDotSlashPrefix = (str: string): string => str.replace(/^\.\//u, '');
+const removeDotSlashPrefix = (str: string = ''): string => str.replace(/^\.\//u, '');
 
 /**
  * Removes trailing slashes from a given string.
  * @param str - The string to process.
  * @returns The string without trailing slashes.
  */
-const removeTrailingSlash = (str: string): string => str.replace(/\/+$/u, '');
+const removeTrailingSlash = (str: string = ''): string => str.replace(/\/+$/u, '');
 
 /**
  * Takes a path string and ensures it has no trailing slash and has a single preceding slash.
@@ -152,7 +152,8 @@ function normalizeConfig<T extends Record<string, unknown>>(
     const normalizeFn = normalizeFns[normalizeFnKey];
     if (normalizeFn) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result[key] = normalizeFn(config[key] as any) as T[keyof T];
+      const input = (config[key] ?? undefined) as any;
+      result[key] = normalizeFn(input) as T[keyof T];
     }
   });
 
