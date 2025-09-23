@@ -3,5 +3,4 @@
 /// <reference path="fastedge-secret.d.ts" />
 /// <reference path="globals.d.ts" />
 
-export { createStaticAssetsCache, getStaticServer } from './static-server/index.ts';
-export type { AssetCache, StaticAssetManifest, StaticServer } from './static-server/index.ts';
+export * from './server/static-assets/index.d.ts';

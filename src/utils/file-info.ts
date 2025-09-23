@@ -29,7 +29,7 @@ function createFileInfo(assetKey: string, publicDir: string, file: string): File
 
   hash.update(fileBuffer);
 
-  const assetPath = `./${path.join(publicDir, assetKey)}`;
+  const assetPath = `.${path.join(publicDir, assetKey)}`;
 
   return {
     size,

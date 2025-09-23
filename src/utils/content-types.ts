@@ -1,5 +1,4 @@
-/* eslint-disable require-unicode-regexp */
-import { colorLog } from '~utils/prompts.ts';
+import { colorLog } from '~utils/color-log.ts';
 
 /**
  * Represents a content type definition.
@@ -7,46 +6,48 @@ import { colorLog } from '~utils/prompts.ts';
 interface ContentTypeDefinition {
   test: RegExp | ((assetKey: string) => boolean);
   contentType: string;
+  isText: boolean;
 }
 
 /**
  * Text-based content types.
  */
 const textFormats: ContentTypeDefinition[] = [
-  { test: /.txt$/, contentType: 'text/plain' },
-  { test: /.htm(l)?$/, contentType: 'text/html' },
-  { test: /.xml$/, contentType: 'application/xml' },
-  { test: /.json$/, contentType: 'application/json' },
-  { test: /.map$/, contentType: 'application/json' },
-  { test: /.js$/, contentType: 'application/javascript' },
-  { test: /.css$/, contentType: 'text/css' },
-  { test: /.svg$/, contentType: 'image/svg+xml' },
+  { test: /.txt$/u, contentType: 'text/plain', isText: true },
+  { test: /.htm(l)?$/u, contentType: 'text/html', isText: true },
+  { test: /.xml$/u, contentType: 'application/xml', isText: true },
+  { test: /.json$/u, contentType: 'application/json', isText: true },
+  { test: /.map$/u, contentType: 'application/json', isText: true },
+  { test: /.js$/u, contentType: 'application/javascript', isText: true },
+  { test: /.ts$/u, contentType: 'application/typescript', isText: true },
+  { test: /.css$/u, contentType: 'text/css', isText: true },
+  { test: /.svg$/u, contentType: 'image/svg+xml', isText: true },
 ];
 
 /**
  * Binary-based content types.
  */
 const binaryFormats: ContentTypeDefinition[] = [
-  { test: /.bmp$/, contentType: 'image/bmp' },
-  { test: /.png$/, contentType: 'image/png' },
-  { test: /.gif$/, contentType: 'image/gif' },
-  { test: /.jp(e)?g$/, contentType: 'image/jpeg' },
-  { test: /.ico$/, contentType: 'image/vnd.microsoft.icon' },
-  { test: /.tif(f)?$/, contentType: 'image/png' },
-  { test: /.aac$/, contentType: 'audio/aac' },
-  { test: /.mp3$/, contentType: 'audio/mpeg' },
-  { test: /.avi$/, contentType: 'video/x-msvideo' },
-  { test: /.mp4$/, contentType: 'video/mp4' },
-  { test: /.mpeg$/, contentType: 'video/mpeg' },
-  { test: /.webm$/, contentType: 'video/webm' },
-  { test: /.pdf$/, contentType: 'application/pdf' },
-  { test: /.tar$/, contentType: 'application/x-tar' },
-  { test: /.zip$/, contentType: 'application/zip' },
-  { test: /.eot$/, contentType: 'application/vnd.ms-fontobject' },
-  { test: /.otf$/, contentType: 'font/otf' },
-  { test: /.ttf$/, contentType: 'font/ttf' },
-  { test: /.woff$/, contentType: 'font/woff' },
-  { test: /.woff2$/, contentType: 'font/woff2' },
+  { test: /.bmp$/u, contentType: 'image/bmp', isText: false },
+  { test: /.png$/u, contentType: 'image/png', isText: false },
+  { test: /.gif$/u, contentType: 'image/gif', isText: false },
+  { test: /.jp(e)?g$/u, contentType: 'image/jpeg', isText: false },
+  { test: /.ico$/u, contentType: 'image/vnd.microsoft.icon', isText: false },
+  { test: /.tif(f)?$/u, contentType: 'image/png', isText: false },
+  { test: /.aac$/u, contentType: 'audio/aac', isText: false },
+  { test: /.mp3$/u, contentType: 'audio/mpeg', isText: false },
+  { test: /.avi$/u, contentType: 'video/x-msvideo', isText: false },
+  { test: /.mp4$/u, contentType: 'video/mp4', isText: false },
+  { test: /.mpeg$/u, contentType: 'video/mpeg', isText: false },
+  { test: /.webm$/u, contentType: 'video/webm', isText: false },
+  { test: /.pdf$/u, contentType: 'application/pdf', isText: false },
+  { test: /.tar$/u, contentType: 'application/x-tar', isText: false },
+  { test: /.zip$/u, contentType: 'application/zip', isText: false },
+  { test: /.eot$/u, contentType: 'application/vnd.ms-fontobject', isText: false },
+  { test: /.otf$/u, contentType: 'font/otf', isText: false },
+  { test: /.ttf$/u, contentType: 'font/ttf', isText: false },
+  { test: /.woff$/u, contentType: 'font/woff', isText: false },
+  { test: /.woff2$/u, contentType: 'font/woff2', isText: false },
 ];
 
 /**
@@ -101,12 +102,15 @@ function getKnownContentTypes(
         finalContentTypes.push({
           test: contentType.test,
           contentType: contentType.contentType,
+          isText: Boolean(contentType.isText),
         });
       }
     }
   }
 
-  colorLog('info', `Applying ${finalContentTypes.length} custom content type(s).`);
+  if (process.env.NODE_ENV !== 'test') {
+    colorLog('info', `Applying ${finalContentTypes.length} custom content type(s).`);
+  }
 
   // Order matters: customContentTypes first, followed by defaultContentTypes
   for (const contentType of defaultContentTypes) {
@@ -125,15 +129,16 @@ function getKnownContentTypes(
 function testFileContentType(
   contentTypes: ContentTypeDefinition[] | undefined,
   assetKey: string,
-): { contentType: string } | null {
+): { contentType: string; isText: boolean } | null {
   for (const contentType of contentTypes ?? defaultContentTypes) {
+    const _assetKey = assetKey.toLowerCase();
     let matched = false;
     contentType.test instanceof RegExp
-      ? (matched = contentType.test.test(assetKey))
-      : (matched = contentType.test(assetKey));
+      ? (matched = contentType.test.test(_assetKey))
+      : (matched = contentType.test(_assetKey));
 
     if (matched) {
-      return { contentType: contentType.contentType };
+      return { contentType: contentType.contentType, isText: contentType.isText };
     }
   }
   return null;

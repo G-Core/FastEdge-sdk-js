@@ -9,20 +9,23 @@
     "noEmit": true,
     "checkJs": true,
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "rootDir": "./src",
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "~utils/*": ["./src/utils/*"],
-      "~fastedge-build/*": ["./src/fastedge-build/*"],
-      "~fastedge-init/*": ["./src/fastedge-init/*"],
-      "~static-server/*": ["./src/static-server/*"],
-      "~constants/*": ["./src/constants/*"]
+      "~componentize/*": ["./src/componentize/*"],
+      "~constants/*": ["./src/constants/*"],
+      "~fastedge-assets/*": ["./src/cli/fastedge-assets/*"],
+      "~fastedge-build/*": ["./src/cli/fastedge-build/*"],
+      "~fastedge-init/*": ["./src/cli/fastedge-init/*"],
+      "~static-assets/*": ["./src/server/static-assets/*"],
+      "~utils/*": ["./src/utils/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/componentize/types"]
   },
-  "include": ["./src/**/*.ts", "./types/*.d.ts"],
-  "exclude": ["./node_modules", "./docs/**", "./runtime"]
+  "include": ["src/**/*", "**/*.test.ts", "**/*.spec.ts", "./types/*.d.ts"],
+  "exclude": ["node_modules", "docs/**", "runtime", "dist", "coverage"]
 }

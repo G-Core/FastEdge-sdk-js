@@ -4,6 +4,7 @@
 interface ContentTypeDefinition {
     test: RegExp | ((assetKey: string) => boolean);
     contentType: string;
+    isText: boolean;
 }
 /**
  * Retrieves the default content types.
@@ -23,6 +24,7 @@ declare function getKnownContentTypes(customContentTypes: ContentTypeDefinition[
  */
 declare function testFileContentType(contentTypes: ContentTypeDefinition[] | undefined, assetKey: string): {
     contentType: string;
+    isText: boolean;
 } | null;
 export { getKnownContentTypes, testFileContentType };
 export type { ContentTypeDefinition };
