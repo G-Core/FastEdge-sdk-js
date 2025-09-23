@@ -33,6 +33,10 @@ export default defineConfig({
               label: 'Serving a static site',
               link: `${import.meta.env.BASE_URL}guides/serving-a-static-site/`,
             },
+            {
+              label: 'Creating static assets',
+              link: `${import.meta.env.BASE_URL}guides/creating-a-static-manifest/`,
+            },
           ],
           collapsed: true,
         },
@@ -44,6 +48,11 @@ export default defineConfig({
           label: 'Reference',
           collapsed: true,
           autogenerate: { directory: 'reference' },
+        },
+        {
+          label: 'Migrating',
+          collapsed: true,
+          autogenerate: { directory: 'migrating' },
         },
       ],
     }),
