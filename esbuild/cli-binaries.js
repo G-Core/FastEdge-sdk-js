@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const entryPoints = [ 
+const entryPoints = [
   { src: "./src/cli/fastedge-assets/asset-cli.ts", dest: "./bin/fastedge-assets.js" },
   { src: "./src/cli/fastedge-build/build.ts", dest: "./bin/fastedge-build.js" },
   { src: "./src/cli/fastedge-init/init.ts", dest: "./bin/fastedge-init.js" },
@@ -50,5 +50,6 @@ const prependNodeShebangToFile = (relativeFilePath) => {
   }
 };
 
+prependNodeShebangToFile("./bin/fastedge-assets.js");
 prependNodeShebangToFile("./bin/fastedge-build.js");
 prependNodeShebangToFile("./bin/fastedge-init.js");
