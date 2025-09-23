@@ -12,7 +12,13 @@ const config = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   rootDir: process.cwd(),
   testEnvironment: 'node',
-  testPathIgnorePatterns: ['node_modules', 'dist', 'docs', 'runtime/StarlingMonkey/'],
+  testPathIgnorePatterns: [
+    'node_modules',
+    'dist',
+    'docs',
+    'runtime/StarlingMonkey/',
+    'runtime/fastedge/deps',
+  ],
   transform: {
     '^.+\\.(ts|js)$': 'babel-jest',
   },
