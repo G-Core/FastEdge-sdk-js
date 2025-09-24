@@ -54,7 +54,3 @@ npm run build:dev
 
 We use a docker image in our CI/CD pipeline for building. This can be used locally, see
 [Compiler README.md](./compiler/README.md)
-
-## Testing
-
-Coming soon... 🚀
