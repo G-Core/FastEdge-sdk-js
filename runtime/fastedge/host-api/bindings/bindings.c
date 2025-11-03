@@ -16,6 +16,26 @@ extern void __wasm_import_gcore_fastedge_secret_get(uint8_t *, size_t, uint8_t *
 __attribute__((__import_module__("gcore:fastedge/secret"), __import_name__("get-effective-at")))
 extern void __wasm_import_gcore_fastedge_secret_get_effective_at(uint8_t *, size_t, int32_t, uint8_t *);
 
+// Imported Functions from `gcore:fastedge/key-value`
+
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[static]store.open")))
+extern void __wasm_import_gcore_fastedge_key_value_static_store_open(uint8_t *, size_t, uint8_t *);
+
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.get")))
+extern void __wasm_import_gcore_fastedge_key_value_method_store_get(int32_t, uint8_t *, size_t, uint8_t *);
+
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.scan")))
+extern void __wasm_import_gcore_fastedge_key_value_method_store_scan(int32_t, uint8_t *, size_t, uint8_t *);
+
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.zrange")))
+extern void __wasm_import_gcore_fastedge_key_value_method_store_zrange(int32_t, uint8_t *, size_t, double, double, uint8_t *);
+
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.zscan")))
+extern void __wasm_import_gcore_fastedge_key_value_method_store_zscan(int32_t, uint8_t *, size_t, uint8_t *, size_t, uint8_t *);
+
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.bf-exists")))
+extern void __wasm_import_gcore_fastedge_key_value_method_store_bf_exists(int32_t, uint8_t *, size_t, uint8_t *, size_t, uint8_t *);
+
 // Imported Functions from `wasi:cli/environment@0.2.3`
 
 __attribute__((__import_module__("wasi:cli/environment@0.2.3"), __import_name__("get-environment")))
@@ -632,6 +652,125 @@ void gcore_fastedge_secret_result_option_string_error_free(gcore_fastedge_secret
   }
 }
 
+void gcore_fastedge_key_value_value_free(gcore_fastedge_key_value_value_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    uint8_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_fastedge_key_value_list_result_free(gcore_fastedge_key_value_list_result_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    gcore_fastedge_key_value_value_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      gcore_fastedge_key_value_value_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void bindings_tuple2_value_f64_free(bindings_tuple2_value_f64_t *ptr) {
+  gcore_fastedge_key_value_value_free(&ptr->f0);
+}
+
+void gcore_fastedge_key_value_zlist_result_free(gcore_fastedge_key_value_zlist_result_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    bindings_tuple2_value_f64_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      bindings_tuple2_value_f64_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[resource-drop]store")))
+extern void __wasm_import_gcore_fastedge_key_value_store_drop(int32_t handle);
+
+void gcore_fastedge_key_value_store_drop_own(gcore_fastedge_key_value_own_store_t handle) {
+  __wasm_import_gcore_fastedge_key_value_store_drop(handle.__handle);
+}
+
+gcore_fastedge_key_value_borrow_store_t gcore_fastedge_key_value_borrow_store(gcore_fastedge_key_value_own_store_t arg) {
+  return (gcore_fastedge_key_value_borrow_store_t) { arg.__handle };
+}
+
+void gcore_fastedge_key_value_error_free(gcore_fastedge_key_value_error_t *ptr) {
+  switch ((int32_t) ptr->tag) {
+    case 3: {
+      bindings_string_free(&ptr->val.other);
+      break;
+    }
+  }
+}
+
+void gcore_fastedge_key_value_result_own_store_error_free(gcore_fastedge_key_value_result_own_store_error_t *ptr) {
+  if (!ptr->is_err) {
+  } else {
+    gcore_fastedge_key_value_error_free(&ptr->val.err);
+  }
+}
+
+void bindings_option_value_free(bindings_option_value_t *ptr) {
+  if (ptr->is_some) {
+    gcore_fastedge_key_value_value_free(&ptr->val);
+  }
+}
+
+void gcore_fastedge_key_value_result_option_value_error_free(gcore_fastedge_key_value_result_option_value_error_t *ptr) {
+  if (!ptr->is_err) {
+    bindings_option_value_free(&ptr->val.ok);
+  } else {
+    gcore_fastedge_key_value_error_free(&ptr->val.err);
+  }
+}
+
+void bindings_list_string_free(bindings_list_string_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    bindings_string_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      bindings_string_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_fastedge_key_value_result_list_string_error_free(gcore_fastedge_key_value_result_list_string_error_t *ptr) {
+  if (!ptr->is_err) {
+    bindings_list_string_free(&ptr->val.ok);
+  } else {
+    gcore_fastedge_key_value_error_free(&ptr->val.err);
+  }
+}
+
+void gcore_fastedge_key_value_result_list_result_error_free(gcore_fastedge_key_value_result_list_result_error_t *ptr) {
+  if (!ptr->is_err) {
+    gcore_fastedge_key_value_list_result_free(&ptr->val.ok);
+  } else {
+    gcore_fastedge_key_value_error_free(&ptr->val.err);
+  }
+}
+
+void gcore_fastedge_key_value_result_zlist_result_error_free(gcore_fastedge_key_value_result_zlist_result_error_t *ptr) {
+  if (!ptr->is_err) {
+    gcore_fastedge_key_value_zlist_result_free(&ptr->val.ok);
+  } else {
+    gcore_fastedge_key_value_error_free(&ptr->val.err);
+  }
+}
+
+void gcore_fastedge_key_value_result_bool_error_free(gcore_fastedge_key_value_result_bool_error_t *ptr) {
+  if (!ptr->is_err) {
+  } else {
+    gcore_fastedge_key_value_error_free(&ptr->val.err);
+  }
+}
+
 void bindings_tuple2_string_string_free(bindings_tuple2_string_string_t *ptr) {
   bindings_string_free(&ptr->f0);
   bindings_string_free(&ptr->f1);
@@ -643,17 +782,6 @@ void bindings_list_tuple2_string_string_free(bindings_list_tuple2_string_string_
     bindings_tuple2_string_string_t *list_ptr = ptr->ptr;
     for (size_t i = 0; i < list_len; i++) {
       bindings_tuple2_string_string_free(&list_ptr[i]);
-    }
-    free(list_ptr);
-  }
-}
-
-void bindings_list_string_free(bindings_list_string_t *ptr) {
-  size_t list_len = ptr->len;
-  if (list_len > 0) {
-    bindings_string_t *list_ptr = ptr->ptr;
-    for (size_t i = 0; i < list_len; i++) {
-      bindings_string_free(&list_ptr[i]);
     }
     free(list_ptr);
   }
@@ -1775,6 +1903,289 @@ bool gcore_fastedge_secret_get_effective_at(bindings_string_t *key, uint32_t at,
           break;
         }
         case 2: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_key_value_static_store_open(bindings_string_t *name, gcore_fastedge_key_value_own_store_t *ret, gcore_fastedge_key_value_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_key_value_static_store_open((uint8_t *) (*name).ptr, (*name).len, ptr);
+  gcore_fastedge_key_value_result_own_store_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (gcore_fastedge_key_value_own_store_t) { *((int32_t*) (ptr + 4)) };
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_key_value_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 4));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_key_value_method_store_get(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_option_value_t *ret, gcore_fastedge_key_value_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_key_value_method_store_get((self).__handle, (uint8_t *) (*key).ptr, (*key).len, ptr);
+  gcore_fastedge_key_value_result_option_value_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      bindings_option_value_t option;
+      switch ((int32_t) *((uint8_t*) (ptr + 4))) {
+        case 0: {
+          option.is_some = false;
+          break;
+        }
+        case 1: {
+          option.is_some = true;
+          option.val = (gcore_fastedge_key_value_value_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.ok = option;
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_key_value_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 4));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_key_value_method_store_scan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *pattern, bindings_list_string_t *ret, gcore_fastedge_key_value_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_key_value_method_store_scan((self).__handle, (uint8_t *) (*pattern).ptr, (*pattern).len, ptr);
+  gcore_fastedge_key_value_result_list_string_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (bindings_list_string_t) { (bindings_string_t*)(*((uint8_t **) (ptr + 4))), (*((size_t*) (ptr + 8))) };
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_key_value_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 4));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_key_value_method_store_zrange(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, double min, double max, gcore_fastedge_key_value_list_result_t *ret, gcore_fastedge_key_value_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_key_value_method_store_zrange((self).__handle, (uint8_t *) (*key).ptr, (*key).len, min, max, ptr);
+  gcore_fastedge_key_value_result_list_result_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (gcore_fastedge_key_value_list_result_t) { (gcore_fastedge_key_value_value_t*)(*((uint8_t **) (ptr + 4))), (*((size_t*) (ptr + 8))) };
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_key_value_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 4));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_key_value_method_store_zscan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *pattern, gcore_fastedge_key_value_zlist_result_t *ret, gcore_fastedge_key_value_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_key_value_method_store_zscan((self).__handle, (uint8_t *) (*key).ptr, (*key).len, (uint8_t *) (*pattern).ptr, (*pattern).len, ptr);
+  gcore_fastedge_key_value_result_zlist_result_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (gcore_fastedge_key_value_zlist_result_t) { (bindings_tuple2_value_f64_t*)(*((uint8_t **) (ptr + 4))), (*((size_t*) (ptr + 8))) };
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_key_value_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 4));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_key_value_method_store_bf_exists(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *item, bool *ret, gcore_fastedge_key_value_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_key_value_method_store_bf_exists((self).__handle, (uint8_t *) (*key).ptr, (*key).len, (uint8_t *) (*item).ptr, (*item).len, ptr);
+  gcore_fastedge_key_value_result_bool_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (int32_t) *((uint8_t*) (ptr + 4));
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_key_value_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 4));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          break;
+        }
+        case 3: {
           variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
           break;
         }

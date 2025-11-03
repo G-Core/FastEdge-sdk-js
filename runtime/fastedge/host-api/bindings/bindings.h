@@ -42,6 +42,110 @@ typedef struct {
   } val;
 } gcore_fastedge_secret_result_option_string_error_t;
 
+typedef struct gcore_fastedge_key_value_value_t {
+  uint8_t   *ptr;
+  size_t len;
+} gcore_fastedge_key_value_value_t;
+
+typedef struct gcore_fastedge_key_value_list_result_t {
+  gcore_fastedge_key_value_value_t   *ptr;
+  size_t len;
+} gcore_fastedge_key_value_list_result_t;
+
+typedef struct {
+  gcore_fastedge_key_value_value_t f0;
+  double f1;
+} bindings_tuple2_value_f64_t;
+
+typedef struct gcore_fastedge_key_value_zlist_result_t {
+  bindings_tuple2_value_f64_t   *ptr;
+  size_t len;
+} gcore_fastedge_key_value_zlist_result_t;
+
+typedef struct gcore_fastedge_key_value_own_store_t {
+  int32_t __handle;
+} gcore_fastedge_key_value_own_store_t;
+
+typedef struct gcore_fastedge_key_value_borrow_store_t {
+  int32_t __handle;
+} gcore_fastedge_key_value_borrow_store_t;
+
+// The set of errors which may be raised by functions in this interface
+typedef struct gcore_fastedge_key_value_error_t {
+  uint8_t tag;
+  union {
+    bindings_string_t     other;
+  } val;
+} gcore_fastedge_key_value_error_t;
+
+// The host does not recognize the store label requested.
+#define GCORE_FASTEDGE_KEY_VALUE_ERROR_NO_SUCH_STORE 0
+// The requesting component does not have access to the specified store
+// (which may or may not exist).
+#define GCORE_FASTEDGE_KEY_VALUE_ERROR_ACCESS_DENIED 1
+// Some unexpected internal error has occurred.
+#define GCORE_FASTEDGE_KEY_VALUE_ERROR_INTERNAL_ERROR 2
+// Some implementation-specific error has occurred (e.g. I/O)
+#define GCORE_FASTEDGE_KEY_VALUE_ERROR_OTHER 3
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_fastedge_key_value_own_store_t ok;
+    gcore_fastedge_key_value_error_t err;
+  } val;
+} gcore_fastedge_key_value_result_own_store_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_fastedge_key_value_value_t val;
+} bindings_option_value_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bindings_option_value_t ok;
+    gcore_fastedge_key_value_error_t err;
+  } val;
+} gcore_fastedge_key_value_result_option_value_error_t;
+
+typedef struct {
+  bindings_string_t *ptr;
+  size_t len;
+} bindings_list_string_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bindings_list_string_t ok;
+    gcore_fastedge_key_value_error_t err;
+  } val;
+} gcore_fastedge_key_value_result_list_string_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_fastedge_key_value_list_result_t ok;
+    gcore_fastedge_key_value_error_t err;
+  } val;
+} gcore_fastedge_key_value_result_list_result_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_fastedge_key_value_zlist_result_t ok;
+    gcore_fastedge_key_value_error_t err;
+  } val;
+} gcore_fastedge_key_value_result_zlist_result_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bool ok;
+    gcore_fastedge_key_value_error_t err;
+  } val;
+} gcore_fastedge_key_value_result_bool_error_t;
+
 typedef struct {
   bindings_string_t f0;
   bindings_string_t f1;
@@ -51,11 +155,6 @@ typedef struct {
   bindings_tuple2_string_string_t *ptr;
   size_t len;
 } bindings_list_tuple2_string_string_t;
-
-typedef struct {
-  bindings_string_t *ptr;
-  size_t len;
-} bindings_list_string_t;
 
 typedef struct {
   bool is_err;
@@ -1317,12 +1416,41 @@ typedef wasi_http_types_own_response_outparam_t exports_wasi_http_incoming_handl
 extern bool gcore_fastedge_dictionary_get(bindings_string_t *name, bindings_string_t *ret);
 
 // Imported Functions from `gcore:fastedge/secret`
-// Get the secret associated with the specified `key` efective at current timestamp.
+// Get the secret associated with the specified `key` effective at current timestamp.
 // Returns `ok(none)` if the key does not exist.
 extern bool gcore_fastedge_secret_get(bindings_string_t *key, bindings_option_string_t *ret, gcore_fastedge_secret_error_t *err);
 // Get the secret associated with the specified `key` effective `at` given timestamp in seconds.
 // Returns `ok(none)` if the key does not exist.
 extern bool gcore_fastedge_secret_get_effective_at(bindings_string_t *key, uint32_t at, bindings_option_string_t *ret, gcore_fastedge_secret_error_t *err);
+
+// Imported Functions from `gcore:fastedge/key-value`
+// Open the store with the specified name.
+// 
+// `error::no-such-store` will be raised if the `name` is not recognized.
+extern bool gcore_fastedge_key_value_static_store_open(bindings_string_t *name, gcore_fastedge_key_value_own_store_t *ret, gcore_fastedge_key_value_error_t *err);
+// Get the value associated with the specified `key`
+// 
+// Returns `ok(none)` if the key does not exist.
+extern bool gcore_fastedge_key_value_method_store_get(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_option_value_t *ret, gcore_fastedge_key_value_error_t *err);
+// Interface to scan over keys in the store.
+// It matches glob-style pattern filter on each element from the retrieved collection.
+// 
+// Returns an array of elements as a list of keys.
+extern bool gcore_fastedge_key_value_method_store_scan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *pattern, bindings_list_string_t *ret, gcore_fastedge_key_value_error_t *err);
+// Get the values associated with the specified `key` stored in sorted set ordered by f64 score
+// 
+// Returns empty `Vec` if the key does not exist or min and max are out of index.
+extern bool gcore_fastedge_key_value_method_store_zrange(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, double min, double max, gcore_fastedge_key_value_list_result_t *ret, gcore_fastedge_key_value_error_t *err);
+// Interface to scan through a sorted set by key
+// It matches glob-style pattern filter on each elements from the retrieved collection.
+// 
+// Returns an array of elements as a list of value of the Sorted Set.
+extern bool gcore_fastedge_key_value_method_store_zscan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *pattern, gcore_fastedge_key_value_zlist_result_t *ret, gcore_fastedge_key_value_error_t *err);
+// Determines whether a given item was added to a Bloom filter.
+// 
+// Returns one of these replies: 'true' means that, with high probability, item was already added to the filter,
+// and 'false' means that key does not exist or that item had not been added to the filter.
+extern bool gcore_fastedge_key_value_method_store_bf_exists(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *item, bool *ret, gcore_fastedge_key_value_error_t *err);
 
 // Imported Functions from `wasi:cli/environment@0.2.3`
 // Get the POSIX-style environment variables.
@@ -1842,11 +1970,39 @@ void gcore_fastedge_secret_error_free(gcore_fastedge_secret_error_t *ptr);
 
 void gcore_fastedge_secret_result_option_string_error_free(gcore_fastedge_secret_result_option_string_error_t *ptr);
 
+void gcore_fastedge_key_value_value_free(gcore_fastedge_key_value_value_t *ptr);
+
+void gcore_fastedge_key_value_list_result_free(gcore_fastedge_key_value_list_result_t *ptr);
+
+void bindings_tuple2_value_f64_free(bindings_tuple2_value_f64_t *ptr);
+
+void gcore_fastedge_key_value_zlist_result_free(gcore_fastedge_key_value_zlist_result_t *ptr);
+
+extern void gcore_fastedge_key_value_store_drop_own(gcore_fastedge_key_value_own_store_t handle);
+
+extern gcore_fastedge_key_value_borrow_store_t gcore_fastedge_key_value_borrow_store(gcore_fastedge_key_value_own_store_t handle);
+
+void gcore_fastedge_key_value_error_free(gcore_fastedge_key_value_error_t *ptr);
+
+void gcore_fastedge_key_value_result_own_store_error_free(gcore_fastedge_key_value_result_own_store_error_t *ptr);
+
+void bindings_option_value_free(bindings_option_value_t *ptr);
+
+void gcore_fastedge_key_value_result_option_value_error_free(gcore_fastedge_key_value_result_option_value_error_t *ptr);
+
+void bindings_list_string_free(bindings_list_string_t *ptr);
+
+void gcore_fastedge_key_value_result_list_string_error_free(gcore_fastedge_key_value_result_list_string_error_t *ptr);
+
+void gcore_fastedge_key_value_result_list_result_error_free(gcore_fastedge_key_value_result_list_result_error_t *ptr);
+
+void gcore_fastedge_key_value_result_zlist_result_error_free(gcore_fastedge_key_value_result_zlist_result_error_t *ptr);
+
+void gcore_fastedge_key_value_result_bool_error_free(gcore_fastedge_key_value_result_bool_error_t *ptr);
+
 void bindings_tuple2_string_string_free(bindings_tuple2_string_string_t *ptr);
 
 void bindings_list_tuple2_string_string_free(bindings_list_tuple2_string_string_t *ptr);
-
-void bindings_list_string_free(bindings_list_string_t *ptr);
 
 void wasi_cli_exit_result_void_void_free(wasi_cli_exit_result_void_void_t *ptr);
 
