@@ -27,8 +27,13 @@ extern void __wasm_import_gcore_fastedge_key_value_method_store_get(int32_t, uin
 __attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.scan")))
 extern void __wasm_import_gcore_fastedge_key_value_method_store_scan(int32_t, uint8_t *, size_t, uint8_t *);
 
+<<<<<<< HEAD
 __attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.zrange")))
 extern void __wasm_import_gcore_fastedge_key_value_method_store_zrange(int32_t, uint8_t *, size_t, double, double, uint8_t *);
+=======
+__attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.zrange-by-score")))
+extern void __wasm_import_gcore_fastedge_key_value_method_store_zrange_by_score(int32_t, uint8_t *, size_t, double, double, uint8_t *);
+>>>>>>> wit-submodule
 
 __attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[method]store.zscan")))
 extern void __wasm_import_gcore_fastedge_key_value_method_store_zscan(int32_t, uint8_t *, size_t, uint8_t *, size_t, uint8_t *);
@@ -662,6 +667,7 @@ void gcore_fastedge_key_value_value_free(gcore_fastedge_key_value_value_t *ptr) 
   }
 }
 
+<<<<<<< HEAD
 void gcore_fastedge_key_value_list_result_free(gcore_fastedge_key_value_list_result_t *ptr) {
   size_t list_len = ptr->len;
   if (list_len > 0) {
@@ -688,6 +694,8 @@ void gcore_fastedge_key_value_zlist_result_free(gcore_fastedge_key_value_zlist_r
   }
 }
 
+=======
+>>>>>>> wit-submodule
 __attribute__((__import_module__("gcore:fastedge/key-value"), __import_name__("[resource-drop]store")))
 extern void __wasm_import_gcore_fastedge_key_value_store_drop(int32_t handle);
 
@@ -748,6 +756,7 @@ void gcore_fastedge_key_value_result_list_string_error_free(gcore_fastedge_key_v
   }
 }
 
+<<<<<<< HEAD
 void gcore_fastedge_key_value_result_list_result_error_free(gcore_fastedge_key_value_result_list_result_error_t *ptr) {
   if (!ptr->is_err) {
     gcore_fastedge_key_value_list_result_free(&ptr->val.ok);
@@ -759,6 +768,26 @@ void gcore_fastedge_key_value_result_list_result_error_free(gcore_fastedge_key_v
 void gcore_fastedge_key_value_result_zlist_result_error_free(gcore_fastedge_key_value_result_zlist_result_error_t *ptr) {
   if (!ptr->is_err) {
     gcore_fastedge_key_value_zlist_result_free(&ptr->val.ok);
+=======
+void bindings_tuple2_value_f64_free(bindings_tuple2_value_f64_t *ptr) {
+  gcore_fastedge_key_value_value_free(&ptr->f0);
+}
+
+void bindings_list_tuple2_value_f64_free(bindings_list_tuple2_value_f64_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    bindings_tuple2_value_f64_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      bindings_tuple2_value_f64_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_fastedge_key_value_result_list_tuple2_value_f64_error_free(gcore_fastedge_key_value_result_list_tuple2_value_f64_error_t *ptr) {
+  if (!ptr->is_err) {
+    bindings_list_tuple2_value_f64_free(&ptr->val.ok);
+>>>>>>> wit-submodule
   } else {
     gcore_fastedge_key_value_error_free(&ptr->val.err);
   }
@@ -2069,6 +2098,7 @@ bool gcore_fastedge_key_value_method_store_scan(gcore_fastedge_key_value_borrow_
   }
 }
 
+<<<<<<< HEAD
 bool gcore_fastedge_key_value_method_store_zrange(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, double min, double max, gcore_fastedge_key_value_list_result_t *ret, gcore_fastedge_key_value_error_t *err) {
   __attribute__((__aligned__(4)))
   uint8_t ret_area[16];
@@ -2079,6 +2109,18 @@ bool gcore_fastedge_key_value_method_store_zrange(gcore_fastedge_key_value_borro
     case 0: {
       result.is_err = false;
       result.val.ok = (gcore_fastedge_key_value_list_result_t) { (gcore_fastedge_key_value_value_t*)(*((uint8_t **) (ptr + 4))), (*((size_t*) (ptr + 8))) };
+=======
+bool gcore_fastedge_key_value_method_store_zrange_by_score(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, double min, double max, bindings_list_tuple2_value_f64_t *ret, gcore_fastedge_key_value_error_t *err) {
+  __attribute__((__aligned__(4)))
+  uint8_t ret_area[16];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_key_value_method_store_zrange_by_score((self).__handle, (uint8_t *) (*key).ptr, (*key).len, min, max, ptr);
+  gcore_fastedge_key_value_result_list_tuple2_value_f64_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (bindings_list_tuple2_value_f64_t) { (bindings_tuple2_value_f64_t*)(*((uint8_t **) (ptr + 4))), (*((size_t*) (ptr + 8))) };
+>>>>>>> wit-submodule
       break;
     }
     case 1: {
@@ -2114,16 +2156,28 @@ bool gcore_fastedge_key_value_method_store_zrange(gcore_fastedge_key_value_borro
   }
 }
 
+<<<<<<< HEAD
 bool gcore_fastedge_key_value_method_store_zscan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *pattern, gcore_fastedge_key_value_zlist_result_t *ret, gcore_fastedge_key_value_error_t *err) {
+=======
+bool gcore_fastedge_key_value_method_store_zscan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *pattern, bindings_list_tuple2_value_f64_t *ret, gcore_fastedge_key_value_error_t *err) {
+>>>>>>> wit-submodule
   __attribute__((__aligned__(4)))
   uint8_t ret_area[16];
   uint8_t *ptr = (uint8_t *) &ret_area;
   __wasm_import_gcore_fastedge_key_value_method_store_zscan((self).__handle, (uint8_t *) (*key).ptr, (*key).len, (uint8_t *) (*pattern).ptr, (*pattern).len, ptr);
+<<<<<<< HEAD
   gcore_fastedge_key_value_result_zlist_result_error_t result;
   switch ((int32_t) *((uint8_t*) (ptr + 0))) {
     case 0: {
       result.is_err = false;
       result.val.ok = (gcore_fastedge_key_value_zlist_result_t) { (bindings_tuple2_value_f64_t*)(*((uint8_t **) (ptr + 4))), (*((size_t*) (ptr + 8))) };
+=======
+  gcore_fastedge_key_value_result_list_tuple2_value_f64_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (bindings_list_tuple2_value_f64_t) { (bindings_tuple2_value_f64_t*)(*((uint8_t **) (ptr + 4))), (*((size_t*) (ptr + 8))) };
+>>>>>>> wit-submodule
       break;
     }
     case 1: {

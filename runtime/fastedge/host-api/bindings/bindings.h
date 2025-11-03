@@ -47,6 +47,7 @@ typedef struct gcore_fastedge_key_value_value_t {
   size_t len;
 } gcore_fastedge_key_value_value_t;
 
+<<<<<<< HEAD
 typedef struct gcore_fastedge_key_value_list_result_t {
   gcore_fastedge_key_value_value_t   *ptr;
   size_t len;
@@ -62,6 +63,8 @@ typedef struct gcore_fastedge_key_value_zlist_result_t {
   size_t len;
 } gcore_fastedge_key_value_zlist_result_t;
 
+=======
+>>>>>>> wit-submodule
 typedef struct gcore_fastedge_key_value_own_store_t {
   int32_t __handle;
 } gcore_fastedge_key_value_own_store_t;
@@ -123,20 +126,38 @@ typedef struct {
 } gcore_fastedge_key_value_result_list_string_error_t;
 
 typedef struct {
+<<<<<<< HEAD
   bool is_err;
   union {
     gcore_fastedge_key_value_list_result_t ok;
     gcore_fastedge_key_value_error_t err;
   } val;
 } gcore_fastedge_key_value_result_list_result_error_t;
+=======
+  gcore_fastedge_key_value_value_t f0;
+  double f1;
+} bindings_tuple2_value_f64_t;
+
+typedef struct {
+  bindings_tuple2_value_f64_t *ptr;
+  size_t len;
+} bindings_list_tuple2_value_f64_t;
+>>>>>>> wit-submodule
 
 typedef struct {
   bool is_err;
   union {
+<<<<<<< HEAD
     gcore_fastedge_key_value_zlist_result_t ok;
     gcore_fastedge_key_value_error_t err;
   } val;
 } gcore_fastedge_key_value_result_zlist_result_error_t;
+=======
+    bindings_list_tuple2_value_f64_t ok;
+    gcore_fastedge_key_value_error_t err;
+  } val;
+} gcore_fastedge_key_value_result_list_tuple2_value_f64_error_t;
+>>>>>>> wit-submodule
 
 typedef struct {
   bool is_err;
@@ -1437,15 +1458,28 @@ extern bool gcore_fastedge_key_value_method_store_get(gcore_fastedge_key_value_b
 // 
 // Returns an array of elements as a list of keys.
 extern bool gcore_fastedge_key_value_method_store_scan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *pattern, bindings_list_string_t *ret, gcore_fastedge_key_value_error_t *err);
+<<<<<<< HEAD
 // Get the values associated with the specified `key` stored in sorted set ordered by f64 score
 // 
 // Returns empty `Vec` if the key does not exist or min and max are out of index.
 extern bool gcore_fastedge_key_value_method_store_zrange(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, double min, double max, gcore_fastedge_key_value_list_result_t *ret, gcore_fastedge_key_value_error_t *err);
+=======
+// Get all the elements with score from the sorted set at `key` with a f64 score between min and max
+// (including elements with score equal to min or max). The elements are considered to be ordered from low to high
+// scores.
+// 
+// Returns empty `Vec` if the key does not exist or if no elements have scores between min and max.
+extern bool gcore_fastedge_key_value_method_store_zrange_by_score(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, double min, double max, bindings_list_tuple2_value_f64_t *ret, gcore_fastedge_key_value_error_t *err);
+>>>>>>> wit-submodule
 // Interface to scan through a sorted set by key
 // It matches glob-style pattern filter on each elements from the retrieved collection.
 // 
 // Returns an array of elements as a list of value of the Sorted Set.
+<<<<<<< HEAD
 extern bool gcore_fastedge_key_value_method_store_zscan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *pattern, gcore_fastedge_key_value_zlist_result_t *ret, gcore_fastedge_key_value_error_t *err);
+=======
+extern bool gcore_fastedge_key_value_method_store_zscan(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *pattern, bindings_list_tuple2_value_f64_t *ret, gcore_fastedge_key_value_error_t *err);
+>>>>>>> wit-submodule
 // Determines whether a given item was added to a Bloom filter.
 // 
 // Returns one of these replies: 'true' means that, with high probability, item was already added to the filter,
@@ -1972,12 +2006,15 @@ void gcore_fastedge_secret_result_option_string_error_free(gcore_fastedge_secret
 
 void gcore_fastedge_key_value_value_free(gcore_fastedge_key_value_value_t *ptr);
 
+<<<<<<< HEAD
 void gcore_fastedge_key_value_list_result_free(gcore_fastedge_key_value_list_result_t *ptr);
 
 void bindings_tuple2_value_f64_free(bindings_tuple2_value_f64_t *ptr);
 
 void gcore_fastedge_key_value_zlist_result_free(gcore_fastedge_key_value_zlist_result_t *ptr);
 
+=======
+>>>>>>> wit-submodule
 extern void gcore_fastedge_key_value_store_drop_own(gcore_fastedge_key_value_own_store_t handle);
 
 extern gcore_fastedge_key_value_borrow_store_t gcore_fastedge_key_value_borrow_store(gcore_fastedge_key_value_own_store_t handle);
@@ -1994,9 +2031,17 @@ void bindings_list_string_free(bindings_list_string_t *ptr);
 
 void gcore_fastedge_key_value_result_list_string_error_free(gcore_fastedge_key_value_result_list_string_error_t *ptr);
 
+<<<<<<< HEAD
 void gcore_fastedge_key_value_result_list_result_error_free(gcore_fastedge_key_value_result_list_result_error_t *ptr);
 
 void gcore_fastedge_key_value_result_zlist_result_error_free(gcore_fastedge_key_value_result_zlist_result_error_t *ptr);
+=======
+void bindings_tuple2_value_f64_free(bindings_tuple2_value_f64_t *ptr);
+
+void bindings_list_tuple2_value_f64_free(bindings_list_tuple2_value_f64_t *ptr);
+
+void gcore_fastedge_key_value_result_list_tuple2_value_f64_error_free(gcore_fastedge_key_value_result_list_tuple2_value_f64_error_t *ptr);
+>>>>>>> wit-submodule
 
 void gcore_fastedge_key_value_result_bool_error_free(gcore_fastedge_key_value_result_bool_error_t *ptr);
 
