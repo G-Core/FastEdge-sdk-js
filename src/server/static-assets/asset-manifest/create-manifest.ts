@@ -80,7 +80,7 @@ function normalizeAssetCacheConfig(config: Partial<AssetCacheConfig>): AssetCach
   return normalizeConfig<AssetCacheConfig>(config, {
     publicDir: 'path',
     assetManifestPath: 'path',
-    contentTypes: 'string',
+    contentTypes: 'stringArray',
     ignoreDotFiles: 'booleanTruthy',
     ignorePaths: 'pathsArray',
     ignoreWellKnown: 'booleanFalsy',
