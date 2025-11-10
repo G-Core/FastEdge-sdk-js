@@ -56,12 +56,7 @@ function removeFastEdgeDepsWeDontUse(fastedgeDepsDir) {
       return !line.includes(` ${dep};`);
     });
   }
-  // Rename the world as per our sdk's usage
-  const worldWitContent = worldWitContentLines
-    .join('\n')
-    .replace('world reactor {', 'world imports {');
-
-  fs.writeFileSync(fastedgeWorldWitFile, worldWitContent, 'utf-8');
+  fs.writeFileSync(fastedgeWorldWitFile, worldWitContentLines.join('\n'), 'utf-8');
 }
 
 function mergeFastEdgeWitFiles() {
@@ -81,7 +76,7 @@ function mergeFastEdgeWitFiles() {
 
   const updatedMainWitContent = mainWitContent.replace(
     'world bindings {\n',
-    `world bindings {\n  include gcore:fastedge/imports;\n`,
+    `world bindings {\n  include gcore:fastedge/reactor;\n`,
   );
   fs.writeFileSync(mainWitFile, updatedMainWitContent, 'utf-8');
   console.log(`WIT files successfully created in ${witDir}`);

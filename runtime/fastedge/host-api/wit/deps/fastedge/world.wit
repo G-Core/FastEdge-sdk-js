@@ -1,6 +1,6 @@
 package gcore:fastedge;
 
-world imports {
+world reactor {
 
     import dictionary;
     import secret;

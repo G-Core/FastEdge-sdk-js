@@ -120,39 +120,6 @@ async function componentize(
 
   await writeFile(output, generatedComponent);
   await addWasmMetadata(output);
-
-  /*
-   * WASM-tools compile
-   * */
-  /*
-  // Validate wasm-tools vs BytecodeAlliance/jco
-  const adapter = npxPackagePath('./lib/preview1-adapter.wasm');
-
-  // Use wasm-tools directly to enable reference types
-  const wasmToolsProcess = spawnSync(
-    'wasm-tools',
-    [
-      'component',
-      'new',
-      '--features',
-      'reference-types',
-      '--adapt',
-      `wasi_snapshot_preview1=${adapter}`,
-      '--output',
-      output,
-      output,
-    ],
-    {
-      stdio: [null, process.stdout, process.stderr],
-      encoding: 'utf-8',
-    },
-  );
-
-  if (wasmToolsProcess.status !== 0) {
-    throw new Error(`wasm-tools component new failed with status ${wasmToolsProcess.status}`);
-  }
-  await addWasmMetadata(output);
-  */
 }
 
 export { componentize };

@@ -12,7 +12,7 @@ public:
   static bool open(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool get(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool scan(JSContext *cx, unsigned argc, JS::Value *vp);
-  static bool zrange(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool zrange_by_score(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool zscan(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool bf_exists(JSContext *cx, unsigned argc, JS::Value *vp);
 

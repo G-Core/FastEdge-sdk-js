@@ -59,15 +59,25 @@ declare module 'fastedge::kv' {
     scan(pattern: string): Array<string>;
 
     /**
-     * Retrieves all the values between the given range from the KV stores ZSet.
+     * Retrieves all the values from ZSet with scores between the given range.
      *
      * @param {string} key  The key for the Sorted Set.
-     * @param {number} min  The minimum value for the range.
-     * @param {number} max  The maximum value for the range.
+     * @param {number} min  The minimum score for the range.
+     * @param {number} max  The maximum score for the range.
      *
-     * @returns {Array<ArrayBuffer>} The values within range for the key, or an empty array if none found.
+     * @returns {Array<[ArrayBuffer, number]>} Array of [value, score] tuples within range for the key, or an empty array if none found.
      */
-    zrange(key: string, min: number, max: number): Array<ArrayBuffer>;
+    zrangeByScore(key: string, min: number, max: number): Array<[ArrayBuffer, number]>;
+
+    /**
+     * Retrieves all value prefix matches from the KV ZSet.
+     *
+     * @param {string} key  The key for the Sorted Set.
+     * @param {string} pattern  The prefix pattern to match values against. e.g. 'foo*' ( Must include wildcard )
+     *
+     * @returns {Array<[ArrayBuffer, number]>} Array of [value, score] tuples which match the prefix pattern, or an empty array if none found.
+     */
+    zscan(key: string, pattern: string): Array<[ArrayBuffer, number]>;
 
     /**
      * Checks if a given value exists within the KV stores Bloom Filter.

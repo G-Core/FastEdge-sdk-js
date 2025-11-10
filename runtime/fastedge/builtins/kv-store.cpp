@@ -31,7 +31,7 @@ const JSFunctionSpec KvStore::static_methods[] = {
 const JSFunctionSpec KvStore::methods[] = {
     JS_FN("get", KvStore::get, 1, JSPROP_ENUMERATE),
     JS_FN("scan", KvStore::scan, 1, JSPROP_ENUMERATE),
-    JS_FN("zrange", KvStore::zrange, 3, JSPROP_ENUMERATE),
+    JS_FN("zrangeByScore", KvStore::zrange_by_score, 3, JSPROP_ENUMERATE),
     JS_FN("zscan", KvStore::zscan, 2, JSPROP_ENUMERATE),
     JS_FN("bfExists", KvStore::bf_exists, 2, JSPROP_ENUMERATE),
     JS_FS_END
@@ -73,7 +73,6 @@ bool KvStore::open(JSContext *cx, unsigned argc, JS::Value *vp) {
     if (!result.is_ok()) {
         // Handle error cases
         auto error = result.unwrap_err();
-        printf("Farq:DEBUG Opening ERROR Result: >>> %d\n", error.tag);
         switch (error.tag) {
             case host_api::KvStoreErrorTag::NO_SUCH_STORE:
                 JS_ReportErrorUTF8(cx, "No such store: %s", store_name.get());
@@ -90,33 +89,6 @@ bool KvStore::open(JSContext *cx, unsigned argc, JS::Value *vp) {
         }
         return false;
     }
-
-    // Error Object
-    // if (!result.is_ok()) {
-    //     // Handle error cases
-    //     auto error = result.unwrap_err();
-    //     printf("Farq:DEBUG Opening ERROR Result: >>> %d\n", error.tag);
-    //     JS::RootedObject errorObj(cx, JS_NewPlainObject(cx));
-    //     const char* msg = nullptr;
-    //     switch (error.tag) {
-    //         case host_api::KvStoreErrorTag::NO_SUCH_STORE:
-    //             msg = "No such store";
-    //             break;
-    //         case host_api::KvStoreErrorTag::ACCESS_DENIED:
-    //             msg = "Access denied";
-    //             break;
-    //         case host_api::KvStoreErrorTag::INTERNAL_ERROR:
-    //             msg = "Internal error";
-    //             break;
-    //         case host_api::KvStoreErrorTag::OTHER:
-    //             msg = error.val.other.ptr ? error.val.other.ptr : "Unknown error";
-    //             break;
-    //     }
-    //     JS::RootedValue msgVal(cx, JS::StringValue(JS_NewStringCopyZ(cx, msg)));
-    //     JS_SetProperty(cx, errorObj, "error", msgVal);
-    //     args.rval().setObject(*errorObj);
-    //     return true;
-    // }
 
     int32_t store_handle = result.unwrap();
 
@@ -256,10 +228,10 @@ bool KvStore::scan(JSContext *cx, unsigned argc, JS::Value *vp) {
     return true;
 }
 
-bool KvStore::zrange(JSContext *cx, unsigned argc, JS::Value *vp) {
+bool KvStore::zrange_by_score(JSContext *cx, unsigned argc, JS::Value *vp) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!args.requireAtLeast(cx, "zrange", 3)) {
+    if (!args.requireAtLeast(cx, "zrangeByScore", 3)) {
         return false;
     }
 
@@ -286,23 +258,24 @@ bool KvStore::zrange(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    auto result = host_api::kv_store_zrange(store->store_handle_, key.get(), min, max);
+    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, key.get(), min, max);
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error in zrange for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error in zrangeByScore for key: %s", key.get());
         return false;
     }
 
-    auto values = result.unwrap();
+    auto tuples = result.unwrap();
 
-    // Create JavaScript array of Uint8Arrays
-    JS::RootedObject values_array(cx, JS::NewArrayObject(cx, values.len));
-    if (!values_array) {
+    // Create array of [value, score] tuples
+    JS::RootedObject tuples_array(cx, JS::NewArrayObject(cx, tuples.len));
+    if (!tuples_array) {
         return false;
     }
 
-    for (size_t i = 0; i < values.len; i++) {
-        JS::RootedObject byte_array(cx, JS_NewUint8Array(cx, values.ptr[i].len));
+    for (size_t i = 0; i < tuples.len; i++) {
+        // Create the value Uint8Array
+        JS::RootedObject byte_array(cx, JS_NewUint8Array(cx, tuples.ptr[i].f0.len));
         if (!byte_array) {
             return false;
         }
@@ -311,16 +284,30 @@ bool KvStore::zrange(JSContext *cx, unsigned argc, JS::Value *vp) {
             JS::AutoCheckCannotGC noGC(cx);
             bool is_shared;
             void *array_buffer = JS_GetArrayBufferViewData(byte_array, &is_shared, noGC);
-            memcpy(array_buffer, values.ptr[i].ptr, values.ptr[i].len);
+            memcpy(array_buffer, tuples.ptr[i].f0.ptr, tuples.ptr[i].f0.len);
+        }
+
+        // Create tuple [value, score]
+        JS::RootedObject tuple(cx, JS::NewArrayObject(cx, 2));
+        if (!tuple) {
+            return false;
         }
 
         JS::RootedValue value_val(cx, JS::ObjectValue(*byte_array));
-        if (!JS_SetElement(cx, values_array, i, value_val)) {
+        JS::RootedValue score_val(cx, JS::DoubleValue(tuples.ptr[i].f1));
+
+        if (!JS_SetElement(cx, tuple, 0, value_val) ||
+            !JS_SetElement(cx, tuple, 1, score_val)) {
+            return false;
+        }
+
+        JS::RootedValue tuple_val(cx, JS::ObjectValue(*tuple));
+        if (!JS_SetElement(cx, tuples_array, i, tuple_val)) {
             return false;
         }
     }
 
-    args.rval().setObject(*values_array);
+    args.rval().setObject(*tuples_array);
     return true;
 }
 

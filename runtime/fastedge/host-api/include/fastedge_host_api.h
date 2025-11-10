@@ -111,7 +111,7 @@ struct KvStoreStringList {
 KvStoreResult<int32_t> kv_store_open(std::string_view name);
 KvStoreResult<KvStoreOption<KvStoreValue>> kv_store_get(int32_t store_handle, std::string_view key);
 KvStoreResult<KvStoreStringList> kv_store_scan(int32_t store_handle, std::string_view pattern);
-KvStoreResult<KvStoreList> kv_store_zrange(int32_t store_handle, std::string_view key, double min, double max);
+KvStoreResult<KvStoreZList> kv_store_zrange_by_score(int32_t store_handle, std::string_view key, double min, double max);
 KvStoreResult<KvStoreZList> kv_store_zscan(int32_t store_handle, std::string_view key, std::string_view pattern);
 KvStoreResult<bool> kv_store_bf_exists(int32_t store_handle, std::string_view key, std::string_view item);
 

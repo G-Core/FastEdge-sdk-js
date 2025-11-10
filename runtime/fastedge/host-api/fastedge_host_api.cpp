@@ -81,19 +81,11 @@ KvStoreResult<int32_t> kv_store_open(std::string_view name) {
   memset(&err, 0, sizeof(err));
   memset(&store, 0, sizeof(store));
 
-  printf("Farq:DEBUG About to call gcore_fastedge_key_value_static_store_open for store: %.*s\n",
-         (int)name.length(), name.data());
-
   bool success = gcore_fastedge_key_value_static_store_open(&name_str, &store, &err);
 
-  printf("Farq:DEBUG WIT call returned success=%s, err.tag=%u, store.__handle=%d\n",
-         success ? "true" : "false", err.tag, store.__handle);
-
   if (success) {
-    printf("Farq:DEBUG Success! Returning store handle: %d\n", store.__handle);
     return KvStoreResult<int32_t>::ok(store.__handle);
   } else {
-    printf("Farq:DEBUG Error! err.tag=%u (expected: NO_SUCH_STORE=0, ACCESS_DENIED=1, INTERNAL=2, OTHER=3)\n", err.tag);
     KvStoreError error;
     error.tag = static_cast<KvStoreErrorTag>(err.tag);
     if (err.tag == GCORE_FASTEDGE_KEY_VALUE_ERROR_OTHER) {
@@ -156,19 +148,19 @@ KvStoreResult<KvStoreStringList> kv_store_scan(int32_t store_handle, std::string
   }
 }
 
-KvStoreResult<KvStoreList> kv_store_zrange(int32_t store_handle, std::string_view key, double min, double max) {
+KvStoreResult<KvStoreZList> kv_store_zrange_by_score(int32_t store_handle, std::string_view key, double min, double max) {
   auto key_str = string_view_to_world_string(key);
   gcore_fastedge_key_value_borrow_store_t store = {store_handle};
-  gcore_fastedge_key_value_list_result_t ret{};
+  bindings_list_tuple2_value_f64_t ret{};
   gcore_fastedge_key_value_error_t err{};
 
-  bool success = gcore_fastedge_key_value_method_store_zrange(store, &key_str, min, max, &ret, &err);
+  bool success = gcore_fastedge_key_value_method_store_zrange_by_score(store, &key_str, min, max, &ret, &err);
 
   if (success) {
-    KvStoreList result;
-    result.ptr = reinterpret_cast<KvStoreValue*>(ret.ptr);
+    KvStoreZList result;
+    result.ptr = reinterpret_cast<KvStoreTuple*>(ret.ptr);
     result.len = ret.len;
-    return KvStoreResult<KvStoreList>::ok(result);
+    return KvStoreResult<KvStoreZList>::ok(result);
   } else {
     KvStoreError error;
     error.tag = static_cast<KvStoreErrorTag>(err.tag);
@@ -176,7 +168,7 @@ KvStoreResult<KvStoreList> kv_store_zrange(int32_t store_handle, std::string_vie
       error.val.other.ptr = (char*)err.val.other.ptr;
       error.val.other.len = err.val.other.len;
     }
-    return KvStoreResult<KvStoreList>::err(error);
+    return KvStoreResult<KvStoreZList>::err(error);
   }
 }
 
@@ -184,7 +176,7 @@ KvStoreResult<KvStoreZList> kv_store_zscan(int32_t store_handle, std::string_vie
   auto key_str = string_view_to_world_string(key);
   auto pattern_str = string_view_to_world_string(pattern);
   gcore_fastedge_key_value_borrow_store_t store = {store_handle};
-  gcore_fastedge_key_value_zlist_result_t ret{};
+  bindings_list_tuple2_value_f64_t ret{};
   gcore_fastedge_key_value_error_t err{};
 
   bool success = gcore_fastedge_key_value_method_store_zscan(store, &key_str, &pattern_str, &ret, &err);
