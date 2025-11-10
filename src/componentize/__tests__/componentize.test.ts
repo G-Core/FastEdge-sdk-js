@@ -68,6 +68,7 @@ describe('componentize', () => {
       [
         '--allow-wasi',
         '--wasm-bulk-memory=true',
+        '--wasm-reference-types=true',
         '--inherit-env=true',
         '--dir=.',
         '--dir=temp_root',
