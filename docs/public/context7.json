@@ -86,8 +86,8 @@
     "respectRobotsTxt": true,
     "crawlDelay": 1000,
     "maxPages": 500,
-    "includePatterns": ["/guides/**", "/reference/**", "/examples/**", "/migrating/**"],
-    "excludePatterns": ["/404", "/**/*.pdf", "/**/*.zip"]
+    "includePatterns": ["/FastEdge-sdk-js/guides/**", "/FastEdge-sdk-js/reference/**", "/FastEdge-sdk-js/examples/**", "/FastEdge-sdk-js/migrating/**"],
+    "excludePatterns": ["/FastEdge-sdk-js/404", "/FastEdge-sdk-js/**/*.pdf", "/FastEdge-sdk-js/**/*.zip"]
   },
   "processing": {
     "removeNavigationDuplicates": true,
