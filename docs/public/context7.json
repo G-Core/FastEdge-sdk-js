@@ -1,0 +1,98 @@
+{
+  "name": "FastEdge SDK JS Documentation",
+  "description": "Complete documentation for G-Core's FastEdge JavaScript SDK including API reference and guides",
+  "version": "1.0.0",
+  "parsing": {
+    "includeCollapsed": true,
+    "expandNavigationMenus": true,
+    "includeCodeExamples": true,
+    "includeMetadata": true
+  },
+  "navigation": {
+    "autoExpand": ["Reference", "FastEdge::secret", "FastEdge::kv", "KV Instance", "Migrating"],
+    "prioritySections": ["Getting Started", "Reference", "Examples"],
+    "includeSections": {
+      "gettingStarted": {
+        "include": true,
+        "priority": "high",
+        "sections": [
+          "FastEdge",
+          "FastEdge-sdk-js",
+          "Installation",
+          "Creating a Wasm",
+          "Building with config",
+          "Serving a static site",
+          "Creating static assets"
+        ]
+      },
+      "reference": {
+        "include": true,
+        "priority": "high",
+        "expandAll": true,
+        "sections": [
+          "Overview",
+          "FastEdge::env",
+          "FastEdge::secret",
+          "FastEdge::kv",
+          "Headers",
+          "Request",
+          "Response"
+        ],
+        "subSections": {
+          "FastEdge::secret": {
+            "include": true,
+            "expandAll": true,
+            "items": ["getSecret", "getSecretEffectiveAt"]
+          },
+          "FastEdge::kv": {
+            "include": true,
+            "expandAll": true,
+            "items": ["KvStore.open()", "KV Instance"],
+            "subSections": {
+              "KV Instance": {
+                "include": true,
+                "expandAll": true,
+                "items": ["get / scan", "zrange / zscan", "bfExists"]
+              }
+            }
+          }
+        }
+      },
+      "examples": {
+        "include": true,
+        "priority": "medium"
+      },
+      "migrating": {
+        "include": true,
+        "priority": "medium",
+        "expandAll": true
+      }
+    }
+  },
+  "content": {
+    "includeCodeBlocks": true,
+    "includeApiSignatures": true,
+    "includeExamples": true,
+    "includeTypeDefinitions": true,
+    "maxDepth": 5
+  },
+  "seo": {
+    "baseUrl": "https://g-core.github.io/FastEdge-sdk-js",
+    "sitemap": true,
+    "robots": "index,follow"
+  },
+  "crawling": {
+    "followInternalLinks": true,
+    "respectRobotsTxt": true,
+    "crawlDelay": 1000,
+    "maxPages": 500,
+    "includePatterns": ["/guides/**", "/reference/**", "/examples/**", "/migrating/**"],
+    "excludePatterns": ["/404", "/**/*.pdf", "/**/*.zip"]
+  },
+  "processing": {
+    "removeNavigationDuplicates": true,
+    "normalizeWhitespace": true,
+    "preserveCodeFormatting": true,
+    "extractMetaTags": true
+  }
+}
