@@ -194,7 +194,6 @@ bool install(api::Engine *engine) {
     return false;
   }
 
-
   // Ensure that the fastedge objects are not garbage collected and modules are defined
   // fastedge:env
   RootedValue get_env_val(engine->cx());

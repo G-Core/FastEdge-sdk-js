@@ -28,6 +28,13 @@ const fastedgePackagePlugin: Plugin = {
             `,
           };
         }
+        case 'kv': {
+          return {
+            contents: `
+            export const KvStore = globalThis.KvStore;
+            `,
+          };
+        }
         default: {
           return { contents: '' };
         }

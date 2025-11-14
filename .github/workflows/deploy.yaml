@@ -33,6 +33,10 @@ jobs:
             exit 1
           fi
 
+  fossa:
+    needs: [validate_branch_name]
+    uses: ./.github/workflows/fossa.yaml
+
   code_validation:
     needs: [validate_branch_name]
     uses: ./.github/workflows/code-validation.yaml
