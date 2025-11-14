@@ -7,8 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const HOST_VERSIONS = ['0.2.0', '0.2.2', '0.2.3'];
 const dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../');
-const witDir = path.join(dirname, 'wit');
-const starlingHostApisDir = path.resolve(dirname, '../../StarlingMonkey/host-apis');
+const witDir = path.join(dirname, 'host-api/wit');
+const starlingHostApisDir = path.resolve(dirname, '../StarlingMonkey/host-apis');
+const fastedgeWitDir = path.resolve(dirname, '../FastEdge-wit');
+const fastedgeDepsToRemove = ['http-client', 'http-handler', 'http']; // These are Rust specific. we use wasi-http
 
 function clearExistingWitFiles() {
   // Remove all files from the ./wit directory
@@ -40,17 +42,41 @@ function copyWitFilesFromHostApi(wasiHostVersion) {
   copyFilesRecursively(hostApiWitDir, witDir);
 }
 
+function removeFastEdgeDepsWeDontUse(fastedgeDepsDir) {
+  const fastedgeWorldWitFile = path.join(fastedgeDepsDir, 'world.wit');
+  const fastedgeWorldWitContent = fs.readFileSync(fastedgeWorldWitFile, 'utf-8');
+
+  let worldWitContentLines = fastedgeWorldWitContent.split('\n');
+
+  for (const dep of fastedgeDepsToRemove) {
+    // Remove the file for the given dependency.
+    fs.unlinkSync(path.join(fastedgeDepsDir, `${dep}.wit`));
+    //Remove its import/export inclusion in the world.
+    worldWitContentLines = worldWitContentLines.filter((line) => {
+      return !line.includes(` ${dep};`);
+    });
+  }
+  fs.writeFileSync(fastedgeWorldWitFile, worldWitContentLines.join('\n'), 'utf-8');
+}
+
 function mergeFastEdgeWitFiles() {
-  // Copy files from wit-interface/fastedge to ./wit/deps
-  const fastedgeDepsDir = path.join(dirname, 'deps');
-  copyFilesRecursively(fastedgeDepsDir, path.join(witDir, 'deps'));
+  // Copy files from FastEdge-wit submodule to deps/fastedge
+  const fastedgeDepsDir = path.join(witDir, 'deps/fastedge');
+  fs.mkdirSync(fastedgeDepsDir, { recursive: true });
+  copyFilesRecursively(fastedgeWitDir, fastedgeDepsDir);
+  // Remove the files we dont use in FastEdge-sdk-js
+  removeFastEdgeDepsWeDontUse(fastedgeDepsDir);
+  // Remove extra files from submodule
+  fs.unlinkSync(path.join(fastedgeDepsDir, 'LICENSE'));
+  fs.unlinkSync(path.join(fastedgeDepsDir, 'README.md'));
+
   // Edit ./wit/main.wit to include the fastedge deps
   const mainWitFile = path.join(witDir, 'main.wit');
   const mainWitContent = fs.readFileSync(mainWitFile, 'utf-8');
 
   const updatedMainWitContent = mainWitContent.replace(
     'world bindings {\n',
-    `world bindings {\n  include gcore:fastedge/imports;\n`,
+    `world bindings {\n  include gcore:fastedge/reactor;\n`,
   );
   fs.writeFileSync(mainWitFile, updatedMainWitContent, 'utf-8');
   console.log(`WIT files successfully created in ${witDir}`);

@@ -73,6 +73,7 @@ async function componentize(
       [
         '--allow-wasi',
         '--wasm-bulk-memory=true',
+        '--wasm-reference-types=true',
         '--inherit-env=true',
         '--dir=.',
         // '--dir=../', // Farq: NEED to iterate config file and add these paths for static building...
@@ -109,6 +110,7 @@ async function componentize(
     cleanup();
   }
 
+  // Core component creation code (commented out for now)
   const coreComponent = await readFile(output);
   const adapter = npxPackagePath('./lib/preview1-adapter.wasm');
 

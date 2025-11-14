@@ -1,0 +1,7 @@
+/* Custom styles for specific Starlight sidebar items */
+
+/* Target only nested details (sub-sections) */
+.sidebar-content details details > summary > div > span {
+  font-weight: normal !important;
+  font-size: var(--sl-text-sm) !important;
+}
