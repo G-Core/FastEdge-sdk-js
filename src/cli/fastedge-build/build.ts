@@ -49,6 +49,7 @@ try {
     },
   ) as ParsedArgs;
 } catch (error: unknown) {
+  console.error('Farq: errror parsing args', error);
   const errorMessage = (error as Error).toString();
   if (errorMessage.includes('option requires argument: -c')) {
     // Set default config file - buildFromConfigFiles() will do error handling
@@ -62,6 +63,8 @@ try {
 
 const hasFileInputsOnly =
   (args._.length === 1 || args._.length === 2) && Object.keys(args).length === 1;
+
+console.error('Farq: hasFileInputsOnly', hasFileInputsOnly);
 
 const hasOptionsOnly = Object.keys(args).length > 1 && args._.length === 0;
 const hasValidInput = hasFileInputsOnly || hasOptionsOnly;
@@ -100,7 +103,19 @@ if (args._.length === 1) {
   configFiles = args._;
 }
 
+console.error(
+  'Farq: inputFileName',
+  inputFileName,
+  'outputFileName',
+  outputFileName,
+  'tsConfigPath',
+  tsConfigPath,
+  'configFiles',
+  configFiles,
+);
+
 if (inputFileName && outputFileName) {
+  console.warn('Farq: has only inputs - run build wasm');
   await buildWasm({
     entryPoint: inputFileName,
     wasmOutput: outputFileName,

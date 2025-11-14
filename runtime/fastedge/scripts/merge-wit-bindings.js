@@ -79,7 +79,7 @@ function mergeFastEdgeWitFiles() {
     `world bindings {\n  include gcore:fastedge/reactor;\n`,
   );
   fs.writeFileSync(mainWitFile, updatedMainWitContent, 'utf-8');
-  console.log(`WIT files successfully created in ${witDir}`);
+  console.info(`WIT files successfully created in ${witDir}`);
 }
 
 function main() {

@@ -50,11 +50,14 @@ async function componentize(
   } = opts;
 
   const jsPath = resolveOsPath(process.cwd(), jsInput);
+  console.warn('Farq: componentize >> jsPath', jsPath);
   const wasmOutputDir = resolveOsPath(process.cwd(), output);
+  console.warn('Farq: componentize >> wasmOutputDir', wasmOutputDir);
 
   await validateFileExists(wasmEngine);
 
   const contents = await getJsInputContents(jsPath, preBundleJSInput);
+  console.warn('Farq: componentize >> contents', contents);
   const application = precompile(contents);
 
   // Create a temporary file
@@ -62,10 +65,20 @@ async function componentize(
   const outPath = resolveTmpDir(tmpDir);
   await writeFile(outPath, application);
   const wizerInput = outPath;
+  console.warn('Farq: componentize >> wizerInput', wizerInput);
 
   const cleanup = (): void => {
     rmSync(tmpDir, { recursive: true });
   };
+
+  console.warn(
+    'Farq: componentize >> shared directories for Wizer',
+    JSON.stringify(['.', useUnixPath(dirname(wizerInput))]),
+  );
+
+  console.warn('Farq: componentize >> output Dir for Wizer', useUnixPath(wasmOutputDir));
+
+  console.warn('Farq: componentize >> wasmEngine for Wizer', useUnixPath(wasmEngine));
 
   try {
     const wizerProcess: SpawnSyncReturns<string> = spawnSync(
@@ -76,6 +89,7 @@ async function componentize(
         '--wasm-reference-types=true',
         '--inherit-env=true',
         '--dir=.',
+        '--dir=/workspace',
         // '--dir=../', // Farq: NEED to iterate config file and add these paths for static building...
         `--dir=${useUnixPath(dirname(wizerInput))}`,
         '-r _start=wizer.resume',
