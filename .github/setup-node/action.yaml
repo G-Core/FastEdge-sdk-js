@@ -4,11 +4,11 @@ inputs:
   node_version:
     description: 'Node.js version to use, e.g. 20.x'
     required: false
-    default: '24.6.0'
+    default: '24.x'
   pnpm_version:
     description: 'pnpm version to use, e.g. 10.x'
     required: false
-    default: '10'
+    default: '10.x'
   working_directory:
     description: 'Working directory to install dependencies in.'
     required: false
