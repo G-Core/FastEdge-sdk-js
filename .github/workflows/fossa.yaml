@@ -1,13 +1,16 @@
 name: Fossa Compliance Check
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
 
 jobs:
   fossa:
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    runs-on: ubuntu-latest
 
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'dependabot[bot]' && github.repository == 'G-Core/FastEdge-sdk-js'
 
     steps:
       - name: Checkout repository
