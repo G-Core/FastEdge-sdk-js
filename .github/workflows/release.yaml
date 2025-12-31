@@ -12,15 +12,16 @@ on:
       NPM_TOKEN:
         required: true
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write # For npm provenance ( Trusted publishing )
+
 jobs:
   release:
     name: NPM Release
     runs-on: [self-hosted, ubuntu-22-04, regular]
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write # For npm provenance ( Trusted publishing )
 
     steps:
       - name: Checkout repository
@@ -57,6 +58,6 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: 'npm_using_trusted_publishers'
           CI: true # Used to bypass husky hooks
         run: npx semantic-release@25 ${{ steps.dry_run.outputs.dry_run }}
