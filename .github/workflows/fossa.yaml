@@ -5,6 +5,9 @@ permissions:
 
 on:
   workflow_call:
+    secrets:
+      FOSSA_PUB_API_KEY:
+        required: true
 
 jobs:
   fossa:

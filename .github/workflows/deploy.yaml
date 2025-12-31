@@ -36,6 +36,8 @@ jobs:
   fossa:
     needs: [validate_branch_name]
     uses: ./.github/workflows/fossa.yaml
+    secrets:
+      FOSSA_PUB_API_KEY: ${{ secrets.FOSSA_PUB_API_KEY }}
 
   code_validation:
     needs: [validate_branch_name]
