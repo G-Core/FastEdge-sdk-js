@@ -21,7 +21,7 @@ permissions:
 jobs:
   release:
     name: NPM Release
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -58,6 +58,6 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: 'npm_using_trusted_publishers'
+          # NPM_TOKEN: 'npm_using_trusted_publishers'
           CI: true # Used to bypass husky hooks
         run: npx semantic-release@25 ${{ steps.dry_run.outputs.dry_run }}
