@@ -26,6 +26,12 @@ module.exports = {
         ],
       },
     ],
-    '@semantic-release/npm',
+    [
+      '@semantic-release/npm',
+      {
+        npmPublish: true,
+        provenance: true, // Enable npm provenance for trusted publishing
+      },
+    ],
   ],
 };

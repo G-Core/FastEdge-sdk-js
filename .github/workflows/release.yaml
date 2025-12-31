@@ -9,27 +9,26 @@ on:
     secrets:
       GH_TOKEN:
         required: true
-      NPM_TOKEN:
-        required: true
 
 jobs:
   release:
     name: NPM Release
     runs-on: [self-hosted, ubuntu-22-04, regular]
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write # For npm provenance ( Trusted publishing )
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Setup Node Environment
+        uses: ./.github/setup-node
 
       - name: Download libs Artifact
         uses: actions/download-artifact@v4
@@ -53,9 +52,17 @@ jobs:
             echo "dry_run=" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug OIDC Token
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Actions ID Token Request URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:+set}"
+          echo "Actions ID Token Request Token: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set}"
+
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: 'npm_using_trusted_publishers' # Placeholder for OIDC
           CI: true # Used to bypass husky hooks
-        run: npx semantic-release ${{ steps.dry_run.outputs.dry_run }}
+        run: npx semantic-release@25 ${{ steps.dry_run.outputs.dry_run }}
