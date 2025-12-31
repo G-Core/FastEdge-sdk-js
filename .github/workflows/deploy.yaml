@@ -60,3 +60,4 @@ jobs:
       dry_run: ${{ github.event.inputs.dry_run || 'true' }}
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
