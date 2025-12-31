@@ -13,7 +13,7 @@ const createReadableStreamForBytes = (array: Uint8Array): ByteReadableStream => 
   let _readStarted = false;
 
   const underlyingSource: UnderlyingDefaultSource<Uint8Array> = {
-    async start(controller) {
+    async start(controller: ReadableStreamDefaultController<Uint8Array>) {
       controller.enqueue(array);
       controller.close();
     },

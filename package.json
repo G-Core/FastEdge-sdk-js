@@ -25,9 +25,9 @@
     "url": "git+https://github.com/G-Core/FastEdge-sdk-js.git"
   },
   "bin": {
-    "fastedge-assets": "bin/fastedge-assets.js",
-    "fastedge-build": "bin/fastedge-build.js",
-    "fastedge-init": "bin/fastedge-init.js"
+    "fastedge-assets": "./bin/fastedge-assets.js",
+    "fastedge-build": "./bin/fastedge-build.js",
+    "fastedge-init": "./bin/fastedge-init.js"
   },
   "files": [
     "types",

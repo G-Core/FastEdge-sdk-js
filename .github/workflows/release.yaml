@@ -62,7 +62,7 @@ jobs:
 
       - name: Semantic Release
         env:
+          # NPM_TOKEN is not set as we are using NPM's Trusted Publishing with OIDC
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          # NPM_TOKEN: 'npm_using_trusted_publishers'
           CI: true # Used to bypass husky hooks
         run: npx semantic-release@25 ${{ steps.dry_run.outputs.dry_run }}
