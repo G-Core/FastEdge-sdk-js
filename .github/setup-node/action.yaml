@@ -4,7 +4,7 @@ inputs:
   node_version:
     description: 'Node.js version to use, e.g. 20.x'
     required: false
-    default: '24.x'
+    default: '24.12.0'
   pnpm_version:
     description: 'pnpm version to use, e.g. 10.x'
     required: false
