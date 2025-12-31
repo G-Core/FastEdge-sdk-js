@@ -18,7 +18,7 @@ on:
 jobs:
   # Gihub Actions do not allow regex validation for numbers in *.*.x branch names
   validate_branch_name:
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    runs-on: ubuntu-latest # Use a standard runner for Trusted Publishing
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
