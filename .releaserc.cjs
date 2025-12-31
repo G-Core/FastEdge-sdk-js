@@ -26,6 +26,11 @@ module.exports = {
         ],
       },
     ],
-    '@semantic-release/npm',
+    [
+      '@semantic-release/npm',
+      {
+        npmPublish: false, // Disable npm plugin publishing to avoid token requirement
+      },
+    ],
   ],
 };
