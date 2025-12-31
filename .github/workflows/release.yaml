@@ -55,6 +55,6 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: 'trusted-publishing-token' # Token value is not needed for npm provenance
+          NPM_TOKEN: 'npm_trusted-publishing-token' # Token value is not needed for npm provenance
           CI: true # Used to bypass husky hooks
         run: npx semantic-release@25 ${{ steps.dry_run.outputs.dry_run }}
