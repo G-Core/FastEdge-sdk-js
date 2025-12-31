@@ -17,3 +17,6 @@ integration-tests/test-files/output.wasm
 yarn-error.log
 
 .vscode/
+
+# Using pnpm
+package-lock.json

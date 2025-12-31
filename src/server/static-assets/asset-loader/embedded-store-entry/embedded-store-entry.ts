@@ -1,6 +1,6 @@
 import type { ByteReadableStream, EmbeddedStoreEntry } from './types.ts';
 
-import type { UnderlyingSource } from 'node:stream/web';
+import type { UnderlyingDefaultSource } from 'node:stream/web';
 
 /**
  * Creates a readable stream for a `Uint8Array`.
@@ -12,7 +12,7 @@ const createReadableStreamForBytes = (array: Uint8Array): ByteReadableStream => 
   let _disturbed = false;
   let _readStarted = false;
 
-  const underlyingSource: UnderlyingSource<Uint8Array> = {
+  const underlyingSource: UnderlyingDefaultSource<Uint8Array> = {
     async start(controller: ReadableStreamDefaultController<Uint8Array>) {
       controller.enqueue(array);
       controller.close();

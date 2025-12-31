@@ -6,6 +6,9 @@ dist/
 # dependencies
 node_modules/
 
+# Using pnpm
+package-lock.json
+
 # logs
 npm-debug.log*
 yarn-debug.log*

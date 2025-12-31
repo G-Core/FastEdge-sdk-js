@@ -1,0 +1,40 @@
+name: 'Setup Node.js'
+description: 'Sets up Node.js environment and installs dependencies.'
+inputs:
+  node_version:
+    description: 'Node.js version to use, e.g. 20.x'
+    required: false
+    default: '24.12.0'
+  pnpm_version:
+    description: 'pnpm version to use, e.g. 10.x'
+    required: false
+    default: '10.x'
+  working_directory:
+    description: 'Working directory to install dependencies in.'
+    required: false
+    default: '.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Use Node.js ${{ inputs.node_version }}
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node_version }}
+
+    - name: Clean node_modules
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        rm -rf node_modules
+
+    - name: Install pnpm
+      shell: bash
+      run: |
+        npm install -g pnpm@${{ inputs.pnpm_version }}
+
+    - name: Install dependencies (pnpm)
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        pnpm install --frozen-lockfile
