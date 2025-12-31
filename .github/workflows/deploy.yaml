@@ -48,7 +48,7 @@ jobs:
     uses: ./.github/workflows/unit-tests.yaml
 
   build_fastedge_artifacts:
-    needs: [code_validation, unit_tests]
+    needs: [code_validation, unit_tests, fossa]
     uses: ./.github/workflows/build-libs.yaml
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
