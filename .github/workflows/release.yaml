@@ -52,14 +52,6 @@ jobs:
             echo "dry_run=" >> $GITHUB_OUTPUT
           fi
 
-      - name: Debug OIDC Token
-        run: |
-          echo "Repository: ${{ github.repository }}"
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Actions ID Token Request URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:+set}"
-          echo "Actions ID Token Request Token: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+set}"
-
       - name: Semantic Release
         env:
           # NPM_TOKEN is not set as we are using NPM's Trusted Publishing with OIDC
