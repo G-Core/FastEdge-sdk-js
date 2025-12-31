@@ -9,8 +9,6 @@ on:
     secrets:
       GH_TOKEN:
         required: true
-      NPM_TOKEN:
-        required: true
 
 jobs:
   release:
@@ -57,12 +55,5 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           CI: true # Used to bypass husky hooks
         run: npx semantic-release ${{ steps.dry_run.outputs.dry_run }}
-
-      # Semantic Release NPM plugin (.releaserc.cjs) is configured to not publish to NPM directly.
-      # Instead, we run `npm publish` here to enable the use of "Trusted Publishing" with provenance.
-
-      - name: Publish to NPM with Provenance
-        run: npm publish --provenance --access public ${{ steps.dry_run.outputs.dry_run }}

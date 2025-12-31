@@ -29,7 +29,8 @@ module.exports = {
     [
       '@semantic-release/npm',
       {
-        npmPublish: false, // Disable npm plugin publishing to avoid token requirement
+        npmPublish: true,
+        provenance: true, // Enable npm provenance for trusted publishing
       },
     ],
   ],
