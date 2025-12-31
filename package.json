@@ -1,6 +1,6 @@
 {
   "name": "@gcoredev/fastedge-sdk-js",
-  "version": "1.3.0",
+  "version": "2.1.1",
   "engines": {
     "node": ">=20",
     "pnpm": ">=10"
@@ -24,9 +24,9 @@
     "url": "git+https://github.com/G-Core/FastEdge-sdk-js.git"
   },
   "bin": {
-    "fastedge-assets": "./bin/fastedge-assets.js",
-    "fastedge-build": "./bin/fastedge-build.js",
-    "fastedge-init": "./bin/fastedge-init.js"
+    "fastedge-assets": "bin/fastedge-assets.js",
+    "fastedge-build": "bin/fastedge-build.js",
+    "fastedge-init": "bin/fastedge-init.js"
   },
   "files": [
     "types",
