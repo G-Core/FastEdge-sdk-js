@@ -9,10 +9,6 @@ inputs:
     description: 'pnpm version to use, e.g. 10.x'
     required: false
     default: '10.x'
-  working_directory:
-    description: 'Working directory to install dependencies in.'
-    required: false
-    default: '.'
 
 runs:
   using: 'composite'
@@ -22,19 +18,26 @@ runs:
       with:
         node-version: ${{ inputs.node_version }}
 
-    - name: Clean node_modules
-      shell: bash
-      working-directory: ${{ inputs.working_directory }}
-      run: |
-        rm -rf node_modules
-
     - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm_version }}
+
+    - name: Get pnpm store location
       shell: bash
       run: |
-        npm install -g pnpm@${{ inputs.pnpm_version }}
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+    - name: Setup pnpm cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
 
     - name: Install dependencies (pnpm)
       shell: bash
-      working-directory: ${{ inputs.working_directory }}
       run: |
         pnpm install --frozen-lockfile
+      # equivalent to npm ci

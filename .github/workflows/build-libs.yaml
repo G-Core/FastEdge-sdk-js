@@ -19,8 +19,24 @@ jobs:
       - name: Set up repo submodules
         run: git submodule update --init --recursive
 
+      - name: Ensure build folders are empty # Should already be empty
+        run: |
+          rm -rf lib/*
+          rm -rf bin/*
+
+      - name: Restore build cache
+        id: restore-build-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            lib/
+            bin/
+            types/
+          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
+
       - name: Import Secrets
         uses: hashicorp/vault-action@v3
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
         id: secrets
         with:
           url: https://puppet-vault.gc.onl
@@ -31,37 +47,33 @@ jobs:
 
       - name: Login to Harbor
         uses: docker/login-action@v3
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
         with:
           registry: harbor.p.gc.onl
           username: ${{ steps.secrets.outputs.HARBOR_LOGIN }}
           password: ${{ steps.secrets.outputs.HARBOR_PASSWORD }}
 
-      - name: display contents of lib folder
-        run: ls -la lib
-
-      - name: Ensure build folders are empty # Should already be empty
-        run: |
-          rm -rf lib/*
-          rm -rf bin/*
-
       - name: Build docker images
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
         run: docker build -t clang-monkey .
 
       - name: Build FastEdge runtime libs
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
         run: docker run -v $(pwd)/lib:/usr/src/app/lib clang-monkey
 
       - name: Build Javascript libs
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
         run: npm run build:js
 
       - name: Run Integration Tests
         run: npm run test:integration
 
-      - name: Upload libs Artifact
-        uses: actions/upload-artifact@v4
+      - name: Save build cache
+        id: save-build-cache
+        uses: actions/cache/save@v4
         with:
-          name: libs-artifact
-          retention-days: 1
           path: |
-            bin/
             lib/
+            bin/
             types/
+          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
