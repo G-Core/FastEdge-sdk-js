@@ -9,38 +9,44 @@ on:
     secrets:
       GH_TOKEN:
         required: true
-      NPM_TOKEN:
-        required: true
 
 jobs:
   release:
     name: NPM Release
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    runs-on: ubuntu-latest # Use a standard runner for Trusted Publishing
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write # For npm provenance ( Trusted publishing )
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node Environment
+        uses: ./.github/setup-node
+
+      - name: Restore build cache
+        id: restore-build-cache
+        uses: actions/cache/restore@v4
         with:
-          node-version: 20.x
+          path: |
+            lib/
+            bin/
+            types/
+          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download libs Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: libs-artifact
-
-      - name: display contents of lib folder
-        run: ls -la lib
-
-      - name: display contents of bin folder
-        run: ls -la bin
+      - name: Ensure build folders are valid
+        shell: bash
+        run: |
+          if [ ! -d "lib" ] || [ ! -d "bin" ] || [ ! -d "types" ]; then
+            echo "Build folders are missing. Please run the build-libs workflow before releasing."
+            exit 1
+          fi
 
       - name: Dry Run Status
         id: dry_run
@@ -55,7 +61,7 @@ jobs:
 
       - name: Semantic Release
         env:
+          # NPM_TOKEN is not set as we are using NPM's Trusted Publishing with OIDC
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           CI: true # Used to bypass husky hooks
-        run: npx semantic-release ${{ steps.dry_run.outputs.dry_run }}
+        run: pnpm dlx semantic-release@25 ${{ steps.dry_run.outputs.dry_run }}

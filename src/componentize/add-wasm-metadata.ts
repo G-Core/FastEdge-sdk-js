@@ -19,7 +19,7 @@ export async function addWasmMetadata(wasmPath: string): Promise<void> {
   // Parse the package.json file to extract name and version
   const { name, version }: { name: string; version: string } = JSON.parse(packageJson);
 
-  // Name and version is updated via Semantic-Release, repo version is not used.
+  // Name and version is updated via Semantic-Release, repo version is not used
   const metadata: [[string, [[string, string]]]] = [['processed-by', [[name, version]]]];
 
   // Read the WebAssembly file
