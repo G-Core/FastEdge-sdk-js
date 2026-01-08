@@ -5,11 +5,6 @@
     "node": ">=20",
     "pnpm": ">=10"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  },
   "license": "Apache-2.0",
   "main": "lib/index.js",
   "types": "types/index.d.ts",

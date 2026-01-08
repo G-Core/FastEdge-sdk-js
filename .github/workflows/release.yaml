@@ -30,16 +30,23 @@ jobs:
       - name: Setup Node Environment
         uses: ./.github/setup-node
 
-      - name: Download libs Artifact
-        uses: actions/download-artifact@v4
+      - name: Restore build cache
+        id: restore-build-cache
+        uses: actions/cache/restore@v4
         with:
-          name: libs-artifact
+          path: |
+            lib/
+            bin/
+            types/
+          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
 
-      - name: display contents of lib folder
-        run: ls -la lib
-
-      - name: display contents of bin folder
-        run: ls -la bin
+      - name: Ensure build folders are valid
+        shell: bash
+        run: |
+          if [ ! -d "lib" ] || [ ! -d "bin" ] || [ ! -d "types" ]; then
+            echo "Build folders are missing. Please run the build-libs workflow before releasing."
+            exit 1
+          fi
 
       - name: Dry Run Status
         id: dry_run

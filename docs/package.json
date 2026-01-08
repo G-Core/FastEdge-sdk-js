@@ -2,12 +2,6 @@
   "name": "docs",
   "type": "module",
   "version": "0.0.1",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp"
-    ]
-  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
