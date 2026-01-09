@@ -28,7 +28,7 @@ module.exports = {
     'dist/**',
     'build/**',
     'types/**',
-    'integration-tests/test-files/**',
+    'integration-tests/**',
     'bin/**',
     'lib/**',
     '**/runtime/fastedge/**',

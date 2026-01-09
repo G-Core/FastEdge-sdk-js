@@ -65,6 +65,11 @@ jobs:
         if: steps.restore-build-cache.outputs.cache-hit != 'true'
         run: npm run build:js
 
+      - name: Ensure bin files have execute permissions
+        shell: bash
+        run: |
+          chmod +x ./bin/*.js
+
       - name: Run Integration Tests
         run: npm run test:integration
 
