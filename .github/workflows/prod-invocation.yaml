@@ -20,8 +20,8 @@ jobs:
       - name: Clean up old test artifacts
         shell: bash
         run: |
-          rm ./integration-tests/test-application/test-app.js
-          rm ./integration-tests/test-application/test-app.wasm
+          rm -f ./integration-tests/test-application/test-app.js
+          rm -f ./integration-tests/test-application/test-app.wasm
 
       - name: Restore build cache
         id: restore-build-cache
@@ -31,7 +31,8 @@ jobs:
             lib/
             bin/
             types/
-          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
+          key: ${{ runner.os }}-libs-artifact-test
+          # key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
 
       - name: Ensure build folders are valid
         shell: bash
