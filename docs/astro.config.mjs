@@ -9,9 +9,13 @@ export default defineConfig({
     starlight({
       title: '@gcoredev/fastedge-sdk-js',
       customCss: ['./src/styles/custom.css'],
-      social: {
-        github: 'https://github.com/G-Core/FastEdge-sdk-js',
-      },
+      social: [
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/G-Core/FastEdge-sdk-js',
+        },
+      ],
       sidebar: [
         {
           label: 'Getting Started',
