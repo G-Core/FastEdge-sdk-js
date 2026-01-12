@@ -32,7 +32,8 @@ jobs:
             lib/
             bin/
             types/
-          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
+          key: ${{ runner.os }}-libs-artifact-test
+          # key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
 
       - name: Import Secrets
         uses: hashicorp/vault-action@v3
@@ -76,4 +77,5 @@ jobs:
             lib/
             bin/
             types/
-          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
+          key: ${{ runner.os }}-libs-artifact-test
+          # key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
