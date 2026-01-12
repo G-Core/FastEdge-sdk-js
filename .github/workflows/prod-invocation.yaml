@@ -1,0 +1,96 @@
+name: Build and run application
+
+on:
+  workflow_call:
+    secrets:
+      VAULT_TOKEN:
+        required: true
+
+jobs:
+  live-test-invocation:
+    runs-on: [self-hosted, ubuntu-22-04, regular]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node Environment
+        uses: ./.github/setup-node
+
+      - name: Clean up old test artifacts
+        shell: bash
+        run: |
+          rm ./integration-tests/test-application/test-app.js
+          rm ./integration-tests/test-application/test-app.wasm
+
+      - name: Restore build cache
+        id: restore-build-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            lib/
+            bin/
+            types/
+          key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
+
+      - name: Ensure build folders are valid
+        shell: bash
+        run: |
+          if [ ! -d "lib" ] || [ ! -d "bin" ] || [ ! -d "types" ]; then
+            echo "Build folders are missing. Please run the build-libs workflow before releasing."
+            exit 1
+          fi
+
+      - name: Create and build test application
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const script = require('./.github/scripts/prod-invocation/create-test-app.js')
+            await script({github, context, core})
+
+      - name: Import Secrets
+        uses: hashicorp/vault-action@v3
+        if: steps.restore-build-cache.outputs.cache-hit != 'true'
+        id: secrets
+        with:
+          url: https://puppet-vault.gc.onl
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            secret/project_fastedge/team_account/prod token | PROD_GCORE_API_TOKEN ;
+            secret/project_fastedge/team_account/prod hostname | PROD_GCORE_API_HOSTNAME ;
+            secret/project_fastedge/team_account/preprod token | PREPROD_GCORE_API_TOKEN ;
+            secret/project_fastedge/team_account/preprod hostname | PREPROD_GCORE_API_HOSTNAME ;
+
+      - name: Decipher test environment from branch
+        id: env-check
+        shell: bash
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "Run against production environment"
+            echo "is_prod=true" >> $GITHUB_OUTPUT
+            echo "gcore_hostname=${{ steps.secrets.outputs.PROD_GCORE_API_HOSTNAME }}" >> $GITHUB_OUTPUT
+            echo "gcore_token=${{ steps.secrets.outputs.PROD_GCORE_API_TOKEN }}" >> $GITHUB_OUTPUT
+          else
+            echo "Run in preprod environment, no t"
+            echo "is_prod=false" >> $GITHUB_OUTPUT
+            echo "gcore_hostname=${{ steps.secrets.outputs.PREPROD_GCORE_API_HOSTNAME }}" >> $GITHUB_OUTPUT
+            echo "gcore_token=${{ steps.secrets.outputs.PREPROD_GCORE_API_TOKEN }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Test App to Gcore
+        id: deploy-app
+        uses: gcore-github-actions/fastedge/deploy-app@v1
+        with:
+          api_key: ${{ env.gcore_token }}
+          api_url: ${{ env.gcore_hostname }}
+          wasm_file: /integration-tests/test-application/test-app.wasm
+          app_name: 'fastedge-sdk-js-test-app'
+
+      - name: Invoke test application
+        uses: actions/github-script@v8
+        env:
+          APP_URL: ${{ steps.deploy-app.outputs.app_url }}
+        with:
+          script: |
+            const script = require('./.github/scripts/test-prod-invocation/invoke-test-app.js')
+            await script({github, context, core})
