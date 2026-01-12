@@ -1,8 +1,5 @@
-const testConfig = require('./config.js');
-
 const MAX_RETRIES = 3;
 const RETRY_DELAY_SECONDS = 20;
-const TEST_APP_ENDPOINT = 'https://fastedge-sdk-js-test-app-4732724.fastedge.cdn.gc.onl/';
 const DATA_IS_VALID = 'DATA_IS_VALID';
 
 const sleep = (secs = RETRY_DELAY_SECONDS) =>
@@ -10,23 +7,23 @@ const sleep = (secs = RETRY_DELAY_SECONDS) =>
 
 const isResponseDataValid = (data, build_sha) => {
   if (data.build_sha !== build_sha) {
-    return `production environment build_sha mismatch: expected ${build_sha}, got ${data.build_sha}`;
+    return `prod environment build_sha mismatch: expected ${build_sha}, got ${data.build_sha}`;
   }
 
   return DATA_IS_VALID;
 };
 
-const testResponseFromProductionEnvironment = async (build_sha) => {
+const testResponseFromGcoreEnvironment = async (build_sha, appUrl) => {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     // Give the production environment some time to update with the new test application
     await sleep();
     try {
-      const res = await fetch(TEST_APP_ENDPOINT);
+      const res = await fetch(appUrl);
       core.info(
         `Current res.status: ${res.status} >> res.ok: ${res.ok} >> Attempt ${attempt} of ${MAX_RETRIES}`,
       );
       if (res.status !== 200) {
-        throw new Error(`production environment bad response: ${res.status}`);
+        throw new Error(`prod environment bad response: ${res.status}`);
       }
       const data = await res.json();
       core.info(`Response data: ${JSON.stringify(data)}`);
@@ -61,15 +58,6 @@ const testResponseFromProductionEnvironment = async (build_sha) => {
 };
 
 module.exports = async ({ github, context, core }) => {
-  // Ensure it only runs when merfing to main
-  // todo: Farq: main??
-  if (context.ref !== 'refs/heads/alpha') {
-    core.info(
-      `Current ref is ${context.ref}. Skipping test application invocation as it only runs on main branch.`,
-    );
-    return;
-  }
-
   // Ensure this is running in GitHub Actions
   if (!process.env.GITHUB_ENV) {
     throw new Error(
@@ -77,11 +65,11 @@ module.exports = async ({ github, context, core }) => {
     );
   }
 
-  const response = await testResponseFromProductionEnvironment(context.sha);
+  const appUrl = process.env.APP_URL;
+
+  const response = await testResponseFromGcoreEnvironment(context.sha, appUrl);
 
   if (response.status === 200) {
     core.info(`Test application invocation succeeded with status ${response.status}`);
   }
-
-  throw new Error(`Test application invocation failed with status ${response.status}`);
 };

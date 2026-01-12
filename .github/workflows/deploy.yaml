@@ -53,8 +53,14 @@ jobs:
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
-  npm_release:
+  test_prod_invocation:
     needs: [build_fastedge_artifacts]
+    uses: ./.github/workflows/prod-invocation.yaml
+    secrets:
+      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+  npm_release:
+    needs: [test_prod_invocation]
     uses: ./.github/workflows/release.yaml
     with:
       dry_run: ${{ github.event.inputs.dry_run || 'true' }}
