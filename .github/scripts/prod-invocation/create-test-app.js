@@ -13,7 +13,7 @@ export default async ({ github, context, core }) => {
 
   const workspaceDir = process.env.GITHUB_WORKSPACE || process.cwd();
 
-  // Build the testAppcode into a wasm binary
+  // Build the test app code into a wasm binary
   const buildResponse = execSync(
     './bin/fastedge-build.js --input ' +
       TEST_APP_SOURCE_FILE_PATH +
