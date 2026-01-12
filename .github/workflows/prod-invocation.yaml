@@ -51,7 +51,6 @@ jobs:
 
       - name: Import Secrets
         uses: hashicorp/vault-action@v3
-        if: steps.restore-build-cache.outputs.cache-hit != 'true'
         id: secrets
         with:
           url: https://puppet-vault.gc.onl
