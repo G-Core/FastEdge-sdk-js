@@ -37,14 +37,18 @@ export default async ({ github, context, core }) => {
   writeFileSync(TEST_APP_SOURCE_FILE_PATH, testAppcode(build_sha), 'utf8');
 
   core.info(`Test application code written to ${TEST_APP_SOURCE_FILE_PATH}`);
+
   // Build the testAppcode into a wasm binary
   const buildResponse = execSync(
     './bin/fastedge-build --input ' +
       TEST_APP_SOURCE_FILE_PATH +
       ' --output ' +
       TEST_APP_WASM_FILE_PATH,
-    { stdio: 'inherit' },
+    { encoding: 'utf8' },
   );
+
+  core.info(`Build output: ${buildResponse}`);
+
   if (!buildResponse.includes('Build success!!')) {
     throw new Error('Failed to build test application into wasm binary');
   }
