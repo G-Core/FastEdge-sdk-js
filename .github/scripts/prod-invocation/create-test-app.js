@@ -31,6 +31,8 @@ export default async ({ github, context, core }) => {
     );
   }
 
+  const workspaceDir = process.env.GITHUB_WORKSPACE || process.cwd();
+
   // Create a new source file at ./integration-tests/test-application/test-app.js with the testAppcode
   const build_sha = context.sha;
 
@@ -44,7 +46,7 @@ export default async ({ github, context, core }) => {
       TEST_APP_SOURCE_FILE_PATH +
       ' --output ' +
       TEST_APP_WASM_FILE_PATH,
-    { encoding: 'utf8' },
+    { encoding: 'utf8', cwd: workspaceDir },
   );
 
   core.info(`Build output: ${buildResponse}`);
