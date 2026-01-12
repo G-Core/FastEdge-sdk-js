@@ -1,5 +1,5 @@
-const { execSync } = require('child_process');
-const { writeFileSync } = require('fs');
+import { execSync } from 'child_process';
+import { writeFileSync } from 'fs';
 
 const TEST_APP_SOURCE_FILE_PATH = './integration-tests/test-application/test-app.js';
 const TEST_APP_WASM_FILE_PATH = './integration-tests/test-application/test-app.wasm';
@@ -23,7 +23,7 @@ addEventListener('fetch', (event) => {
 });
 `;
 
-module.exports = async ({ github, context, core }) => {
+export default async ({ github, context, core }) => {
   // Ensure this is running in GitHub Actions
   if (!process.env.GITHUB_ENV) {
     throw new Error(

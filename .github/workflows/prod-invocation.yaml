@@ -46,8 +46,8 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const script = require('./.github/scripts/prod-invocation/create-test-app.js')
-            await script({github, context, core})
+            const script = await import('${{ github.workspace }}/.github/scripts/prod-invocation/create-test-app.js')
+            await script.default({github, context, core})
 
       - name: Import Secrets
         uses: hashicorp/vault-action@v3
@@ -93,5 +93,5 @@ jobs:
           APP_URL: ${{ steps.deploy-app.outputs.app_url }}
         with:
           script: |
-            const script = require('./.github/scripts/test-prod-invocation/invoke-test-app.js')
-            await script({github, context, core})
+            const script = await import('${{ github.workspace }}/.github/scripts/test-prod-invocation/invoke-test-app.mjs')
+            await script.default({github, context, core})

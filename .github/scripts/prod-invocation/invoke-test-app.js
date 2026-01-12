@@ -57,7 +57,7 @@ const testResponseFromGcoreEnvironment = async (build_sha, appUrl) => {
   };
 };
 
-module.exports = async ({ github, context, core }) => {
+export default async ({ github, context, core }) => {
   // Ensure this is running in GitHub Actions
   if (!process.env.GITHUB_ENV) {
     throw new Error(
