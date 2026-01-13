@@ -1,6 +1,6 @@
 # FastEdge JS SDK
 
-This provides a runtime environment for Javascript on the Gcore FastEdge Platform.
+This provides a runtime environment for Javascript on the Gcore FastEdge Platform
 
 ## Working with the source code
 
