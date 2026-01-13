@@ -11,22 +11,22 @@ void builtin_impl_console_log(Console::LogType log_ty, const char *msg) {
   const char *prefix = nullptr;
   switch (log_ty) {
   case Console::LogType::Log:
-    prefix = "stdout_log";
+    prefix = "Log:";
     break;
   case Console::LogType::Debug:
-    prefix = "stdout_debug";
+    prefix = "Debug:";
     break;
   case Console::LogType::Info:
-    prefix = "stdout_info";
+    prefix = "Info:";
     break;
   case Console::LogType::Warn:
-    prefix = "stdout_warn";
+    prefix = "Warn:";
     break;
   case Console::LogType::Error:
-    prefix = "stdout_error";
+    prefix = "Error:";
     break;
   default:
-    prefix = "stdout";
+    prefix = "Log:";
     break;
   }
 
