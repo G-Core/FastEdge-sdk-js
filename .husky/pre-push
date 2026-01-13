@@ -16,11 +16,15 @@ fi
 # `git push --force origin main`
 # `git push --delete origin main`
 
+echo "husky > pre-push (node $(node -v))"
+
 protected_branches='^(main|next|next-major|beta|alpha)$'  # Add the names of the branches you want to protect here
 
 policy="[Policy] (Prevented with pre-push hook.) 🚫\n Never push code directly to the protected branches!"
 
 current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+echo "Current branch is '$current_branch'"
 
 push_command=$(ps -ocommand= -p $PPID)
 
