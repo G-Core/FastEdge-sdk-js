@@ -5,32 +5,42 @@
 
 namespace builtins::web::console {
 
+/*
+The most semantically accurate mapping would be:
+TRACE → console.debug()
+DEBUG → console.log()
+INFO → console.info()
+WARN → console.warn()
+ERROR/CRITICAL → console.error()
+*/
+
+
 // Override the weak symbol from StarlingMonkey with a strong symbol
 // This implementation will be used instead of the default one
 void builtin_impl_console_log(Console::LogType log_ty, const char *msg) {
   const char *prefix = nullptr;
   switch (log_ty) {
   case Console::LogType::Log:
-    prefix = "Log:";
+    prefix = "[DEBUG]:";
     break;
   case Console::LogType::Debug:
-    prefix = "Debug:";
+    prefix = "[TRACE]:";
     break;
   case Console::LogType::Info:
-    prefix = "Info:";
+    prefix = "[INFO]:";
     break;
   case Console::LogType::Warn:
-    prefix = "Warn:";
+    prefix = "[WARN]:";
     break;
   case Console::LogType::Error:
-    prefix = "Error:";
+    prefix = "[ERROR]:";
     break;
   default:
-    prefix = "Log:";
+    prefix = "[DEBUG]:";
     break;
   }
 
-  fprintf(stdout, "%s: %s\n", prefix, msg);
+  fprintf(stdout, "%s %s\n", prefix, msg);
   fflush(stdout);
 }
 
