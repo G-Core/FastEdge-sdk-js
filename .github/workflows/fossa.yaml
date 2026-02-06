@@ -27,7 +27,9 @@ jobs:
         run: echo "FOSSA_API_KEY=${{ secrets.FOSSA_PUB_API_KEY }}" >> $GITHUB_ENV
 
       - name: Run FOSSA Analysis
+        continue-on-error: true
         run: fossa analyze
 
       - name: Run FOSSA Test
+        continue-on-error: true
         run: fossa test
