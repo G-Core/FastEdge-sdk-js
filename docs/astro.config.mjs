@@ -5,6 +5,15 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
   site: 'https://g-core.github.io',
   base: '/FastEdge-sdk-js',
+  vite: {
+    server: {
+      watch: {
+        // Use polling instead of native file watchers to avoid EMFILE errors
+        usePolling: true,
+        interval: 1000,
+      },
+    },
+  },
   integrations: [
     starlight({
       title: '@gcoredev/fastedge-sdk-js',
