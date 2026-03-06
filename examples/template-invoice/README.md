@@ -29,7 +29,7 @@ const invoiceData = {
       price: 85,
     },
     {
-      description: '2x Duff Footbal Finger',
+      description: '2x Duff Football Finger',
       price: 20,
     },
   ],

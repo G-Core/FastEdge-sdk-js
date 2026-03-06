@@ -1,9 +1,9 @@
-import { html } from "hono/html";
+import { html } from 'hono/html';
 
 interface SiteData {
   title: string;
   description: string;
-  children?: any;
+  children?: unknown;
 }
 
 const Layout = (props: SiteData) => html`
@@ -27,11 +27,11 @@ const Footer = () => (
   <footer>
     <p>
       FastEdge Examples. Built with
-      <a href="https://hono.dev" target="_blank">
+      <a href='https://hono.dev' target='_blank' rel='noopener noreferrer'>
         Hono
-      </a>{" "}
+      </a>{' '}
       and
-      <a href="https://gcore.com/fastedge" target="_blank">
+      <a href='https://gcore.com/fastedge' target='_blank' rel='noopener noreferrer'>
         FastEdge
       </a>
       .
@@ -43,15 +43,13 @@ const JsxContent = (props: { siteData: SiteData; name: string }) => (
   <Layout {...props.siteData}>
     <h1>JSX rendered Page</h1>
     <h3>Hello {props.name}</h3>
-    <p>
-      This is the JSX rendered page. Example of how to use Hono html rendering.
-    </p>
-    <a href="https://hono.dev/docs/helpers/html#html" target="_blank">
+    <p>This is the JSX rendered page. Example of how to use Hono html rendering.</p>
+    <a href='https://hono.dev/docs/helpers/html#html' target='_blank' rel='noopener noreferrer'>
       Hono HTML Helper Documentation
     </a>
-    <div class="home-nav">
-      <a href="/">
-        <img src="/images/home.png" alt="Home Button" />
+    <div class='home-nav'>
+      <a href='/'>
+        <img src='/images/home.png' alt='Home Button' />
       </a>
     </div>
     <Footer />

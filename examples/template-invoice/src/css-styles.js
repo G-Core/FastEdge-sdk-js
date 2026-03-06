@@ -1,18 +1,7 @@
-const standardFont =
-  '"Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif';
-const exo2Font = '"Exo 2", sans-serif';
-const gloriaFont = '"Gloria Hallelujah", cursive';
-
-export const getStyles = (abTestFont) => `
+export const cssStyles = `
 <style>
   body {
-    font-family: ${
-      abTestFont === "exo2"
-        ? exo2Font
-        : abTestFont === "gloria"
-        ? gloriaFont
-        : standardFont
-    };
+    font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
     text-align: center;
     color: #777;
   }
@@ -83,22 +72,22 @@ export const getStyles = (abTestFont) => `
     font-weight: bold;
   }
 
-	.invoice-box table tr.details td {
-		padding-bottom: 20px;
-	}
+  .invoice-box table tr.details td {
+    padding-bottom: 20px;
+  }
 
-	.invoice-box table tr.item td {
-		border-bottom: 1px solid #eee;
-	}
+  .invoice-box table tr.item td {
+    border-bottom: 1px solid #eee;
+  }
 
-	.invoice-box table tr.item.last td {
-		border-bottom: none;
-	}
+  .invoice-box table tr.item.last td {
+    border-bottom: none;
+  }
 
-	.invoice-box table tr.total td:nth-child(2) {
-		border-top: 2px solid #eee;
-		font-weight: bold;
-	}
+  .invoice-box table tr.total td:nth-child(2) {
+    border-top: 2px solid #eee;
+    font-weight: bold;
+  }
 
   .footer {
     position: fixed;
@@ -112,16 +101,16 @@ export const getStyles = (abTestFont) => `
     color: #555;
   }
 
-	@media only screen and (max-width: 600px) {
-		.invoice-box table tr.top table td {
-			width: 100%;
-			display: block;
-			text-align: center;
+  @media only screen and (max-width: 600px) {
+    .invoice-box table tr.top table td {
+      width: 100%;
+      display: block;
+      text-align: center;
 
-		.invoice-box table tr.information table td {
-			width: 100%;
-			display: block;
-			text-align: center;
-		}
-	}
+    .invoice-box table tr.information table td {
+      width: 100%;
+      display: block;
+      text-align: center;
+    }
+  }
 </style>`;

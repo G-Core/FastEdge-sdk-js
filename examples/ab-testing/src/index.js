@@ -20,12 +20,20 @@ async function eventHandler({ request }) {
   // This is the URL of the downstream service - i.e. could be a url to your origin
   // e.g. https://template-invoice-ab-test-123456.fastedge.cdn.gc.onl/
   const downstreamUrl = getEnv('DOWNSTREAM_URL');
+  if (!downstreamUrl || !String(downstreamUrl).trim()) {
+    return new Response('DOWNSTREAM_URL environment variable is not configured', {
+      status: 500,
+    });
+  }
 
   const response = await fetch(downstreamUrl, { headers });
 
   // Request/Response Headers are immutable, so we need to create a new Headers object
   const resHeaders = new Headers(response.headers);
-  resHeaders.set('set-cookie', `x-fastedge-abid=${xid}; Max-Age: 31536000; Path=/;`);
+  resHeaders.set(
+    'set-cookie',
+    `x-fastedge-abid=${xid}; Max-Age=31536000; Path=/; Secure; HttpOnly; SameSite=Lax;`,
+  );
 
   return new Response(response.body, {
     status: response.status,
@@ -42,10 +50,10 @@ const sliceAbTestIdFromCookie = ({ headers: reqHeaders }) => {
   const headers = new Headers(reqHeaders);
   const cookie = headers.get('cookie') || '';
   // Read the existing `xid` cookie value.
-  const xid = (cookie.match(/(?:^|;) *x-fastedge-abid=((0|1|)\.\d+) *(?:;|$)/) || [])[1];
+  const xid = (cookie.match(/(?:^|;) *x-fastedge-abid=((0|1|)\.\d+) *(?:;|$)/u) || [])[1];
   if (xid) {
     // Request contains A/B cookie, hide it from the origin
-    const newCookie = cookie.replace(/x-fastedge-abid=[^;]+;?\s*/g, '');
+    const newCookie = cookie.replace(/x-fastedge-abid=[^;]+;?\s*/gu, '');
     if (newCookie) {
       headers.set('cookie', newCookie);
     } else {
@@ -59,7 +67,7 @@ const sliceAbTestIdFromCookie = ({ headers: reqHeaders }) => {
 };
 
 const forceWeightsToPercentages = (testValues) => {
-  let total = testValues.reduce((acc, { weight }) => acc + weight, 0);
+  const total = testValues.reduce((acc, { weight }) => acc + weight, 0);
   return testValues.map(({ variant, weight }) => ({
     variant,
     percentage: (weight / total) * 100,
@@ -68,8 +76,8 @@ const forceWeightsToPercentages = (testValues) => {
 
 const createAbTestHeaders = (reqHeaders, testConfig, xid) => {
   const headers = new Headers(reqHeaders);
-  Object.keys(testConfig).forEach((testName) => {
-    const xidPercentage = parseFloat(xid) * 100;
+  for (const testName of Object.keys(testConfig)) {
+    const xidPercentage = Number.parseFloat(xid) * 100;
     const testValues = forceWeightsToPercentages(testConfig[testName]);
     let start = 0;
     for (const { variant, percentage } of testValues) {
@@ -80,6 +88,6 @@ const createAbTestHeaders = (reqHeaders, testConfig, xid) => {
       }
       start = end;
     }
-  });
+  }
   return headers;
 };

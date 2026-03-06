@@ -12,7 +12,7 @@ This example is a demonstration on how to build it to run on the `FastEdge` netw
 
 ### Setting up your environment
 
-First, let’s install Node.js and pnpm if you haven’t already. You can download Node.js from
+First, let’s install Node.js if you haven’t already. You can download Node.js from
 [nodejs.org](https://nodejs.org/en).
 
 Verify your installation:
@@ -30,7 +30,7 @@ Now, let’s create and set up our project:
 mkdir weather
 cd weather
 
-# Initialize a new pnpm project
+# Initialize a new npm project
 npm init
 
 # Install dependencies
@@ -362,7 +362,7 @@ addEventListener('fetch', (event: FetchEvent) => {
 Make sure to run:
 
 ```sh
-pnpm run build
+npm run build
 ```
 
 This step will transpile your code and build it into a wasm binary in the [./build](./build/)

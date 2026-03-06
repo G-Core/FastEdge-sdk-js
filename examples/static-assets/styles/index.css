@@ -15,11 +15,11 @@ a {
 
 .home-nav {
   margin-top: 120px;
+}
 
-  img {
-    vertical-align: middle;
-    max-height: 60px;
-  }
+.home-nav img {
+  vertical-align: middle;
+  max-height: 60px;
 }
 
 footer {
@@ -32,8 +32,8 @@ footer {
   padding: 10px 0;
   text-align: center;
   z-index: 100;
+}
 
-  a {
-    margin-left: 5px;
-  }
+footer a {
+  margin-left: 5px;
 }

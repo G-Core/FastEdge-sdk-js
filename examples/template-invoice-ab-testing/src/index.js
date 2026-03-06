@@ -1,44 +1,43 @@
-import Handlebars, { log } from "handlebars";
+import Handlebars from 'handlebars';
 
-import { htmlTemplate } from "./htmlTemplate.js";
-import { getStyles } from "./cssStyles.js";
-import { getLogoBrand } from "./logo.js";
+import { getStyles } from './css-styles.js';
+import { htmlTemplate } from './html-template.js';
+import { getLogoBrand } from './logo.js';
 
 const invoiceData = {
-  createdDate: "March 4, 2024",
-  dueDate: "April 19, 2024",
-  invoiceNumber: "1729",
+  createdDate: 'March 4, 2024',
+  dueDate: 'April 19, 2024',
+  invoiceNumber: '1729',
   recipientAddress: {
-    name: "Homer Simpson",
-    address1: "742 Evergreen Terrace",
-    address2: "Springfield, United States.",
+    name: 'Homer Simpson',
+    address1: '742 Evergreen Terrace',
+    address2: 'Springfield, United States.',
   },
-  paymentMethod: "PayPal",
-  paymentId: "8915648",
+  paymentMethod: 'PayPal',
+  paymentId: '8915648',
   items: [
     {
-      description: "1x Keg of Duff Beer",
+      description: '1x Keg of Duff Beer',
       price: 250,
     },
     {
-      description: "3x Crate of Duff Beer",
+      description: '3x Crate of Duff Beer',
       price: 85,
     },
     {
-      description: "2x Duff Footbal Finger",
+      description: '2x Duff Football Finger',
       price: 20,
     },
   ],
 };
 
-const getTotalPrice = (items) =>
-  items.reduce((total, item) => total + item.price, 0).toFixed(2);
+const getTotalPrice = (items) => items.reduce((total, item) => total + item.price, 0).toFixed(2);
 
 async function eventHandler({ request }) {
-  const isAbTestLogo = request.headers.get("ab-test-logo") === "bottle";
+  const isAbTestLogo = request.headers.get('ab-test-logo') === 'bottle';
   const logo = getLogoBrand(isAbTestLogo);
 
-  const abTestFont = request.headers.get("ab-test-font");
+  const abTestFont = request.headers.get('ab-test-font');
   const cssStyles = getStyles(abTestFont);
 
   const rawHtmlTemplate = htmlTemplate(abTestFont);
@@ -54,11 +53,11 @@ async function eventHandler({ request }) {
   return new Response(html, {
     status: 200,
     headers: {
-      "content-type": "text/html",
+      'content-type': 'text/html',
     },
   });
 }
 
-addEventListener("fetch", (event) => {
+addEventListener('fetch', (event) => {
   event.respondWith(eventHandler(event));
 });
