@@ -1,0 +1,29 @@
+{
+  "name": "fastedge-example-mcp-server",
+  "version": "1.0.0",
+  "description": "Basic Example of running MCP Server on Fastedge",
+  "main": "src/index.ts",
+  "type": "module",
+  "bin": {
+    "weather": "./build/index.js"
+  },
+  "scripts": {
+    "build": "npm run transpile && npm run build-wasm",
+    "build-wasm": "npx fastedge-build --input build/index.js --output build/weather.wasm --tsconfig tsconfig.json",
+    "transpile": "tsc"
+  },
+  "files": [
+    "build"
+  ],
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0",
+    "@hono/mcp": "^0.2.3",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "hono": "^4.11.9",
+    "zod": "^4.3.6",
+    "hono-rate-limiter": "^0.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

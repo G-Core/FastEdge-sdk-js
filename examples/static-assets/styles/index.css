@@ -1,0 +1,39 @@
+body {
+  text-align: center;
+  font-size: 20px;
+}
+
+a {
+  color: #ff5913;
+  text-decoration: none;
+}
+
+.nav-link {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.home-nav {
+  margin-top: 120px;
+
+  img {
+    vertical-align: middle;
+    max-height: 60px;
+  }
+}
+
+footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 2px solid #000;
+  padding: 10px 0;
+  text-align: center;
+  z-index: 100;
+
+  a {
+    margin-left: 5px;
+  }
+}

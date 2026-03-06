@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-geo-redirect",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: geo-based redirect using env vars",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/geo-redirect.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0"
+  }
+}
