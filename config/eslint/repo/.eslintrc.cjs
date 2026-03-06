@@ -27,6 +27,7 @@ module.exports = {
     'esbuild/**',
     'dist/**',
     'build/**',
+    '**/build/**',
     'types/**',
     'integration-tests/**',
     'bin/**',
@@ -64,6 +65,19 @@ module.exports = {
     ...ban.overrides,
     ...testingLib.overrides,
     ...jest.overrides,
+    {
+      files: ['examples/**/*.{js,ts,tsx}'],
+      globals: {
+        FetchEvent: 'readonly',
+      },
+      rules: {
+        'import/extensions': 'off',
+        'import/group-exports': 'off',
+        'import/exports-last': 'off',
+        'import/no-default-export': 'off',
+        'no-console': 'off',
+      },
+    },
     {
       files: ['**/*.d.ts'],
       rules: {

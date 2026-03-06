@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-kv-store",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: KV Store operations via query params",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build -c"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0"
+  }
+}

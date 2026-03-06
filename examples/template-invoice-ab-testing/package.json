@@ -1,0 +1,13 @@
+{
+  "name": "fastedge-example-template-invoice-ab-testing",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: Handlebars invoice with A/B test header variants",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/template-invoice-ab-testing.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0",
+    "handlebars": "^4.7.8"
+  }
+}
