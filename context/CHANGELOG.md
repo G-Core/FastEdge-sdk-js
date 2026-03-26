@@ -5,6 +5,21 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-03-26] — Examples Consolidation
+
+### Overview
+Moved 6 code snippets from `github-pages/examples/` into `examples/` as standalone projects, eliminating duplication. The Astro docs site now imports example code from the main `examples/` folder via a Vite alias.
+
+### Changes
+- Created 6 new standalone examples: `hello-world`, `downstream-fetch`, `downstream-modify-response`, `headers`, `kv-store-basic`, `variables-and-secrets`
+- Added Vite resolve alias `@examples` → `../examples/` in `github-pages/astro.config.mjs`
+- Updated all 6 MDX files to import from `@examples/<folder>/src/index.js?raw`
+- Renamed `basic.mdx` → `hello-world.mdx`
+- Reorganized `examples/README.md` into "Getting Started" and "Full Examples" sections
+- Deleted `github-pages/examples/` (no longer needed)
+
+---
+
 ## [2026-03-25] — Agent Context Setup
 
 ### Overview

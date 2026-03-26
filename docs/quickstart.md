@@ -1,10 +1,10 @@
 # Quickstart
 
-Get a FastEdge JavaScript application built and ready for deployment in minutes.
+Get a FastEdge JavaScript application built and ready for deployment.
 
 ## Prerequisites
 
-- Node.js >= 20
+- Node.js `>=22`
 - npm, yarn, or pnpm
 
 ## Installation
@@ -22,6 +22,7 @@ npx fastedge-init
 ```
 
 This interactive wizard will:
+
 1. Ask what you're building: **HTTP event handler** or **Static website**
 2. Create a `.fastedge/` directory with build configuration
 3. Generate a `build-config.js` file
@@ -34,11 +35,28 @@ npx fastedge-build --config .fastedge/build-config.js
 
 ## Option 2: Build Directly
 
-For an existing JavaScript file:
+For an existing JavaScript or TypeScript file, pass input and output as positional arguments:
 
 ```bash
 npx fastedge-build src/index.js output.wasm
 ```
+
+Or using explicit flags:
+
+```bash
+npx fastedge-build --input src/index.ts --output app.wasm --tsconfig tsconfig.json
+```
+
+### fastedge-build CLI Flags
+
+| Flag           | Alias | Type       | Description                      |
+| -------------- | ----- | ---------- | -------------------------------- |
+| `--input`      | `-i`  | `string`   | Entry point file                 |
+| `--output`     | `-o`  | `string`   | Output `.wasm` file path         |
+| `--tsconfig`   | `-t`  | `string`   | Path to `tsconfig.json`          |
+| `--config`     | `-c`  | `string[]` | Path(s) to build config file(s)  |
+| `--version`    | `-v`  | `boolean`  | Print version                    |
+| `--help`       | `-h`  | `boolean`  | Print help                       |
 
 ## Write Your First App
 
@@ -70,50 +88,79 @@ The output `app.wasm` is a WebAssembly component ready for deployment on the Fas
 
 ## Using Environment Variables
 
+`getEnv` is only available during request processing, not at build-time initialization.
+
 ```js
+/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { getEnv } from 'fastedge::env';
 
 addEventListener('fetch', (event) => {
-  event.respondWith((async () => {
-    const apiKey = getEnv('API_KEY');
-    return new Response(`API key exists: ${apiKey !== null}`);
-  })());
+  event.respondWith(
+    (async () => {
+      const apiKey = getEnv('API_KEY');
+      return new Response(`API key exists: ${apiKey.length > 0}`);
+    })(),
+  );
 });
 ```
+
+**Signature:** `getEnv(name: string): string`
 
 ## Using Secrets
 
+`getSecret` and `getSecretEffectiveAt` are only available during request processing, not at build-time initialization.
+
 ```js
+/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { getSecret } from 'fastedge::secret';
 
 addEventListener('fetch', (event) => {
-  event.respondWith((async () => {
-    const secret = getSecret('MY_SECRET');
-    // Use the secret value securely
-    return new Response('OK');
-  })());
+  event.respondWith(
+    (async () => {
+      const token = getSecret('SECRET_TOKEN');
+      // Use token to authenticate downstream requests
+      return new Response('OK');
+    })(),
+  );
 });
 ```
+
+**Signatures:**
+
+- `getSecret(name: string): string`
+- `getSecretEffectiveAt(name: string, effectiveAt: number): string`
 
 ## Using KV Store
 
 ```js
+/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { KvStore } from 'fastedge::kv';
 
 addEventListener('fetch', (event) => {
-  event.respondWith((async () => {
-    const store = KvStore.open('my-store');
-    const value = store.get('my-key');
+  event.respondWith(
+    (async () => {
+      const store = KvStore.open('my-store');
+      const value = store.get('my-key');
 
-    if (value) {
-      const text = new TextDecoder().decode(value);
-      return new Response(text);
-    }
+      if (value) {
+        const text = new TextDecoder().decode(value);
+        return new Response(text);
+      }
 
-    return new Response('Key not found', { status: 404 });
-  })());
+      return new Response('Key not found', { status: 404 });
+    })(),
+  );
 });
 ```
+
+**Signatures:**
+
+- `KvStore.open(name: string): KvStoreInstance`
+- `KvStoreInstance.get(key: string): ArrayBuffer | null`
+- `KvStoreInstance.scan(pattern: string): Array<string>`
+- `KvStoreInstance.zrangeByScore(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`
+- `KvStoreInstance.zscan(key: string, pattern: string): Array<[ArrayBuffer, number]>`
+- `KvStoreInstance.bfExists(key: string, value: string): boolean`
 
 ## Next Steps
 

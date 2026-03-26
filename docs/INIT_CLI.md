@@ -1,6 +1,6 @@
 # fastedge-init CLI
 
-Interactive scaffolding wizard that sets up a FastEdge project with build configuration.
+Interactive scaffolding tool that generates build configuration and starter files for a new FastEdge application.
 
 ## Usage
 
@@ -8,100 +8,203 @@ Interactive scaffolding wizard that sets up a FastEdge project with build config
 npx fastedge-init
 ```
 
-This command runs an interactive prompt — there are no command-line flags.
+`fastedge-init` has no flags. All configuration is collected interactively. Run it from the root of your project directory.
 
-## What It Does
+If `.fastedge/build-config.js` already exists, the tool warns you and asks whether to overwrite it before proceeding. Answering `N` or pressing Enter exits without making changes.
 
-1. Checks if a `.fastedge/build-config.js` already exists
-2. Prompts: **"What are you trying to build?"**
-   - **HTTP event handler** — a web application that handles HTTP requests
-   - **Static website** — serve static files (HTML, CSS, JS, images) from the edge
-3. Creates the `.fastedge/` directory
-4. Generates configuration files based on your choice
+## Application Types
 
-## HTTP Event Handler Setup
+The first prompt asks what you are building:
 
-When you select "HTTP event handler", `fastedge-init` creates:
+| Option               | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `Http event-handler` | A request/response handler compiled to WASM       |
+| `Static website`     | A static file server with assets embedded in WASM |
 
-```
-.fastedge/
-├── build-config.js    — build configuration
-├── package.json       — workspace package
-└── jsconfig.json      — editor support
-```
+## HTTP Handler Setup
 
-### Generated `build-config.js` (HTTP)
+### Prompts
 
-```js
-const config = {
-  type: 'http',
-  entryPoint: './src/index.js',
-  wasmOutput: './dist/app.wasm',
-};
+| Prompt                   | Default                    | Validation            |
+| ------------------------ | -------------------------- | --------------------- |
+| Path to your entry file  | `src/index.js`             | File must exist       |
+| Path to your output file | `.fastedge/dist/main.wasm` | Must end with `.wasm` |
 
-export { config };
-```
+### Files Created
 
-You then write your handler in `src/index.js` using the Service Worker API pattern.
+| File                        | Description                           |
+| --------------------------- | ------------------------------------- |
+| `.fastedge/build-config.js` | Build and server configuration module |
 
-## Static Website Setup
+### Generated Config
 
-When you select "Static website", `fastedge-init` prompts for additional details:
-
-1. **Public directory** — where your static files are (e.g., `./public`, `./dist`)
-2. **Framework** — optional framework detection (CRA, Astro, etc.)
-
-### Generated Files (Static)
-
-```
-.fastedge/
-├── build-config.js    — build + server configuration
-├── static-index.js    — auto-generated entry point
-├── package.json       — workspace package
-└── jsconfig.json      — editor support
-```
-
-### Generated `build-config.js` (Static)
+`.fastedge/build-config.js` exports two named objects using the values from the prompts:
 
 ```js
 const config = {
-  type: 'static',
-  entryPoint: '.fastedge/static-index.js',
-  wasmOutput: './dist/app.wasm',
-  publicDir: './public',
-  assetManifestPath: '.fastedge/manifest.ts',
-  ignoreDotFiles: true,
-  ignoreDirs: ['./node_modules'],
-  ignoreWellKnown: false,
+  "type": "http",
+  "tsConfigPath": "./tsconfig.json",
+  "entryPoint": "src/index.js",
+  "wasmOutput": ".fastedge/dist/main.wasm"
 };
 
 const serverConfig = {
-  extendedCache: [],
-  publicDirPrefix: '',
-  compression: [],
-  notFoundPage: '/404.html',
-  autoIndex: ['index.html', 'index.htm'],
+  "type": "http"
 };
 
 export { config, serverConfig };
 ```
 
-## After Scaffolding
+### Entry File
 
-Build your project:
+Your entry file must register a `fetch` event listener at the top level:
+
+```js
+async function handleRequest(event) {
+  return new Response("Hello from FastEdge!", {
+    headers: { "Content-Type": "text/plain" },
+  });
+}
+
+addEventListener("fetch", (event) => {
+  event.respondWith(handleRequest(event));
+});
+```
+
+### Build Command
+
+After initialization, compile the application:
 
 ```bash
 npx fastedge-build --config .fastedge/build-config.js
 ```
 
-The output WASM file is ready for deployment on the FastEdge platform.
+## Static Website Setup
 
-## Configuration Reference
+### Prompts
 
-See [fastedge-build CLI](BUILD_CLI.md) for full `BuildConfig` and `ServerConfig` field definitions.
+| Prompt                                   | Default                        | Validation                                  |
+| ---------------------------------------- | ------------------------------ | ------------------------------------------- |
+| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                       |
+| Path to your public directory            | `./build`                      | Directory must exist                        |
+| Is your site a single page application?  | `No`                           | —                                           |
+| Path to your SPA entrypoint *(SPA only)* | `./index.html`                 | File must exist inside the public directory |
+
+### Files Created
+
+| File                        | Description                                                |
+| --------------------------- | ---------------------------------------------------------- |
+| `.fastedge/static-index.js` | Generated entry file that wires the static server together |
+| `.fastedge/build-config.js` | Build and server configuration module                      |
+| `.fastedge/package.json`    | Marks `.fastedge/` as an ES module project                 |
+| `.fastedge/jsconfig.json`   | Sets the compiler target to ES6 for the project directory  |
+
+### Generated Entry File
+
+`.fastedge/static-index.js` is generated automatically and should not be edited manually:
+
+```js
+/*
+ * Generated by @gcoredev/FastEdge-sdk-js fastedge-init
+ */
+
+import { createStaticServer } from "@gcoredev/fastedge-sdk-js";
+import { staticAssetManifest } from "./build/static-asset-manifest.js";
+import { serverConfig } from "./build-config.js";
+
+const staticServer = createStaticServer(staticAssetManifest, serverConfig);
+
+async function handleRequest(event) {
+  const response = await staticServer.serveRequest(event.request);
+  if (response != null) {
+    return response;
+  }
+
+  return new Response("Not found", { status: 404 });
+}
+
+addEventListener("fetch", (event) => event.respondWith(handleRequest(event)));
+```
+
+### Generated Config
+
+`.fastedge/build-config.js` exports two named objects using the values from the prompts:
+
+```js
+const config = {
+  "type": "static",
+  "entryPoint": ".fastedge/static-index.js",
+  "ignoreDotFiles": true,
+  "ignoreDirs": ["./node_modules"],
+  "ignoreWellKnown": false,
+  "tsConfigPath": "./tsconfig.json",
+  "wasmOutput": ".fastedge/dist/fastedge.wasm",
+  "publicDir": "./build"
+};
+
+const serverConfig = {
+  "type": "static",
+  "extendedCache": [],
+  "publicDirPrefix": "",
+  "compression": [],
+  "notFoundPage": "/404.html",
+  "autoExt": [],
+  "autoIndex": ["index.html", "index.htm"],
+  "spaEntrypoint": null
+};
+
+export { config, serverConfig };
+```
+
+For a SPA, `spaEntrypoint` is set to the normalized path entered at the prompt (e.g., `"/index.html"`).
+
+### Config Fields
+
+#### Build Config (`config`)
+
+| Field             | Type       | Default                        | Description                                            |
+| ----------------- | ---------- | ------------------------------ | ------------------------------------------------------ |
+| `type`            | `string`   | `"static"`                     | Build type identifier                                  |
+| `entryPoint`      | `string`   | `.fastedge/static-index.js`    | Path to the generated entry file                       |
+| `wasmOutput`      | `string`   | `.fastedge/dist/fastedge.wasm` | Output path for the compiled WASM file                 |
+| `publicDir`       | `string`   | —                              | Directory containing static assets to embed            |
+| `tsConfigPath`    | `string`   | `./tsconfig.json`              | Path to TypeScript configuration                       |
+| `ignoreDotFiles`  | `boolean`  | `true`                         | Exclude files beginning with `.` from the asset bundle |
+| `ignoreDirs`      | `string[]` | `["./node_modules"]`           | Directories to exclude from the asset bundle           |
+| `ignoreWellKnown` | `boolean`  | `false`                        | When `true`, excludes the `.well-known/` directory     |
+
+#### Server Config (`serverConfig`)
+
+| Field             | Type             | Default                       | Description                                           |
+| ----------------- | ---------------- | ----------------------------- | ----------------------------------------------------- |
+| `type`            | `string`         | `"static"`                    | Server type identifier                                |
+| `extendedCache`   | `string[]`       | `[]`                          | Additional paths to serve with long cache TTLs        |
+| `publicDirPrefix` | `string`         | `""`                          | URL prefix stripped before resolving asset paths      |
+| `compression`     | `string[]`       | `[]`                          | Compression formats (reserved for future use)         |
+| `notFoundPage`    | `string`         | `"/404.html"`                 | Asset path served on 404                              |
+| `autoExt`         | `string[]`       | `[]`                          | Extensions appended when a path has no extension      |
+| `autoIndex`       | `string[]`       | `["index.html", "index.htm"]` | Index filenames tried when resolving a directory path |
+| `spaEntrypoint`   | `string \| null` | `null`                        | Fallback asset path for unmatched routes in SPA mode  |
+
+### Build Command
+
+Static sites require two build steps. First, generate the asset manifest from your public directory:
+
+```bash
+npx fastedge-assets ./build .fastedge/build/static-asset-manifest.js
+```
+
+Then compile to WASM:
+
+```bash
+npx fastedge-build --config .fastedge/build-config.js
+```
+
+Run `fastedge-assets` again whenever your static assets change.
 
 ## See Also
 
-- [fastedge-build CLI](BUILD_CLI.md) — compilation options
-- [Static Sites](STATIC_SITES.md) — static site workflow
-- [Quickstart](quickstart.md) — getting started guide
+- [fastedge-build CLI](BUILD_CLI.md) — compile a project to WebAssembly
+- [fastedge-assets CLI](ASSETS_CLI.md) — generate static asset manifests
+- [Static Sites](STATIC_SITES.md) — static site configuration and serving behaviour
+- [Quickstart](quickstart.md) — installation and first build

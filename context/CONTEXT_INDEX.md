@@ -44,7 +44,7 @@
 | TypeScript declarations | `types/` | Authoritative public API surface (env, fs, kv, secret, globals) |
 | GitHub Pages docs | `github-pages/` | Astro-based user-facing documentation site |
 | Pipeline docs | `docs/` (planned) | Human-facing docs feeding into fastedge-plugin |
-| Examples | `examples/` | 7 standalone example apps showing real patterns |
+| Examples | `examples/` | 13 standalone example apps showing real patterns |
 
 ---
 
@@ -114,8 +114,9 @@
 
 ### Updating the Docs Site (GitHub Pages)
 1. The Astro site is in `github-pages/` (separate pnpm workspace)
-2. Changes to `github-pages/**` trigger the docs deploy workflow
-3. Run `cd github-pages && npm run build` to verify locally
+2. Code examples in the docs are imported from `examples/` via a Vite alias (`@examples` → `../examples/`). Edit the source in `examples/<name>/src/index.js` — the docs site picks it up automatically.
+3. Changes to `github-pages/**` trigger the docs deploy workflow
+4. Run `cd github-pages && pnpm build` to verify locally
 
 ---
 

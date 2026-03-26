@@ -1,129 +1,366 @@
 # Static Sites
 
-Serve static websites (HTML, CSS, JS, images) directly from the edge by embedding files into a WebAssembly binary. No filesystem or CDN origin required — all assets are loaded from WASM memory.
+Serve static files from a FastEdge WebAssembly binary with no file-system access at runtime.
 
-## How It Works
+## How Embedding Works
 
-1. **fastedge-init** scaffolds a project with `type: 'static'` configuration
-2. **fastedge-build** scans your static directory, generates a manifest, and inlines all files into the WASM binary during compilation
-3. At runtime, the embedded static server serves files from memory with correct MIME types, caching headers, and optional compression
+The FastEdge runtime runs inside a WebAssembly sandbox with no access to a host file system. Static files must be embedded directly into the `.wasm` binary at compile time.
 
-Files are read during the Wizer pre-initialization phase (build time), not at request time. This means zero startup latency and no filesystem dependencies.
+The build pipeline uses [Wizer](https://github.com/bytecodealliance/wizer) for pre-initialization. Wizer executes all top-level JavaScript in your entry point before taking a memory snapshot. When `createStaticServer` is called at the top level, it iterates over the asset manifest and loads every file's bytes into WebAssembly linear memory. Wizer then snapshots that memory state and writes it into the final binary. At runtime, assets are served directly from memory with no startup delay.
+
+This means:
+
+- `createStaticServer` **must** be called at module top level, not inside a function or event handler.
+- The asset manifest must be generated before `fastedge-build` runs.
+- Any file not included in the manifest at build time cannot be served at runtime.
 
 ## Quick Start
 
-```bash
-# 1. Scaffold a static site project
-npx fastedge-init
-# Select "Static website" → provide your public directory
+### Step 1: Generate the asset manifest
 
-# 2. Build
-npx fastedge-build --config .fastedge/build-config.js
-
-# 3. Deploy the output .wasm file
+```sh
+npx fastedge-assets ./public ./src/asset-manifest.ts
 ```
 
-## Configuration
+This scans `./public` and writes a manifest file mapping each file's URL path to its metadata. The manifest is a TypeScript/JavaScript module — do not edit it by hand.
 
-### Build Config
+### Step 2: Write the entry point
 
-Created by `fastedge-init` at `.fastedge/build-config.js`:
-
-```js
-const config = {
-  type: 'static',
-  entryPoint: '.fastedge/static-index.js',
-  wasmOutput: './dist/app.wasm',
-  publicDir: './public',
-  assetManifestPath: '.fastedge/manifest.ts',
-  ignoreDotFiles: true,
-  ignoreDirs: ['./node_modules'],
-  ignoreWellKnown: false,
-};
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `publicDir` | `string` | Root directory of static files |
-| `assetManifestPath` | `string` | Where to write the generated manifest |
-| `ignoreDotFiles` | `boolean` | Skip files starting with `.` |
-| `ignoreDirs` | `string[]` | Directories to exclude from manifest |
-| `ignoreWellKnown` | `boolean` | Skip `.well-known/` directory |
-
-### Server Config
-
-Controls how the static server behaves at runtime:
-
-```js
-const serverConfig = {
-  publicDirPrefix: '',
-  extendedCache: [],
-  compression: [],
-  notFoundPage: '/404.html',
-  autoIndex: ['index.html', 'index.htm'],
-  autoExt: [],
-  spaEntrypoint: null,
-};
-```
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `publicDirPrefix` | `string` | `''` | URL prefix for all static files |
-| `extendedCache` | `(string \| RegExp)[]` | `[]` | Patterns for long-cache headers |
-| `compression` | `string[]` | `[]` | Enabled compression types |
-| `notFoundPage` | `string \| null` | `'/404.html'` | Custom 404 page path |
-| `autoIndex` | `string[]` | `['index.html', 'index.htm']` | Default index files for directories |
-| `autoExt` | `string[]` | `[]` | Auto-append file extensions |
-| `spaEntrypoint` | `string \| null` | `null` | SPA fallback file |
-
-## Using createStaticServer
-
-For advanced control, use the `createStaticServer` API directly in your entry point:
-
-```js
+```ts
+/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
-import manifest from './manifest.ts';
+import { staticAssetManifest } from './asset-manifest.js';
 
-// IMPORTANT: Must be at top level (runs during Wizer pre-initialization)
-const server = createStaticServer(manifest, {
+// Must be at top level — Wizer snapshots this call
+const server = createStaticServer(staticAssetManifest, {
+  autoIndex:    ['index.html'],
+  autoExt:      ['.html'],
   notFoundPage: '/404.html',
-  autoIndex: ['index.html'],
-  compression: [],
 });
 
-addEventListener('fetch', (event) => {
+addEventListener('fetch', (event: FetchEvent) => {
+  event.respondWith(
+    server.serveRequest(event.request).then(
+      (response) => response ?? new Response('Not found', { status: 404 }),
+    ),
+  );
+});
+```
+
+### Step 3: Build
+
+```sh
+npx fastedge-build --input ./src/index.ts --output ./dist/app.wasm
+```
+
+Or use a config-driven build (see [Build Config](#build-config)):
+
+```sh
+npx fastedge-build --config .fastedge/build-config.js
+```
+
+## Build Config
+
+When using `fastedge-build` with a config file, set `type: 'static'` to have the asset manifest generated automatically as part of the build pipeline.
+
+```js
+// .fastedge/build-config.js
+const config = {
+  type:              'static',
+  entryPoint:        '.fastedge/static-index.js',
+  wasmOutput:        './dist/app.wasm',
+  publicDir:         './public',
+  assetManifestPath: './src/asset-manifest.ts',
+  ignoreDotFiles:    true,
+  ignoreWellKnown:   false,
+  ignorePaths:       ['./public/drafts'],
+};
+
+export { config };
+```
+
+### Static-Specific BuildConfig Fields
+
+The following fields apply when `type` is `'static'`. All other `BuildConfig` fields are documented in [BUILD_CLI.md](BUILD_CLI.md).
+
+| Field               | Type                           | Required | Description                                                            |
+| ------------------- | ------------------------------ | -------- | ---------------------------------------------------------------------- |
+| `publicDir`         | `string`                       | Yes      | Directory to scan for static files to embed                            |
+| `assetManifestPath` | `string`                       | Yes      | Output path for the generated asset manifest module                    |
+| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content-type rules prepended before built-in defaults           |
+| `ignoreDotFiles`    | `boolean`                      | No       | When `true`, excludes files and directories whose names begin with `.` |
+| `ignorePaths`       | `string[]`                     | No       | Additional paths to exclude from the manifest                          |
+| `ignoreWellKnown`   | `boolean`                      | No       | When `true`, excludes the `.well-known/` directory                     |
+
+## createStaticServer
+
+```typescript
+function createStaticServer(
+  staticAssetManifest: StaticAssetManifest,
+  serverConfig: Partial<ServerConfig>,
+): StaticServer
+```
+
+Creates a static server that serves assets from an in-memory cache built from `staticAssetManifest`.
+
+**Parameters:**
+
+| Parameter             | Type                    | Description                                                            |
+| --------------------- | ----------------------- | ---------------------------------------------------------------------- |
+| `staticAssetManifest` | `StaticAssetManifest`   | Manifest generated by `npx fastedge-assets` or `type: 'static'` build |
+| `serverConfig`        | `Partial<ServerConfig>` | Server behavior options; all fields are optional                       |
+
+**Returns:** `StaticServer`
+
+**Critical constraint:** This function must be called at module top level. Calling it inside a function, event handler, or `async` context prevents Wizer from embedding the assets into the binary. See [Wizer Constraint](#wizer-constraint).
+
+### Import
+
+```ts
+import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
+```
+
+### ServerConfig Fields
+
+All fields are optional. Pass only the fields you need.
+
+| Field             | Type                      | Default | Description                                                                                               |
+| ----------------- | ------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `publicDirPrefix` | `string`                  | `''`    | Prefix stripped from asset keys before matching request paths                                             |
+| `routePrefix`     | `string`                  | `'/'`   | URL prefix stripped from incoming request paths before looking up asset keys                              |
+| `extendedCache`   | `Array<string \| RegExp>` | `[]`    | Paths or patterns that receive a `Cache-Control: max-age=31536000` response header                       |
+| `compression`     | `string[]`                | `[]`    | Content encodings to serve (e.g. `['br', 'gzip']`); matched against the request `Accept-Encoding` header |
+| `notFoundPage`    | `string \| null`          | `null`  | Asset path to serve when no match is found (e.g. `'/404.html'`); only served for HTML-accepting requests  |
+| `autoExt`         | `string[]`                | `[]`    | Extensions to append when no exact path match is found (e.g. `['.html']`)                                |
+| `autoIndex`       | `string[]`                | `[]`    | Index file names to try for directory requests (e.g. `['index.html']`)                                   |
+| `spaEntrypoint`   | `string \| null`          | `null`  | Asset path served as the SPA fallback for unmatched routes; only served for HTML-accepting requests       |
+
+#### routePrefix
+
+Use `routePrefix` when mounting a static server under a URL subpath. The prefix is stripped from the request path before the server looks up an asset key.
+
+```ts
+// Assets have keys like '/logo.png', '/style.css'
+// Requests arrive as '/static/logo.png', '/static/style.css'
+const server = createStaticServer(manifest, { routePrefix: '/static' });
+```
+
+#### extendedCache
+
+Entries are path strings or regex-style strings prefixed with `regex:`. Regex strings use the format `regex:/pattern/flags` and are converted to `RegExp` objects during normalization.
+
+```ts
+const server = createStaticServer(manifest, {
+  extendedCache: [
+    '/assets/logo.png',
+    'regex:/\\.woff2$/i',
+  ],
+});
+```
+
+#### autoExt and autoIndex
+
+`autoExt` appends extensions to the path when no exact match is found. `autoIndex` appends index file names when the request path ends with `/`.
+
+```ts
+// Request: /about   → tries /about.html
+// Request: /docs/   → tries /docs/index.html
+const server = createStaticServer(manifest, {
+  autoExt:   ['.html'],
+  autoIndex: ['index.html'],
+});
+```
+
+#### notFoundPage and spaEntrypoint
+
+Both `notFoundPage` and `spaEntrypoint` are only served for requests that include `text/html` or `*/*` in their `Accept` header. Non-HTML requests (e.g. API calls, asset fetches) that match no asset receive a void response regardless of these settings.
+
+`spaEntrypoint` is checked first. If it resolves to an asset, it is returned with `Cache-Control: no-store`. If not, `notFoundPage` is checked and returned with `status: 404` and `Cache-Control: no-store`.
+
+```ts
+// Client-side routing: all unmatched HTML requests get /index.html
+const server = createStaticServer(manifest, {
+  spaEntrypoint: '/index.html',
+});
+
+// Static site with explicit 404 page
+const server = createStaticServer(manifest, {
+  notFoundPage: '/404.html',
+});
+```
+
+## StaticServer Methods
+
+```typescript
+interface StaticServer {
+  serveRequest(request: Request): Promise<void | Response>;
+  readFileString(path: string):   Promise<string>;
+}
+```
+
+### serveRequest
+
+```typescript
+serveRequest(request: Request): Promise<void | Response>
+```
+
+Looks up the asset matching `request.url`'s pathname and returns a `Response` with appropriate headers (`Content-Type`, `ETag`, `Last-Modified`, `Cache-Control`). Handles conditional requests (`If-None-Match`, `If-Modified-Since`) and content encoding negotiation based on the `Accept-Encoding` header.
+
+Only processes `GET` and `HEAD` requests. All other methods resolve to `void` immediately.
+
+Returns `void` (resolves to `undefined`) when no matching asset is found and no applicable `notFoundPage` or `spaEntrypoint` is configured. The caller must provide a fallback response in that case.
+
+```ts
+addEventListener('fetch', (event: FetchEvent) => {
+  event.respondWith(
+    server.serveRequest(event.request).then(
+      (response) => response ?? new Response('Not found', { status: 404 }),
+    ),
+  );
+});
+```
+
+### readFileString
+
+```typescript
+readFileString(path: string): Promise<string>
+```
+
+Returns the text content of the embedded asset at `path`. The asset must have been classified as a text type (`isText: true`) in the manifest at build time. Throws an error if no asset is found at the given path. Use this to read embedded HTML templates or other text files for further processing at runtime.
+
+```ts
+app.get('/template', async (c) => {
+  const html = await server.readFileString('/template.html');
+  return c.html(html);
+});
+```
+
+## Wizer Constraint
+
+Wizer pre-initializes the binary by running all top-level module code before snapshotting memory. `createStaticServer` must be called at the **module top level** to ensure asset bytes are loaded into memory before the snapshot is taken.
+
+**Correct:**
+
+```ts
+import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
+import { staticAssetManifest } from './asset-manifest.js';
+
+// Top-level: runs during Wizer pre-initialization
+const server = createStaticServer(staticAssetManifest, {});
+
+addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(server.serveRequest(event.request));
 });
 ```
 
-### StaticServer API
+**Incorrect — assets will not be embedded:**
 
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `serveRequest(request)` | `Promise<void \| Response>` | Serve a request from embedded assets |
-| `readFileString(path)` | `Promise<string>` | Read an embedded file as string |
-
-### Critical Constraint
-
-`createStaticServer()` **must be called at the top level** of your module, not inside a function or event handler. It runs during Wizer pre-initialization to load files into memory. Calling it at request time will fail.
-
-## Migration from v1
-
-If upgrading from SDK v1:
-
-```js
-// v1 (deprecated)
-import { getStaticServer, createStaticAssetsCache } from '@gcoredev/fastedge-sdk-js';
-const server = getStaticServer(config, createStaticAssetsCache(manifest));
-
-// v2 (current)
-import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
-const server = createStaticServer(manifest, config);
+```ts
+// Do not do this
+addEventListener('fetch', (event: FetchEvent) => {
+  const server = createStaticServer(staticAssetManifest, {}); // inside handler
+  event.respondWith(server.serveRequest(event.request));
+});
 ```
+
+## Multiple Manifests
+
+A single entry point can use multiple static servers, each built from a separate manifest. This is useful when different asset groups need different server configurations (e.g., separate route prefixes or cache policies).
+
+```sh
+npx fastedge-assets ./images    src/images-manifest.ts
+npx fastedge-assets ./styles    src/styles-manifest.ts
+npx fastedge-assets ./templates src/templates-manifest.ts
+npx fastedge-build -i src/index.ts -o dist/app.wasm -t tsconfig.json
+```
+
+```ts
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
+import { staticAssetManifest as imagesManifest }    from './images-manifest.js';
+import { staticAssetManifest as stylesManifest }    from './styles-manifest.js';
+import { staticAssetManifest as templatesManifest } from './templates-manifest.js';
+
+// All three must be at top level
+const imageServer    = createStaticServer(imagesManifest,    { routePrefix: '/images' });
+const styleServer    = createStaticServer(stylesManifest,    { routePrefix: '/styles' });
+const templateServer = createStaticServer(templatesManifest, {});
+
+addEventListener('fetch', (event: FetchEvent) => {
+  const { pathname } = new URL(event.request.url);
+  if (pathname.startsWith('/images/')) {
+    event.respondWith(imageServer.serveRequest(event.request));
+  } else if (pathname.startsWith('/styles/')) {
+    event.respondWith(styleServer.serveRequest(event.request));
+  } else {
+    event.respondWith(
+      templateServer
+        .serveRequest(event.request)
+        .then((r) => r ?? new Response('Not found', { status: 404 })),
+    );
+  }
+});
+```
+
+## v1 to v2 Migration
+
+Version 2.x replaced the two-step `createStaticAssetsCache` + `getStaticServer` pattern with a single `createStaticServer` call.
+
+**Version 1.x:**
+
+```ts
+import { getStaticServer, createStaticAssetsCache } from '@gcoredev/fastedge-sdk-js';
+import { staticAssetManifest } from './build/static-server-manifest.js';
+import { serverConfig }        from './build-config.js';
+
+const staticAssets = createStaticAssetsCache(staticAssetManifest);
+const staticServer = getStaticServer(serverConfig, staticAssets);
+
+async function handleRequest(event) {
+  const response = await staticServer.serveRequest(event.request);
+  if (response != null) {
+    return response;
+  }
+  return new Response('Not found', { status: 404 });
+}
+
+addEventListener('fetch', (event) => event.respondWith(handleRequest(event)));
+```
+
+**Version 2.x:**
+
+```ts
+import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
+import { staticAssetManifest } from './build/static-asset-manifest.js';
+import { serverConfig }        from './build-config.js';
+
+const staticServer = createStaticServer(staticAssetManifest, serverConfig);
+
+async function handleRequest(event) {
+  const response = await staticServer.serveRequest(event.request);
+  if (response != null) {
+    return response;
+  }
+  return new Response('Not found', { status: 404 });
+}
+
+addEventListener('fetch', (event) => event.respondWith(handleRequest(event)));
+```
+
+**What changed:**
+
+| Area                | v1.x                                          | v2.x                                       |
+| ------------------- | --------------------------------------------- | ------------------------------------------ |
+| API                 | `createStaticAssetsCache` + `getStaticServer` | `createStaticServer`                       |
+| Multiple manifests  | Not supported                                 | Supported — one server per manifest        |
+| Read file as string | Not available                                 | `server.readFileString(path)`              |
+| Manifest file name  | `static-server-manifest.js`                   | `static-asset-manifest.js` (by convention) |
+
+If you used `fastedge-init` to scaffold your project, re-running `npx fastedge-init` updates the generated `static-index.js` entry point automatically.
 
 ## See Also
 
-- [fastedge-assets CLI](ASSETS_CLI.md) — standalone manifest generation
-- [fastedge-build CLI](BUILD_CLI.md) — build options for static sites
-- [fastedge-init CLI](INIT_CLI.md) — scaffold a static site project
-- [SDK Runtime API](SDK_API.md) — runtime APIs available in static apps
+- [Assets CLI](ASSETS_CLI.md) — `fastedge-assets` reference for manifest generation and config fields
+- [Build CLI](BUILD_CLI.md) — `fastedge-build` reference including `type: 'static'` build config
+- [Init CLI](INIT_CLI.md) — `fastedge-init` for scaffolding a static site project
+- [SDK API](SDK_API.md) — runtime API reference for HTTP handler entry points

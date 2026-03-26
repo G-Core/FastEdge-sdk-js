@@ -56,7 +56,7 @@ See `context/architecture/RUNTIME_ARCHITECTURE.md` for full details.
 | `runtime/FastEdge-wit/` | WIT world definition (`gcore:fastedge`) |
 | `types/` | TypeScript declarations (authoritative public API surface) |
 | `github-pages/` | Astro documentation site (GitHub Pages) |
-| `examples/` | Standalone example apps (7 examples) |
+| `examples/` | Standalone example apps (13 examples: 6 getting-started + 7 full) |
 | `config/` | Jest + ESLint configurations |
 | `esbuild/` | esbuild build scripts |
 | `compiler/` | Docker compiler for CI/CD |

@@ -152,7 +152,7 @@ FastEdge-sdk-js/
 │   └── utils/                             ← Shared utilities
 ├── runtime/                               ← StarlingMonkey + builtins (C++/Rust)
 ├── types/                                 ← TypeScript declarations (public API)
-├── examples/                              ← 7 standalone example apps
+├── examples/                              ← 13 standalone example apps
 ├── github-pages/                          ← Astro docs site (GitHub Pages)
 ├── docs/                                  ← Pipeline docs (planned)
 ├── esbuild/                               ← Build scripts
