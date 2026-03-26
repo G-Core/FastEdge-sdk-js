@@ -26,14 +26,14 @@ npx fastedge-build --version
 
 ## Options
 
-| Flag          | Alias | Type       | Description                      |
-| ------------- | ----- | ---------- | -------------------------------- |
-| `--input`     | `-i`  | `String`   | Input JavaScript/TypeScript file |
-| `--output`    | `-o`  | `String`   | Output WebAssembly file path     |
-| `--tsconfig`  | `-t`  | `String`   | Path to tsconfig.json            |
-| `--config`    | `-c`  | `String[]` | Path(s) to build config files    |
-| `--help`      | `-h`  | `Boolean`  | Show help                        |
-| `--version`   | `-v`  | `Boolean`  | Show version                     |
+| Flag         | Alias | Type       | Description                      |
+| ------------ | ----- | ---------- | -------------------------------- |
+| `--input`    | `-i`  | `String`   | Input JavaScript/TypeScript file |
+| `--output`   | `-o`  | `String`   | Output WebAssembly file path     |
+| `--tsconfig` | `-t`  | `String`   | Path to tsconfig.json            |
+| `--config`   | `-c`  | `String[]` | Path(s) to build config files    |
+| `--help`     | `-h`  | `Boolean`  | Show help                        |
+| `--version`  | `-v`  | `Boolean`  | Show version                     |
 
 ## Build Modes
 
@@ -116,12 +116,12 @@ export { config };
 
 ### BuildConfig Fields
 
-| Field          | Type                  | Required | Description                                        |
-| -------------- | --------------------- | -------- | -------------------------------------------------- |
-| `type`         | `'http' \| 'static'`  | No       | Build type; must be `http` or `static` if provided |
-| `entryPoint`   | `string`              | Yes      | Input JavaScript/TypeScript file                   |
-| `wasmOutput`   | `string`              | Yes      | Output WASM file path                              |
-| `tsConfigPath` | `string`              | No       | Path to tsconfig.json                              |
+| Field          | Type                 | Required | Description                                        |
+| -------------- | -------------------- | -------- | -------------------------------------------------- |
+| `type`         | `'http' \| 'static'` | No       | Build type; must be `http` or `static` if provided |
+| `entryPoint`   | `string`             | Yes      | Input JavaScript/TypeScript file                   |
+| `wasmOutput`   | `string`             | Yes      | Output WASM file path                              |
+| `tsConfigPath` | `string`             | No       | Path to tsconfig.json                              |
 
 ### Static-Only Fields
 

@@ -4,7 +4,7 @@ Get a FastEdge JavaScript application built and ready for deployment.
 
 ## Prerequisites
 
-- Node.js `>=22`
+- Node.js `>=22` (see `engines.node` in `package.json`)
 - npm, yarn, or pnpm
 
 ## Installation
@@ -49,14 +49,14 @@ npx fastedge-build --input src/index.ts --output app.wasm --tsconfig tsconfig.js
 
 ### fastedge-build CLI Flags
 
-| Flag           | Alias | Type       | Description                      |
-| -------------- | ----- | ---------- | -------------------------------- |
-| `--input`      | `-i`  | `string`   | Entry point file                 |
-| `--output`     | `-o`  | `string`   | Output `.wasm` file path         |
-| `--tsconfig`   | `-t`  | `string`   | Path to `tsconfig.json`          |
-| `--config`     | `-c`  | `string[]` | Path(s) to build config file(s)  |
-| `--version`    | `-v`  | `boolean`  | Print version                    |
-| `--help`       | `-h`  | `boolean`  | Print help                       |
+| Flag         | Alias | Type       | Description                     |
+| ------------ | ----- | ---------- | ------------------------------- |
+| `--input`    | `-i`  | `string`   | Entry point file                |
+| `--output`   | `-o`  | `string`   | Output `.wasm` file path        |
+| `--tsconfig` | `-t`  | `string`   | Path to `tsconfig.json`         |
+| `--config`   | `-c`  | `string[]` | Path(s) to build config file(s) |
+| `--version`  | `-v`  | `boolean`  | Print version                   |
+| `--help`     | `-h`  | `boolean`  | Print help                      |
 
 ## Write Your First App
 

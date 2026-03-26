@@ -60,22 +60,22 @@ Runtime APIs are available via `fastedge::` module specifiers inside your applic
 
 ### FastEdge APIs
 
-| Import              | Export                 | Signature                                            |
-| ------------------- | ---------------------- | ---------------------------------------------------- |
-| `fastedge::env`     | `getEnv`               | `(name: string): string \| null`                     |
-| `fastedge::secret`  | `getSecret`            | `(name: string): string \| null`                     |
-| `fastedge::secret`  | `getSecretEffectiveAt` | `(name: string, effectiveAt: number): string \| null`|
-| `fastedge::kv`      | `KvStore.open`         | `(name: string): KvStoreInstance`                    |
+| Import              | Export                 | Signature                                             |
+| ------------------- | ---------------------- | ----------------------------------------------------- |
+| `fastedge::env`     | `getEnv`               | `(name: string): string \| null`                      |
+| `fastedge::secret`  | `getSecret`            | `(name: string): string \| null`                      |
+| `fastedge::secret`  | `getSecretEffectiveAt` | `(name: string, effectiveAt: number): string \| null` |
+| `fastedge::kv`      | `KvStore.open`         | `(name: string): KvStoreInstance`                     |
 
 ### KvStoreInstance Methods
 
-| Method          | Signature                                                               | Description                                           |
-| --------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
-| `get`           | `(key: string): ArrayBuffer \| null`                                    | Retrieve a value by key                               |
+| Method          | Signature                                                               | Description                                            |
+| --------------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| `get`           | `(key: string): ArrayBuffer \| null`                                    | Retrieve a value by key                                |
 | `scan`          | `(pattern: string): Array<string>`                                      | Retrieve keys matching a prefix pattern (e.g. `foo*`) |
-| `zrangeByScore` | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>` | Retrieve sorted set entries by score range            |
-| `zscan`         | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`          | Retrieve sorted set entries matching a prefix pattern |
-| `bfExists`      | `(key: string, value: string): boolean`                                 | Check if a value exists in a Bloom Filter             |
+| `zrangeByScore` | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>` | Retrieve sorted set entries by score range             |
+| `zscan`         | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`          | Retrieve sorted set entries matching a prefix pattern  |
+| `bfExists`      | `(key: string, value: string): boolean`                                 | Check if a value exists in a Bloom Filter              |
 
 ### Web APIs
 

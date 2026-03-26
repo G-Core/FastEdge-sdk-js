@@ -12,9 +12,9 @@ Runtime APIs available to FastEdge applications compiled to WebAssembly.
 import { getEnv } from "fastedge::env";
 ```
 
-| Function       | Signature                  | Returns  |
-| -------------- | -------------------------- | -------- |
-| `getEnv(name)` | `(name: string) => string \| null` | `string \| null` |
+| Function         | Signature                          | Returns          |
+| ---------------- | ---------------------------------- | ---------------- |
+| `getEnv(name)`   | `(name: string) => string \| null` | `string \| null` |
 
 Retrieves the value of a named environment variable, or `null` if not set. Environment variables are set on the application and injected at request time.
 
@@ -45,10 +45,10 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 import { getSecret, getSecretEffectiveAt } from "fastedge::secret";
 ```
 
-| Function                           | Signature                                       | Returns  |
-| ---------------------------------- | ----------------------------------------------- | -------- |
-| `getSecret(name)`                  | `(name: string) => string \| null`                      | `string \| null` |
-| `getSecretEffectiveAt(name, slot)` | `(name: string, effectiveAt: number) => string \| null` | `string \| null` |
+| Function                               | Signature                                               | Returns          |
+| -------------------------------------- | ------------------------------------------------------- | ---------------- |
+| `getSecret(name)`                      | `(name: string) => string \| null`                      | `string \| null` |
+| `getSecretEffectiveAt(name, effectiveAt)` | `(name: string, effectiveAt: number) => string \| null` | `string \| null` |
 
 **Note:** Secrets can only be read during request processing, not during build-time initialization.
 
@@ -138,13 +138,13 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 #### KvStoreInstance methods
 
-| Method                         | Signature                                                                 | Returns                       |
-| ------------------------------ | ------------------------------------------------------------------------- | ----------------------------- |
-| `get(key)`                     | `(key: string) => ArrayBuffer \| null`                                    | `ArrayBuffer \| null`         |
-| `scan(pattern)`                | `(pattern: string) => Array<string>`                                      | `Array<string>`               |
-| `zrangeByScore(key, min, max)` | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>` | `Array<[ArrayBuffer, number]>` |
-| `zscan(key, pattern)`          | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`          | `Array<[ArrayBuffer, number]>` |
-| `bfExists(key, value)`         | `(key: string, value: string) => boolean`                                 | `boolean`                     |
+| Method                           | Signature                                                                   | Returns                        |
+| -------------------------------- | --------------------------------------------------------------------------- | ------------------------------ |
+| `get(key)`                       | `(key: string) => ArrayBuffer \| null`                                      | `ArrayBuffer \| null`          |
+| `scan(pattern)`                  | `(pattern: string) => Array<string>`                                        | `Array<string>`                |
+| `zrangeByScore(key, min, max)`   | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>`   | `Array<[ArrayBuffer, number]>` |
+| `zscan(key, pattern)`            | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`            | `Array<[ArrayBuffer, number]>` |
+| `bfExists(key, value)`           | `(key: string, value: string) => boolean`                                   | `boolean`                      |
 
 ##### `get`
 
@@ -210,12 +210,12 @@ addEventListener("fetch", (event: FetchEvent) => void);
 
 ### FetchEvent
 
-| Property / Method | Type                                                    | Description                                                     |
-| ----------------- | ------------------------------------------------------- | --------------------------------------------------------------- |
-| `request`         | `Request`                                               | The incoming HTTP request from the client.                      |
-| `client`          | `ClientInfo`                                            | Information about the downstream client.                        |
-| `respondWith`     | `(response: Response \| PromiseLike<Response>) => void` | Sends a response back to the client.                            |
-| `waitUntil`       | `(promise: Promise<any>) => void`                       | Extends the service lifetime until the promise settles.         |
+| Property / Method | Type                                                    | Description                                             |
+| ----------------- | ------------------------------------------------------- | ------------------------------------------------------- |
+| `request`         | `Request`                                               | The incoming HTTP request from the client.              |
+| `client`          | `ClientInfo`                                            | Information about the downstream client.                |
+| `respondWith`     | `(response: Response \| PromiseLike<Response>) => void` | Sends a response back to the client.                    |
+| `waitUntil`       | `(promise: Promise<any>) => void`                       | Extends the service lifetime until the promise settles. |
 
 `respondWith` must be called synchronously within the event listener, but may be passed a `Promise<Response>`. The service is kept alive until the response is fully sent. Use `waitUntil` to perform work (e.g., logging, telemetry) after the response has been sent.
 
@@ -296,19 +296,19 @@ new Request(input: RequestInfo | URL, init?: RequestInit): Request
 | `body`                 | `BodyInit \| null` | Request body.                                                      |
 | `manualFramingHeaders` | `boolean`          | When `true`, disables automatic framing header management.         |
 
-| `Request` property / method       | Type                                  | Description                                       |
-| --------------------------------- | ------------------------------------- | ------------------------------------------------- |
-| `method`                          | `string`                              | HTTP method.                                      |
-| `url`                             | `string`                              | Request URL as a string.                          |
-| `headers`                         | `Headers`                             | Request headers (read-only on incoming requests). |
-| `body`                            | `ReadableStream<Uint8Array> \| null`  | Request body stream.                              |
-| `bodyUsed`                        | `boolean`                             | Whether the body has already been consumed.       |
-| `clone()`                         | `() => Request`                       | Creates a copy of the request.                    |
-| `text()`                          | `() => Promise<string>`               | Reads body as a string.                           |
-| `json()`                          | `() => Promise<any>`                  | Reads body and parses as JSON.                    |
-| `arrayBuffer()`                   | `() => Promise<ArrayBuffer>`          | Reads body as an `ArrayBuffer`.                   |
-| `setCacheKey(key)`                | `(key: string) => void`               | Sets a custom cache key for the request.          |
-| `setManualFramingHeaders(manual)` | `(manual: boolean) => void`           | Toggles manual framing header control.            |
+| `Request` property / method       | Type                                 | Description                                       |
+| --------------------------------- | ------------------------------------ | ------------------------------------------------- |
+| `method`                          | `string`                             | HTTP method.                                      |
+| `url`                             | `string`                             | Request URL as a string.                          |
+| `headers`                         | `Headers`                            | Request headers (read-only on incoming requests). |
+| `body`                            | `ReadableStream<Uint8Array> \| null` | Request body stream.                              |
+| `bodyUsed`                        | `boolean`                            | Whether the body has already been consumed.       |
+| `clone()`                         | `() => Request`                      | Creates a copy of the request.                    |
+| `text()`                          | `() => Promise<string>`              | Reads body as a string.                           |
+| `json()`                          | `() => Promise<any>`                 | Reads body and parses as JSON.                    |
+| `arrayBuffer()`                   | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.                   |
+| `setCacheKey(key)`                | `(key: string) => void`              | Sets a custom cache key for the request.          |
+| `setManualFramingHeaders(manual)` | `(manual: boolean) => void`          | Toggles manual framing header control.            |
 
 **Note:** The `headers` property on an incoming `request` object (from `event.request`) is immutable — calls to `append`, `set`, or `delete` will throw. Clone the request or construct a new `Headers` object to modify headers.
 
@@ -327,19 +327,19 @@ Response.json(data: any, init?: ResponseInit): Response
 | `headers`              | `HeadersInit` | Response headers.                                          |
 | `manualFramingHeaders` | `boolean`     | When `true`, disables automatic framing header management. |
 
-| `Response` property / method      | Type                                 | Description                                         |
-| --------------------------------- | ------------------------------------ | --------------------------------------------------- |
-| `status`                          | `number`                             | HTTP status code.                                   |
-| `statusText`                      | `string`                             | HTTP status text.                                   |
-| `ok`                              | `boolean`                            | `true` if status is in the range 200–299.           |
-| `url`                             | `string`                             | URL of the response.                                |
-| `headers`                         | `Headers`                            | Response headers.                                   |
-| `body`                            | `ReadableStream<Uint8Array> \| null` | Response body stream.                               |
-| `bodyUsed`                        | `boolean`                            | Whether the body has already been consumed.         |
-| `text()`                          | `() => Promise<string>`              | Reads body as a string.                             |
-| `json()`                          | `() => Promise<any>`                 | Reads body and parses as JSON.                      |
-| `arrayBuffer()`                   | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.                     |
-| `setManualFramingHeaders(manual)` | `(manual: boolean) => void`          | Toggles manual framing header control.              |
+| `Response` property / method      | Type                                 | Description                                 |
+| --------------------------------- | ------------------------------------ | ------------------------------------------- |
+| `status`                          | `number`                             | HTTP status code.                           |
+| `statusText`                      | `string`                             | HTTP status text.                           |
+| `ok`                              | `boolean`                            | `true` if status is in the range 200–299.   |
+| `url`                             | `string`                             | URL of the response.                        |
+| `headers`                         | `Headers`                            | Response headers.                           |
+| `body`                            | `ReadableStream<Uint8Array> \| null` | Response body stream.                       |
+| `bodyUsed`                        | `boolean`                            | Whether the body has already been consumed. |
+| `text()`                          | `() => Promise<string>`              | Reads body as a string.                     |
+| `json()`                          | `() => Promise<any>`                 | Reads body and parses as JSON.              |
+| `arrayBuffer()`                   | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.             |
+| `setManualFramingHeaders(manual)` | `(manual: boolean) => void`          | Toggles manual framing header control.      |
 
 #### `Headers`
 
@@ -349,17 +349,17 @@ new Headers(init?: HeadersInit): Headers
 
 `HeadersInit` accepts a `Headers` instance, a `string[][]` array of `[name, value]` pairs, or a `Record<string, string>` object.
 
-| Method                | Signature                                                                   |
-| --------------------- | --------------------------------------------------------------------------- |
-| `get(name)`           | `(name: string) => string \| null`                                          |
-| `has(name)`           | `(name: string) => boolean`                                                 |
-| `set(name, value)`    | `(name: string, value: string) => void`                                     |
-| `append(name, value)` | `(name: string, value: string) => void`                                     |
-| `delete(name)`        | `(name: string) => void`                                                    |
-| `forEach(callback)`   | `(callback: (value: string, key: string, parent: Headers) => void) => void` |
-| `entries()`           | `() => IterableIterator<[string, string]>`                                  |
-| `keys()`              | `() => IterableIterator<string>`                                             |
-| `values()`            | `() => IterableIterator<string>`                                             |
+| Method                | Signature                                                                    |
+| --------------------- | ---------------------------------------------------------------------------- |
+| `get(name)`           | `(name: string) => string \| null`                                           |
+| `has(name)`           | `(name: string) => boolean`                                                  |
+| `set(name, value)`    | `(name: string, value: string) => void`                                      |
+| `append(name, value)` | `(name: string, value: string) => void`                                      |
+| `delete(name)`        | `(name: string) => void`                                                     |
+| `forEach(callback)`   | `(callback: (value: string, key: string, parent: Headers) => void) => void`  |
+| `entries()`           | `() => IterableIterator<[string, string]>`                                   |
+| `keys()`              | `() => IterableIterator<string>`                                              |
+| `values()`            | `() => IterableIterator<string>`                                              |
 
 **Immutability note:** The `headers` object on an incoming `event.request` is read-only. Attempting to mutate it will throw a `TypeError`. To add or change headers, construct a new `Headers` object:
 
@@ -414,19 +414,19 @@ new URLSearchParams(
 ): URLSearchParams
 ```
 
-| Method                | Signature                                                                                   |
-| --------------------- | ------------------------------------------------------------------------------------------- |
-| `get(name)`           | `(name: string) => string \| null`                                                          |
-| `getAll(name)`        | `(name: string) => string[]`                                                                |
-| `has(name)`           | `(name: string) => boolean`                                                                 |
-| `set(name, value)`    | `(name: string, value: string) => void`                                                     |
-| `append(name, value)` | `(name: string, value: string) => void`                                                     |
-| `delete(name)`        | `(name: string) => void`                                                                    |
-| `sort()`              | `() => void`                                                                                |
-| `entries()`           | `() => IterableIterator<[string, string]>`                                                  |
-| `keys()`              | `() => IterableIterator<string>`                                                            |
-| `values()`            | `() => IterableIterator<string>`                                                            |
-| `forEach(callback)`   | `(callback: (value: string, name: string, searchParams: URLSearchParams) => void) => void` |
+| Method                | Signature                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| `get(name)`           | `(name: string) => string \| null`                                                           |
+| `getAll(name)`        | `(name: string) => string[]`                                                                 |
+| `has(name)`           | `(name: string) => boolean`                                                                  |
+| `set(name, value)`    | `(name: string, value: string) => void`                                                      |
+| `append(name, value)` | `(name: string, value: string) => void`                                                      |
+| `delete(name)`        | `(name: string) => void`                                                                     |
+| `sort()`              | `() => void`                                                                                 |
+| `entries()`           | `() => IterableIterator<[string, string]>`                                                   |
+| `keys()`              | `() => IterableIterator<string>`                                                              |
+| `values()`            | `() => IterableIterator<string>`                                                              |
+| `forEach(callback)`   | `(callback: (value: string, name: string, searchParams: URLSearchParams) => void) => void`   |
 
 ---
 
@@ -440,21 +440,21 @@ The WHATWG Streams API is available for constructing and transforming streaming 
 new ReadableStream<R>(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>): ReadableStream<R>
 ```
 
-| `UnderlyingSource` field | Type                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------- |
-| `start`                  | `(controller: ReadableStreamDefaultController<R>) => any`                       |
-| `pull`                   | `(controller: ReadableStreamDefaultController<R>) => void \| PromiseLike<void>` |
-| `cancel`                 | `(reason?: any) => void \| PromiseLike<void>`                                   |
-| `type`                   | `"bytes" \| undefined`                                                          |
-| `autoAllocateChunkSize`  | `number`                                                                        |
+| `UnderlyingSource` field | Type                                                                             |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `start`                  | `(controller: ReadableStreamDefaultController<R>) => any`                        |
+| `pull`                   | `(controller: ReadableStreamDefaultController<R>) => void \| PromiseLike<void>`  |
+| `cancel`                 | `(reason?: any) => void \| PromiseLike<void>`                                    |
+| `type`                   | `"bytes" \| undefined`                                                           |
+| `autoAllocateChunkSize`  | `number`                                                                         |
 
-| `ReadableStream` method            | Signature                                                                                   |
-| ---------------------------------- | ------------------------------------------------------------------------------------------- |
-| `getReader()`                      | `() => ReadableStreamDefaultReader<R>`                                                      |
-| `pipeTo(dest, options?)`           | `(dest: WritableStream<R>, options?: StreamPipeOptions) => Promise<void>`                   |
-| `pipeThrough(transform, options?)` | `(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions) => ReadableStream<T>` |
-| `tee()`                            | `() => [ReadableStream<R>, ReadableStream<R>]`                                              |
-| `cancel(reason?)`                  | `(reason?: any) => Promise<void>`                                                           |
+| `ReadableStream` method              | Signature                                                                                    |
+| ------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `getReader()`                        | `() => ReadableStreamDefaultReader<R>`                                                       |
+| `pipeTo(dest, options?)`             | `(dest: WritableStream<R>, options?: StreamPipeOptions) => Promise<void>`                    |
+| `pipeThrough(transform, options?)`   | `(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions) => ReadableStream<T>`  |
+| `tee()`                              | `() => [ReadableStream<R>, ReadableStream<R>]`                                               |
+| `cancel(reason?)`                    | `(reason?: any) => Promise<void>`                                                            |
 
 ```javascript
 const stream = new ReadableStream({
@@ -474,10 +474,10 @@ return new Response(stream, { status: 200 });
 new WritableStream<W>(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>): WritableStream<W>
 ```
 
-| `WritableStream` method | Signature                              |
-| ----------------------- | -------------------------------------- |
-| `getWriter()`           | `() => WritableStreamDefaultWriter<W>` |
-| `abort(reason?)`        | `(reason?: any) => Promise<void>`      |
+| `WritableStream` method | Signature                               |
+| ----------------------- | --------------------------------------- |
+| `getWriter()`           | `() => WritableStreamDefaultWriter<W>`  |
+| `abort(reason?)`        | `(reason?: any) => Promise<void>`       |
 
 #### `TransformStream`
 
@@ -542,12 +542,12 @@ crypto.subtle: SubtleCrypto
 
 Available as `crypto.subtle`. Supported operations:
 
-| Method      | Signature                                                                                                                |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `digest`    | `(algorithm: AlgorithmIdentifier, data: BufferSource) => Promise<ArrayBuffer>`                                          |
-| `importKey` | See overloads below                                                                                                      |
-| `sign`      | `(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource) => Promise<ArrayBuffer>`                          |
-| `verify`    | `(algorithm: AlgorithmIdentifier, key: CryptoKey, signature: BufferSource, data: BufferSource) => Promise<boolean>`     |
+| Method      | Signature                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| `digest`    | `(algorithm: AlgorithmIdentifier, data: BufferSource) => Promise<ArrayBuffer>`                                       |
+| `importKey` | See overloads below                                                                                                  |
+| `sign`      | `(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource) => Promise<ArrayBuffer>`                       |
+| `verify`    | `(algorithm: AlgorithmIdentifier, key: CryptoKey, signature: BufferSource, data: BufferSource) => Promise<boolean>`  |
 
 `importKey` overloads:
 
@@ -648,12 +648,12 @@ console.log(`elapsed: ${elapsed}ms`);
 
 ### Additional Globals
 
-| Global                          | Type / Signature                                            | Description                                       |
-| ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- |
-| `self`                          | `typeof globalThis`                                         | Reference to the global object.                   |
-| `location`                      | `WorkerLocation`                                            | URL of the current worker script.                 |
-| `queueMicrotask(callback)`      | `(callback: () => void) => void`                            | Queues a microtask.                               |
-| `structuredClone(value, opts?)` | `(value: any, options?: StructuredSerializeOptions) => any` | Deep-clones a value. Transferable: `ArrayBuffer`. |
+| Global                           | Type / Signature                                            | Description                                       |
+| -------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| `self`                           | `typeof globalThis`                                         | Reference to the global object.                   |
+| `location`                       | `WorkerLocation`                                            | URL of the current worker script.                 |
+| `queueMicrotask(callback)`       | `(callback: () => void) => void`                            | Queues a microtask.                               |
+| `structuredClone(value, opts?)`  | `(value: any, options?: StructuredSerializeOptions) => any` | Deep-clones a value. Transferable: `ArrayBuffer`. |
 
 ---
 

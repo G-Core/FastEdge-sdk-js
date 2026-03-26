@@ -128,7 +128,7 @@ All fields are optional. Pass only the fields you need.
 | ----------------- | ------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
 | `publicDirPrefix` | `string`                  | `''`    | Prefix stripped from asset keys before matching request paths                                             |
 | `routePrefix`     | `string`                  | `'/'`   | URL prefix stripped from incoming request paths before looking up asset keys                              |
-| `extendedCache`   | `Array<string \| RegExp>` | `[]`    | Paths or patterns that receive a `Cache-Control: max-age=31536000` response header                       |
+| `extendedCache`   | `Array<string \| RegExp>` | `[]`    | Paths or patterns that receive a `Cache-Control: max-age=31536000` response header                        |
 | `compression`     | `string[]`                | `[]`    | Content encodings to serve (e.g. `['br', 'gzip']`); matched against the request `Accept-Encoding` header |
 | `notFoundPage`    | `string \| null`          | `null`  | Asset path to serve when no match is found (e.g. `'/404.html'`); only served for HTML-accepting requests  |
 | `autoExt`         | `string[]`                | `[]`    | Extensions to append when no exact path match is found (e.g. `['.html']`)                                |
