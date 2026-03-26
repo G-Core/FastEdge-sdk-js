@@ -15,7 +15,7 @@ const config = {
   testPathIgnorePatterns: [
     'node_modules',
     'dist',
-    'docs',
+    'github-pages',
     'runtime/StarlingMonkey/',
     'runtime/fastedge/deps',
   ],

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://fastedge-plugin-source/manifest/v1",
+  "repo_id": "FastEdge-sdk-js",
+  "version": "1.0.0",
+  "sources": {
+    "sdk-api": {
+      "files": [
+        "docs/SDK_API.md"
+      ],
+      "required": true,
+      "description": "Runtime APIs — environment variables, secrets, KV store, Web APIs available in WASM"
+    },
+    "build-cli": {
+      "files": [
+        "docs/BUILD_CLI.md"
+      ],
+      "required": true,
+      "description": "fastedge-build CLI — compilation flags, config-driven builds, build types"
+    },
+    "init-cli": {
+      "files": [
+        "docs/INIT_CLI.md"
+      ],
+      "required": false,
+      "description": "fastedge-init CLI — interactive project scaffolding wizard"
+    },
+    "static-sites": {
+      "files": [
+        "docs/STATIC_SITES.md",
+        "docs/ASSETS_CLI.md"
+      ],
+      "required": false,
+      "description": "Static site support — createStaticServer API, asset manifests, server config"
+    },
+    "quickstart": {
+      "files": [
+        "docs/quickstart.md"
+      ],
+      "required": true,
+      "description": "Installation, first build, basic usage patterns with code examples"
+    }
+  },
+  "target_mapping": {
+    "sdk-api": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/sdk-reference.md",
+      "section": null
+    },
+    "build-cli": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/build-cli.md",
+      "section": null
+    },
+    "init-cli": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/init-cli.md",
+      "section": null
+    },
+    "static-sites": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/static-sites.md",
+      "section": null
+    },
+    "quickstart": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/quickstart.md",
+      "section": null
+    }
+  },
+  "validation": {
+    "mode": "advisory",
+    "strict_fields": ["sdk-api", "build-cli", "quickstart"]
+  }
+}

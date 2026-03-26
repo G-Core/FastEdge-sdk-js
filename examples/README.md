@@ -4,7 +4,18 @@ JavaScript examples for building HTTP applications on the [FastEdge](https://gco
 network using
 [`@gcoredev/fastedge-sdk-js`](https://www.npmjs.com/package/@gcoredev/fastedge-sdk-js).
 
-## Examples
+## Getting Started Examples
+
+| Example                                                       | Description                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [hello-world](./hello-world/)                                 | Simplest request handler — returns the request URL                  |
+| [downstream-fetch](./downstream-fetch/)                       | Fetch from a downstream HTTP origin                                 |
+| [downstream-modify-response](./downstream-modify-response/)   | Fetch downstream and transform the response                        |
+| [headers](./headers/)                                         | Header manipulation using environment variables                     |
+| [kv-store-basic](./kv-store-basic/)                           | Simple KV Store get operation                                       |
+| [variables-and-secrets](./variables-and-secrets/)              | Read environment variables and secrets                              |
+
+## Full Examples
 
 | Example                                                       | Description                                                                           |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------- |

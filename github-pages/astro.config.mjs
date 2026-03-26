@@ -6,6 +6,11 @@ export default defineConfig({
   site: 'https://g-core.github.io',
   base: '/FastEdge-sdk-js',
   vite: {
+    resolve: {
+      alias: {
+        '@examples': new URL('../examples', import.meta.url).pathname,
+      },
+    },
     server: {
       watch: {
         // Use polling instead of native file watchers to avoid EMFILE errors

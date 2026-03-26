@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-downstream-modify-response",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: fetch and modify downstream response",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/downstream-modify-response.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0"
+  }
+}

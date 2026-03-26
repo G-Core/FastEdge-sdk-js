@@ -71,6 +71,5 @@ which `wizer` snapshots the current state, and creates the final wasm binary wit
 contents included within the memory at startup. This process ensures there is **NO** start-up delay
 and all files are available at runtime.
 
-There is a more complete example in our
-<a href='https://github.com/G-Core/FastEdge-examples/blob/main/javascript/README.md' target='_blank' rel='noopener noreferrer'>FastEdge-examples</a>
-repo.
+There is a more complete example
+<a href='https://github.com/G-Core/FastEdge-sdk-js/tree/main/examples/static-assets' target='_blank' rel='noopener noreferrer'>here</a>.

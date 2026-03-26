@@ -5,7 +5,7 @@ description: Install guide for FastEdge-sdk-js
 
 :::note[Prerequisites]
 
-Node version 18 or above installed.
+Node version 22 or above installed.
 
 ```sh
 node --version

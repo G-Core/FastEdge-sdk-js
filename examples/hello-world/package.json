@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-hello-world",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: hello world request handler",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/hello-world.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0"
+  }
+}
