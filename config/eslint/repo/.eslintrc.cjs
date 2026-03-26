@@ -34,6 +34,7 @@ module.exports = {
     'lib/**',
     '**/runtime/fastedge/**',
     '**/runtime/StarlingMonkey/**',
+    'github-pages/**',
   ],
   plugins: [
     '@typescript-eslint',
@@ -75,7 +76,11 @@ module.exports = {
         'import/group-exports': 'off',
         'import/exports-last': 'off',
         'import/no-default-export': 'off',
+        'import/unambiguous': 'off',
         'no-console': 'off',
+        'no-return-await': 'off',
+        'prefer-destructuring': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
       },
     },
     {

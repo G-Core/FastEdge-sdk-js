@@ -10,7 +10,7 @@
 - **WIT World:** `gcore:fastedge/reactor` — imports http, dictionary, secret, key-value; exports http-handler
 - **Build:** esbuild + Wizer + JCO → WASM Component Model
 - **Tests:** Jest (unit in `src/**/__tests__/`, integration in `integration-tests/`)
-- **Node:** >= 20, pnpm >= 10
+- **Node:** >= 22, pnpm >= 10
 
 ---
 

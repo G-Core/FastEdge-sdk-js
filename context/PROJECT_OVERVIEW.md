@@ -99,7 +99,7 @@ addEventListener('fetch', (event) => {
 
 ### Prerequisites
 
-- Node >= 20, pnpm >= 10
+- Node >= 22, pnpm >= 10
 - Rust + `wasm32-wasi` target
 - wasi-sdk v20 (at `/opt/wasi-sdk/`)
 - binaryen, cbindgen, build-essential

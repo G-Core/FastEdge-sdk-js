@@ -52,6 +52,7 @@ Changes to these surfaces require updated `docs/`, updated tests, and a semver-a
 | `types/fastedge-kv.d.ts` | `docs/SDK_API.md` |
 | `types/globals.d.ts` | `docs/SDK_API.md` |
 | `package.json` (exports, bin) | `docs/INDEX.md` |
+| `types/`, `src/cli/`, `README.md` (quickstart examples) | `docs/quickstart.md` |
 | `fastedge-plugin-source/manifest.json` | `.github/copilot-instructions.md` |
 
 ### Violation example
