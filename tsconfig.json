@@ -27,5 +27,5 @@
     "typeRoots": ["./node_modules/@types", "./src/componentize/types"]
   },
   "include": ["src/**/*", "**/*.test.ts", "**/*.spec.ts", "./types/*.d.ts"],
-  "exclude": ["node_modules", "docs/**", "runtime", "dist", "coverage"]
+  "exclude": ["node_modules", "github-pages/**", "runtime", "dist", "coverage"]
 }

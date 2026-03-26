@@ -2,7 +2,7 @@
   "name": "@gcoredev/fastedge-sdk-js",
   "version": "2.1.0",
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "pnpm": ">=10"
   },
   "license": "Apache-2.0",
@@ -42,17 +42,18 @@
     "build:libs": "node esbuild/fastedge-libs.js",
     "build:type-references": "tsc -p ./tsconfig.build.json && node ./scripts/inject-fastedge-reference-types.js",
     "build:types": "tsc -p ./tsconfig.build.json",
-    "typecheck": "tsc -p ./tsconfig.typecheck.json ",
+    "generate:docs": "./fastedge-plugin-source/generate-docs.sh",
     "generate:wit-world": "npm-run-all -s wit:merge wit:bindings",
-    "wit:merge": "./runtime/fastedge/scripts/merge-wit-bindings.js",
-    "wit:bindings": "./runtime/fastedge/scripts/create-wit-bindings.sh",
     "lint": "npx eslint -c ./config/eslint/repo/.eslintrc.cjs .",
+    "prepare": "husky",
     "semantic-release": "semantic-release",
     "test:solo": "NODE_ENV=test jest -c ./config/jest/jest.config.js --",
     "test:unit:dev": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- src/",
     "test:unit": "NODE_ENV=test RUN_SLOW_TESTS=true jest -c ./config/jest/jest.config.js -- src/",
     "test:integration": "NODE_ENV=test jest -c ./config/jest/jest.config.js -- integration-tests/",
-    "prepare": "husky"
+    "typecheck": "tsc -p ./tsconfig.typecheck.json ",
+    "wit:merge": "./runtime/fastedge/scripts/merge-wit-bindings.js",
+    "wit:bindings": "./runtime/fastedge/scripts/create-wit-bindings.sh"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",

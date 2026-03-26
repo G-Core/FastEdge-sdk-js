@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-variables-and-secrets",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: environment variables and secrets",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/variables-and-secrets.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0"
+  }
+}

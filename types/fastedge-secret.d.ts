@@ -5,7 +5,7 @@ declare module 'fastedge::secret' {
    * **Note**: The secret variables can only be retrieved when processing requests, not during build-time initialization.
    *
    * @param {string} name - The name of the secret variable.
-   * @returns {string} The value of the secret variable.
+   * @returns {string | null} The value of the secret variable, or `null` if not set.
    *
    * @example
    * ```js
@@ -25,7 +25,7 @@ declare module 'fastedge::secret' {
    * addEventListener("fetch", event => event.respondWith(app(event)));
    * ```
    */
-  function getSecret(name: string): string;
+  function getSecret(name: string): string | null;
 
   /**
    * Function to get the value for the provided secret variable name from a specific slot.
@@ -34,7 +34,7 @@ declare module 'fastedge::secret' {
    *
    * @param {string} name - The name of the secret variable.
    * @param {number} effectiveAt - The slot index of the secret. (effectiveAt >= secret_slots.slot)
-   * @returns {string} The value of the secret variable.
+   * @returns {string | null} The value of the secret variable, or `null` if not set.
    *
    * @example
    * ```js
@@ -54,5 +54,5 @@ declare module 'fastedge::secret' {
    * addEventListener("fetch", event => event.respondWith(app(event)));
    * ```
    */
-  function getSecretEffectiveAt(name: string, effectiveAt: number): string;
+  function getSecretEffectiveAt(name: string, effectiveAt: number): string | null;
 }

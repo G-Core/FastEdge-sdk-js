@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-kv-store-basic",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: simple KV Store get operation",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/kv-store-basic.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.1.0"
+  }
+}

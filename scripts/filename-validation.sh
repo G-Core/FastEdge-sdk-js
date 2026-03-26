@@ -6,6 +6,7 @@ ignore_paths=(
   "./runtime/fastedge/build-debug"
   "./runtime/fastedge/build-release"
   "./runtime/fastedge/host-api"
+  "./runtime/fastedge/deps"
   "./node_modules"
   "./docs/node_modules"
 )
@@ -48,9 +49,11 @@ for file in $files; do
   # Extract the filename without the extension
   filename=$(basename -- "$file")
 
-   # Remove .d.ts extension if present
+   # Remove compound extensions, then the final extension
   if [[ $filename == *.d.ts ]]; then
     filename="${filename%.d.ts}"
+  elif [[ $filename == *.lock.yml || $filename == *.lock.yaml ]]; then
+    filename="${filename%.lock.*}"
   else
     # Remove the single extension
     filename="${filename%.*}"

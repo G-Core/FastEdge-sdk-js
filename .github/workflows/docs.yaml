@@ -4,7 +4,7 @@ on:
   push:
     branches: ['main']
     paths:
-      - 'docs/**'
+      - 'github-pages/**'
 
   workflow_dispatch: # trigger manually
 
@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BUILD_PATH: './docs'
+  BUILD_PATH: './github-pages'
 
 jobs:
   build:
