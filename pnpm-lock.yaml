@@ -133,19 +133,19 @@ importers:
         specifier: ^5.8.2
         version: 5.9.3
 
-  docs:
-    dependencies:
-      '@astrojs/starlight':
-        specifier: ^0.37.6
-        version: 0.37.6(astro@5.17.3(@types/node@25.0.3)(rollup@4.55.1)(terser@5.44.1)(typescript@5.9.3))
-      astro:
-        specifier: ^5.17.3
-        version: 5.17.3(@types/node@25.0.3)(rollup@4.55.1)(terser@5.44.1)(typescript@5.9.3)
-      sharp:
-        specifier: ^0.34.5
-        version: 0.34.5
-
   examples/ab-testing:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.1.0
+        version: 2.2.0
+
+  examples/downstream-fetch:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.1.0
+        version: 2.2.0
+
+  examples/downstream-modify-response:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
         specifier: ^2.1.0
@@ -157,7 +157,25 @@ importers:
         specifier: ^2.1.0
         version: 2.2.0
 
+  examples/headers:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.1.0
+        version: 2.2.0
+
+  examples/hello-world:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.1.0
+        version: 2.2.0
+
   examples/kv-store:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.1.0
+        version: 2.2.0
+
+  examples/kv-store-basic:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
         specifier: ^2.1.0
@@ -215,6 +233,24 @@ importers:
       handlebars:
         specifier: ^4.7.8
         version: 4.7.8
+
+  examples/variables-and-secrets:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.1.0
+        version: 2.2.0
+
+  github-pages:
+    dependencies:
+      '@astrojs/starlight':
+        specifier: ^0.37.6
+        version: 0.37.6(astro@5.17.3(@types/node@25.0.3)(rollup@4.55.1)(terser@5.44.1)(typescript@5.9.3))
+      astro:
+        specifier: ^5.17.3
+        version: 5.17.3(@types/node@25.0.3)(rollup@4.55.1)(terser@5.44.1)(typescript@5.9.3)
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
 
 packages:
 
@@ -5859,9 +5895,6 @@ packages:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
-
-  ufo@1.6.2:
-    resolution: {integrity: sha512-heMioaxBcG9+Znsda5Q8sQbWnLJSl98AFDXTO80wELWEzX3hordXsTdxrIfMQoO9IY1MEnoGoPjpoKpMj+Yx0Q==}
 
   ufo@1.6.3:
     resolution: {integrity: sha512-yDJTmhydvl5lJzBmy/hyOAA0d+aqCBuwl818haVdYCRrWV84o7YyeVm4QlVHStqNrrJSTb6jKuFAVqAFsr+K3Q==}
@@ -11932,7 +11965,7 @@ snapshots:
     dependencies:
       destr: 2.0.5
       node-fetch-native: 1.6.7
-      ufo: 1.6.2
+      ufo: 1.6.3
 
   ohash@2.0.11: {}
 
@@ -13225,8 +13258,6 @@ snapshots:
       reflect.getprototypeof: 1.0.10
 
   typescript@5.9.3: {}
-
-  ufo@1.6.2: {}
 
   ufo@1.6.3: {}
 

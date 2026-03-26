@@ -5,7 +5,7 @@ declare module 'fastedge::env' {
    * **Note**: The environment variables can only be retrieved when processing requests, not during build-time initialization.
    *
    * @param {string} name - The name of the environment variable.
-   * @returns {string} The value of the environment variable.
+   * @returns {string | null} The value of the environment variable, or `null` if not set.
    *
    * @example
    * ```js
@@ -25,5 +25,5 @@ declare module 'fastedge::env' {
    * addEventListener("fetch", event => event.respondWith(app(event)));
    * ```
    */
-  function getEnv(name: string): string;
+  function getEnv(name: string): string | null;
 }

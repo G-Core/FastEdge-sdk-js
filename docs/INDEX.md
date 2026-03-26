@@ -62,9 +62,9 @@ Runtime APIs are available via `fastedge::` module specifiers inside your applic
 
 | Import              | Export                 | Signature                                            |
 | ------------------- | ---------------------- | ---------------------------------------------------- |
-| `fastedge::env`     | `getEnv`               | `(name: string): string`                             |
-| `fastedge::secret`  | `getSecret`            | `(name: string): string`                             |
-| `fastedge::secret`  | `getSecretEffectiveAt` | `(name: string, effectiveAt: number): string`        |
+| `fastedge::env`     | `getEnv`               | `(name: string): string \| null`                     |
+| `fastedge::secret`  | `getSecret`            | `(name: string): string \| null`                     |
+| `fastedge::secret`  | `getSecretEffectiveAt` | `(name: string, effectiveAt: number): string \| null`|
 | `fastedge::kv`      | `KvStore.open`         | `(name: string): KvStoreInstance`                    |
 
 ### KvStoreInstance Methods

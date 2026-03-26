@@ -237,15 +237,15 @@ Each generated manifest is imported and passed to `createStaticServer` at the to
 
 ```ts
 /// <reference types="@gcoredev/fastedge-sdk-js" />
-import { createStaticServer } from '@gcoredev/fastedge-sdk-js/server';
+import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
 import { staticAssetManifest as imageManifest }    from './images-static-assets.js';
 import { staticAssetManifest as styleManifest }    from './styles-static-assets.js';
 import { staticAssetManifest as templateManifest } from './templates-static-assets.js';
 
 // Called at top level so Wizer embeds assets into the binary at compile time
-const imageServer    = createStaticServer(imageManifest,    { type: 'http' });
-const styleServer    = createStaticServer(styleManifest,    { type: 'http' });
-const templateServer = createStaticServer(templateManifest, { type: 'http' });
+const imageServer    = createStaticServer(imageManifest,    { routePrefix: '/images' });
+const styleServer    = createStaticServer(styleManifest,    { routePrefix: '/styles' });
+const templateServer = createStaticServer(templateManifest, {});
 
 addEventListener('fetch', (event) => {
   event.respondWith(imageServer.serveRequest(event.request));

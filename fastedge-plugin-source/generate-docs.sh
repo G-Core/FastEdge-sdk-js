@@ -334,6 +334,9 @@ if [ "$run_all" = true ]; then
     echo "Some files failed — check output above"
     exit 1
   fi
+
+  # Regenerate llms.txt from docs/ contents
+  "$SCRIPT_DIR/generate-llms-txt.sh"
 else
   # Specific files: run sequentially (user chose explicit order)
   failed=()

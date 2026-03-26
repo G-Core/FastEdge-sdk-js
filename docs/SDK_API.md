@@ -14,9 +14,9 @@ import { getEnv } from "fastedge::env";
 
 | Function       | Signature                  | Returns  |
 | -------------- | -------------------------- | -------- |
-| `getEnv(name)` | `(name: string) => string` | `string` |
+| `getEnv(name)` | `(name: string) => string \| null` | `string \| null` |
 
-Retrieves the value of a named environment variable. Environment variables are set on the application and injected at request time.
+Retrieves the value of a named environment variable, or `null` if not set. Environment variables are set on the application and injected at request time.
 
 **Note:** Environment variables can only be read during request processing, not during build-time initialization.
 
@@ -47,8 +47,8 @@ import { getSecret, getSecretEffectiveAt } from "fastedge::secret";
 
 | Function                           | Signature                                       | Returns  |
 | ---------------------------------- | ----------------------------------------------- | -------- |
-| `getSecret(name)`                  | `(name: string) => string`                      | `string` |
-| `getSecretEffectiveAt(name, slot)` | `(name: string, effectiveAt: number) => string` | `string` |
+| `getSecret(name)`                  | `(name: string) => string \| null`                      | `string \| null` |
+| `getSecretEffectiveAt(name, slot)` | `(name: string, effectiveAt: number) => string \| null` | `string \| null` |
 
 **Note:** Secrets can only be read during request processing, not during build-time initialization.
 

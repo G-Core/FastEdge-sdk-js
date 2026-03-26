@@ -98,13 +98,18 @@ addEventListener('fetch', (event) => {
   event.respondWith(
     (async () => {
       const apiKey = getEnv('API_KEY');
+      if (apiKey === null) {
+        return new Response('API_KEY not configured', { status: 500 });
+      }
       return new Response(`API key exists: ${apiKey.length > 0}`);
     })(),
   );
 });
 ```
 
-**Signature:** `getEnv(name: string): string`
+**Signature:** `getEnv(name: string): string | null`
+
+Returns `null` when the environment variable is not set.
 
 ## Using Secrets
 
@@ -127,8 +132,10 @@ addEventListener('fetch', (event) => {
 
 **Signatures:**
 
-- `getSecret(name: string): string`
-- `getSecretEffectiveAt(name: string, effectiveAt: number): string`
+- `getSecret(name: string): string | null`
+- `getSecretEffectiveAt(name: string, effectiveAt: number): string | null`
+
+Both return `null` when the secret is not set.
 
 ## Using KV Store
 
