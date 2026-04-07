@@ -54,7 +54,7 @@ cleanup() {
 
   # Clean up temp files left by killed generate_file subshells
   # Must happen BEFORE kill -- -$$ which kills this script too
-  rm -f "$DOCS_DIR"/.[A-Z]*.[a-zA-Z0-9]* 2>/dev/null || true
+  rm -f "$DOCS_DIR"/.*.md.[a-zA-Z0-9]* 2>/dev/null || true
   rm -f "$INTERRUPT_FLAG"
 
   # Belt-and-suspenders: kill entire process group (including this script)
@@ -137,7 +137,7 @@ fi
 mkdir -p "$DOCS_DIR"
 
 # Clean up stale temp files from previous interrupted runs
-rm -f "$DOCS_DIR"/.[A-Z]*.[a-zA-Z0-9]* 2>/dev/null || true
+rm -f "$DOCS_DIR"/.*.md.[a-zA-Z0-9]* 2>/dev/null || true
 
 generate_file() {
   local target="$1"
@@ -209,8 +209,7 @@ $(cat "$full_path")
 # Existing Content for docs/$target
 Use this as the baseline. Preserve all accurate content and manual additions. Only change what is incorrect, incomplete, or missing per the source code. Keep sections not covered by the instructions above. Apply table formatting rules to all tables.
 
-
-
+<existing>
 $existing_doc
 </existing>
 "

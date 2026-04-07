@@ -1,5 +1,11 @@
 # AI Agent Instructions for FastEdge JS SDK
 
+## Governance (REQUIRED)
+
+Read `AGENTS.md` for company-wide agent rules. These are mandatory and override any conflicting behavior. Key rules: never go beyond the assigned task, never change code that was not asked to change, never "improve" or "optimize" without a clear request, always distinguish observations from action requests.
+
+---
+
 ## CRITICAL: Read Smart, Not Everything
 
 **DO NOT read all context files upfront.** This repository uses a **discovery-based context system** to minimize token usage while maximizing effectiveness.

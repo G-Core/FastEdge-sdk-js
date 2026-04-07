@@ -5,6 +5,17 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-03-31] — Examples and Terminology Conventions
+
+### Overview
+Documented conventions for example maintenance and user-facing terminology.
+
+### Decisions
+- Every example must have its own `README.md` and an entry in the top-level `examples/README.md` index
+- In all user-facing documentation (READMEs, docs), always use "environment variables" — never "dictionary variables". The `dictionary` package is an internal implementation detail for accessing environment variables on the platform, not a user-facing concept
+
+---
+
 ## [2026-03-26] — Examples Consolidation
 
 ### Overview

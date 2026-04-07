@@ -5,9 +5,9 @@
 ## Documentation
 
 - [FastEdge JS SDK Documentation](docs/INDEX.md)
+- [Quickstart](docs/quickstart.md)
 - [fastedge-assets CLI](docs/ASSETS_CLI.md)
 - [fastedge-build CLI](docs/BUILD_CLI.md)
 - [fastedge-init CLI](docs/INIT_CLI.md)
-- [Quickstart](docs/quickstart.md)
 - [SDK API Reference](docs/SDK_API.md)
 - [Static Sites](docs/STATIC_SITES.md)

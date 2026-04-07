@@ -21,3 +21,6 @@ yarn-error.log
 
 # Using pnpm
 package-lock.json
+
+# FastEdge debugger artifacts
+**/.fastedge-debug/
