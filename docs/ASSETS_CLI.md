@@ -28,13 +28,13 @@ npx fastedge-assets --version
 
 ## Flags
 
-| Flag              | Alias | Type      | Description                                                                   |
-| ----------------- | ----- | --------- | ----------------------------------------------------------------------------- |
-| `--input <path>`  | `-i`  | `string`  | Path to the directory of source assets (e.g. `./public`)                      |
-| `--output <file>` | `-o`  | `string`  | Output file path for the generated manifest (e.g. `./src/asset-manifest.ts`)  |
-| `--config <file>` | `-c`  | `string`  | Path to an asset config file containing `AssetCacheConfig` fields             |
-| `--version`       | `-v`  | `boolean` | Print the package version                                                     |
-| `--help`          | `-h`  | `boolean` | Print usage information                                                        |
+| Flag              | Alias | Type      | Description                                                                  |
+| ----------------- | ----- | --------- | ---------------------------------------------------------------------------- |
+| `--input <path>`  | `-i`  | `string`  | Path to the directory of source assets (e.g. `./public`)                     |
+| `--output <file>` | `-o`  | `string`  | Output file path for the generated manifest (e.g. `./src/asset-manifest.ts`) |
+| `--config <file>` | `-c`  | `string`  | Path to an asset config file containing `AssetCacheConfig` fields            |
+| `--version`       | `-v`  | `boolean` | Print the package version                                                    |
+| `--help`          | `-h`  | `boolean` | Print usage information                                                       |
 
 **Notes:**
 

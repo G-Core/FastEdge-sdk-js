@@ -12,9 +12,9 @@ Runtime APIs available to FastEdge applications compiled to WebAssembly.
 import { getEnv } from "fastedge::env";
 ```
 
-| Function         | Signature                          | Returns          |
-| ---------------- | ---------------------------------- | ---------------- |
-| `getEnv(name)`   | `(name: string) => string \| null` | `string \| null` |
+| Function       | Signature                          | Returns          |
+| -------------- | ---------------------------------- | ---------------- |
+| `getEnv(name)` | `(name: string) => string \| null` | `string \| null` |
 
 Retrieves the value of a named environment variable, or `null` if not set. Environment variables are set on the application and injected at request time.
 
@@ -45,10 +45,10 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 import { getSecret, getSecretEffectiveAt } from "fastedge::secret";
 ```
 
-| Function                               | Signature                                               | Returns          |
-| -------------------------------------- | ------------------------------------------------------- | ---------------- |
-| `getSecret(name)`                      | `(name: string) => string \| null`                      | `string \| null` |
-| `getSecretEffectiveAt(name, effectiveAt)` | `(name: string, effectiveAt: number) => string \| null` | `string \| null` |
+| Function                                  | Signature                                                       | Returns          |
+| ----------------------------------------- | --------------------------------------------------------------- | ---------------- |
+| `getSecret(name)`                         | `(name: string) => string \| null`                              | `string \| null` |
+| `getSecretEffectiveAt(name, effectiveAt)` | `(name: string, effectiveAt: number) => string \| null`         | `string \| null` |
 
 **Note:** Secrets can only be read during request processing, not during build-time initialization.
 
@@ -138,13 +138,13 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 #### KvStoreInstance methods
 
-| Method                           | Signature                                                                   | Returns                        |
-| -------------------------------- | --------------------------------------------------------------------------- | ------------------------------ |
-| `get(key)`                       | `(key: string) => ArrayBuffer \| null`                                      | `ArrayBuffer \| null`          |
-| `scan(pattern)`                  | `(pattern: string) => Array<string>`                                        | `Array<string>`                |
-| `zrangeByScore(key, min, max)`   | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>`   | `Array<[ArrayBuffer, number]>` |
-| `zscan(key, pattern)`            | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`            | `Array<[ArrayBuffer, number]>` |
-| `bfExists(key, value)`           | `(key: string, value: string) => boolean`                                   | `boolean`                      |
+| Method                         | Signature                                                                 | Returns                        |
+| ------------------------------ | ------------------------------------------------------------------------- | ------------------------------ |
+| `get(key)`                     | `(key: string) => ArrayBuffer \| null`                                    | `ArrayBuffer \| null`          |
+| `scan(pattern)`                | `(pattern: string) => Array<string>`                                      | `Array<string>`                |
+| `zrangeByScore(key, min, max)` | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>` | `Array<[ArrayBuffer, number]>` |
+| `zscan(key, pattern)`          | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`          | `Array<[ArrayBuffer, number]>` |
+| `bfExists(key, value)`         | `(key: string, value: string) => boolean`                                 | `boolean`                      |
 
 ##### `get`
 
@@ -289,12 +289,12 @@ const data = await response.json();
 new Request(input: RequestInfo | URL, init?: RequestInit): Request
 ```
 
-| `RequestInit` field    | Type               | Description                                                        |
-| ---------------------- | ------------------ | ------------------------------------------------------------------ |
-| `method`               | `string`           | HTTP method. Defaults to `"GET"`.                                  |
-| `headers`              | `HeadersInit`      | Request headers.                                                   |
-| `body`                 | `BodyInit \| null` | Request body.                                                      |
-| `manualFramingHeaders` | `boolean`          | When `true`, disables automatic framing header management.         |
+| `RequestInit` field    | Type               | Description                                                |
+| ---------------------- | ------------------ | ---------------------------------------------------------- |
+| `method`               | `string`           | HTTP method. Defaults to `"GET"`.                          |
+| `headers`              | `HeadersInit`      | Request headers.                                           |
+| `body`                 | `BodyInit \| null` | Request body.                                              |
+| `manualFramingHeaders` | `boolean`          | When `true`, disables automatic framing header management. |
 
 | `Request` property / method       | Type                                 | Description                                       |
 | --------------------------------- | ------------------------------------ | ------------------------------------------------- |
@@ -349,17 +349,17 @@ new Headers(init?: HeadersInit): Headers
 
 `HeadersInit` accepts a `Headers` instance, a `string[][]` array of `[name, value]` pairs, or a `Record<string, string>` object.
 
-| Method                | Signature                                                                    |
-| --------------------- | ---------------------------------------------------------------------------- |
-| `get(name)`           | `(name: string) => string \| null`                                           |
-| `has(name)`           | `(name: string) => boolean`                                                  |
-| `set(name, value)`    | `(name: string, value: string) => void`                                      |
-| `append(name, value)` | `(name: string, value: string) => void`                                      |
-| `delete(name)`        | `(name: string) => void`                                                     |
-| `forEach(callback)`   | `(callback: (value: string, key: string, parent: Headers) => void) => void`  |
-| `entries()`           | `() => IterableIterator<[string, string]>`                                   |
-| `keys()`              | `() => IterableIterator<string>`                                              |
-| `values()`            | `() => IterableIterator<string>`                                              |
+| Method                | Signature                                                                   |
+| --------------------- | --------------------------------------------------------------------------- |
+| `get(name)`           | `(name: string) => string \| null`                                          |
+| `has(name)`           | `(name: string) => boolean`                                                 |
+| `set(name, value)`    | `(name: string, value: string) => void`                                     |
+| `append(name, value)` | `(name: string, value: string) => void`                                     |
+| `delete(name)`        | `(name: string) => void`                                                    |
+| `forEach(callback)`   | `(callback: (value: string, key: string, parent: Headers) => void) => void` |
+| `entries()`           | `() => IterableIterator<[string, string]>`                                  |
+| `keys()`              | `() => IterableIterator<string>`                                             |
+| `values()`            | `() => IterableIterator<string>`                                             |
 
 **Immutability note:** The `headers` object on an incoming `event.request` is read-only. Attempting to mutate it will throw a `TypeError`. To add or change headers, construct a new `Headers` object:
 
@@ -414,19 +414,19 @@ new URLSearchParams(
 ): URLSearchParams
 ```
 
-| Method                | Signature                                                                                    |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| `get(name)`           | `(name: string) => string \| null`                                                           |
-| `getAll(name)`        | `(name: string) => string[]`                                                                 |
-| `has(name)`           | `(name: string) => boolean`                                                                  |
-| `set(name, value)`    | `(name: string, value: string) => void`                                                      |
-| `append(name, value)` | `(name: string, value: string) => void`                                                      |
-| `delete(name)`        | `(name: string) => void`                                                                     |
-| `sort()`              | `() => void`                                                                                 |
-| `entries()`           | `() => IterableIterator<[string, string]>`                                                   |
-| `keys()`              | `() => IterableIterator<string>`                                                              |
-| `values()`            | `() => IterableIterator<string>`                                                              |
-| `forEach(callback)`   | `(callback: (value: string, name: string, searchParams: URLSearchParams) => void) => void`   |
+| Method                | Signature                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| `get(name)`           | `(name: string) => string \| null`                                                         |
+| `getAll(name)`        | `(name: string) => string[]`                                                               |
+| `has(name)`           | `(name: string) => boolean`                                                                |
+| `set(name, value)`    | `(name: string, value: string) => void`                                                    |
+| `append(name, value)` | `(name: string, value: string) => void`                                                    |
+| `delete(name)`        | `(name: string) => void`                                                                   |
+| `sort()`              | `() => void`                                                                               |
+| `entries()`           | `() => IterableIterator<[string, string]>`                                                 |
+| `keys()`              | `() => IterableIterator<string>`                                                           |
+| `values()`            | `() => IterableIterator<string>`                                                           |
+| `forEach(callback)`   | `(callback: (value: string, name: string, searchParams: URLSearchParams) => void) => void` |
 
 ---
 
@@ -440,21 +440,21 @@ The WHATWG Streams API is available for constructing and transforming streaming 
 new ReadableStream<R>(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>): ReadableStream<R>
 ```
 
-| `UnderlyingSource` field | Type                                                                             |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| `start`                  | `(controller: ReadableStreamDefaultController<R>) => any`                        |
-| `pull`                   | `(controller: ReadableStreamDefaultController<R>) => void \| PromiseLike<void>`  |
-| `cancel`                 | `(reason?: any) => void \| PromiseLike<void>`                                    |
-| `type`                   | `"bytes" \| undefined`                                                           |
-| `autoAllocateChunkSize`  | `number`                                                                         |
+| `UnderlyingSource` field | Type                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| `start`                  | `(controller: ReadableStreamDefaultController<R>) => any`                       |
+| `pull`                   | `(controller: ReadableStreamDefaultController<R>) => void \| PromiseLike<void>` |
+| `cancel`                 | `(reason?: any) => void \| PromiseLike<void>`                                   |
+| `type`                   | `"bytes" \| undefined`                                                          |
+| `autoAllocateChunkSize`  | `number`                                                                        |
 
-| `ReadableStream` method              | Signature                                                                                    |
-| ------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `getReader()`                        | `() => ReadableStreamDefaultReader<R>`                                                       |
-| `pipeTo(dest, options?)`             | `(dest: WritableStream<R>, options?: StreamPipeOptions) => Promise<void>`                    |
-| `pipeThrough(transform, options?)`   | `(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions) => ReadableStream<T>`  |
-| `tee()`                              | `() => [ReadableStream<R>, ReadableStream<R>]`                                               |
-| `cancel(reason?)`                    | `(reason?: any) => Promise<void>`                                                            |
+| `ReadableStream` method            | Signature                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------- |
+| `getReader()`                      | `() => ReadableStreamDefaultReader<R>`                                                      |
+| `pipeTo(dest, options?)`           | `(dest: WritableStream<R>, options?: StreamPipeOptions) => Promise<void>`                   |
+| `pipeThrough(transform, options?)` | `(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions) => ReadableStream<T>` |
+| `tee()`                            | `() => [ReadableStream<R>, ReadableStream<R>]`                                              |
+| `cancel(reason?)`                  | `(reason?: any) => Promise<void>`                                                           |
 
 ```javascript
 const stream = new ReadableStream({
@@ -474,10 +474,10 @@ return new Response(stream, { status: 200 });
 new WritableStream<W>(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>): WritableStream<W>
 ```
 
-| `WritableStream` method | Signature                               |
-| ----------------------- | --------------------------------------- |
-| `getWriter()`           | `() => WritableStreamDefaultWriter<W>`  |
-| `abort(reason?)`        | `(reason?: any) => Promise<void>`       |
+| `WritableStream` method | Signature                              |
+| ----------------------- | -------------------------------------- |
+| `getWriter()`           | `() => WritableStreamDefaultWriter<W>` |
+| `abort(reason?)`        | `(reason?: any) => Promise<void>`      |
 
 #### `TransformStream`
 
@@ -542,12 +542,12 @@ crypto.subtle: SubtleCrypto
 
 Available as `crypto.subtle`. Supported operations:
 
-| Method      | Signature                                                                                                            |
-| ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `digest`    | `(algorithm: AlgorithmIdentifier, data: BufferSource) => Promise<ArrayBuffer>`                                       |
-| `importKey` | See overloads below                                                                                                  |
-| `sign`      | `(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource) => Promise<ArrayBuffer>`                       |
-| `verify`    | `(algorithm: AlgorithmIdentifier, key: CryptoKey, signature: BufferSource, data: BufferSource) => Promise<boolean>`  |
+| Method      | Signature                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `digest`    | `(algorithm: AlgorithmIdentifier, data: BufferSource) => Promise<ArrayBuffer>`                                      |
+| `importKey` | See overloads below                                                                                                 |
+| `sign`      | `(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource) => Promise<ArrayBuffer>`                      |
+| `verify`    | `(algorithm: AlgorithmIdentifier, key: CryptoKey, signature: BufferSource, data: BufferSource) => Promise<boolean>` |
 
 `importKey` overloads:
 
@@ -648,12 +648,12 @@ console.log(`elapsed: ${elapsed}ms`);
 
 ### Additional Globals
 
-| Global                           | Type / Signature                                            | Description                                       |
-| -------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- |
-| `self`                           | `typeof globalThis`                                         | Reference to the global object.                   |
-| `location`                       | `WorkerLocation`                                            | URL of the current worker script.                 |
-| `queueMicrotask(callback)`       | `(callback: () => void) => void`                            | Queues a microtask.                               |
-| `structuredClone(value, opts?)`  | `(value: any, options?: StructuredSerializeOptions) => any` | Deep-clones a value. Transferable: `ArrayBuffer`. |
+| Global                          | Type / Signature                                            | Description                                       |
+| ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| `self`                          | `typeof globalThis`                                         | Reference to the global object.                   |
+| `location`                      | `WorkerLocation`                                            | URL of the current worker script.                 |
+| `queueMicrotask(callback)`      | `(callback: () => void) => void`                            | Queues a microtask.                               |
+| `structuredClone(value, opts?)` | `(value: any, options?: StructuredSerializeOptions) => any` | Deep-clones a value. Transferable: `ArrayBuffer`. |
 
 ---
 
