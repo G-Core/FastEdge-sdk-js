@@ -175,16 +175,16 @@ For a SPA, `spaEntrypoint` is set to the normalized path entered at the prompt (
 
 #### Server Config (`serverConfig`)
 
-| Field             | Type              | Default                        | Description                                           |
-| ----------------- | ----------------- | ------------------------------ | ----------------------------------------------------- |
-| `type`            | `string`          | `"static"`                     | Server type identifier                                |
-| `extendedCache`   | `string[]`        | `[]`                           | Additional paths to serve with long cache TTLs        |
-| `publicDirPrefix` | `string`          | `""`                           | URL prefix stripped before resolving asset paths      |
-| `compression`     | `string[]`        | `[]`                           | Compression formats (reserved for future use)         |
-| `notFoundPage`    | `string`          | `"/404.html"`                  | Asset path served on 404                              |
-| `autoExt`         | `string[]`        | `[]`                           | Extensions appended when a path has no extension      |
-| `autoIndex`       | `string[]`        | `["index.html", "index.htm"]`  | Index filenames tried when resolving a directory path |
-| `spaEntrypoint`   | `string \| null`  | `null`                         | Fallback asset path for unmatched routes in SPA mode  |
+| Field             | Type             | Default                       | Description                                           |
+| ----------------- | ---------------- | ----------------------------- | ----------------------------------------------------- |
+| `type`            | `string`         | `"static"`                    | Server type identifier                                |
+| `extendedCache`   | `string[]`       | `[]`                          | Additional paths to serve with long cache TTLs        |
+| `publicDirPrefix` | `string`         | `""`                          | URL prefix stripped before resolving asset paths      |
+| `compression`     | `string[]`       | `[]`                          | Compression formats (reserved for future use)         |
+| `notFoundPage`    | `string`         | `"/404.html"`                 | Asset path served on 404                              |
+| `autoExt`         | `string[]`       | `[]`                          | Extensions appended when a path has no extension      |
+| `autoIndex`       | `string[]`       | `["index.html", "index.htm"]` | Index filenames tried when resolving a directory path |
+| `spaEntrypoint`   | `string \| null` | `null`                        | Fallback asset path for unmatched routes in SPA mode  |
 
 ### Build Command
 

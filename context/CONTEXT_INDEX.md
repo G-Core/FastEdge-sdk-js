@@ -76,10 +76,13 @@
 2. Check `github-pages/src/content/docs/reference/` for user-facing docs
 3. Run `pnpm run build:types` to verify
 
-### Adding a New Example
+### Adding or Editing an Example
 1. Browse `examples/` for an existing example similar to your target
 2. Each example is standalone with its own `package.json`
 3. Install SDK via `npm install --save-dev @gcoredev/fastedge-sdk-js`
+4. **Every example MUST have its own `README.md`** explaining what it does
+5. **Every example MUST have an entry in `examples/README.md`** (the top-level index)
+6. **Terminology**: In READMEs, always refer to "environment variables" — never "dictionary variables". `dictionary` is the internal package name for accessing environment variables, not a user-facing concept
 
 ### Changing the Build System
 1. Read `development/BUILD_SYSTEM.md`

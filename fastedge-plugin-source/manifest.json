@@ -1,7 +1,7 @@
 {
   "$schema": "https://fastedge-plugin-source/manifest/v1",
   "repo_id": "FastEdge-sdk-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "sources": {
     "sdk-api": {
       "files": [
@@ -38,6 +38,104 @@
       ],
       "required": true,
       "description": "Installation, first build, basic usage patterns with code examples"
+    },
+
+    "hello-world-blueprint": {
+      "files": [
+        "examples/hello-world/src/index.js",
+        "examples/hello-world/package.json"
+      ],
+      "required": true,
+      "description": "Hello World example — base skeleton blueprint extraction (HTTP JS/TS)"
+    },
+
+    "kv-store-blueprint": {
+      "files": [
+        "examples/kv-store/src/index.ts",
+        "examples/kv-store/src/utils.ts",
+        "examples/kv-store/package.json",
+        "examples/kv-store/tsconfig.json"
+      ],
+      "required": true,
+      "description": "KV Store example — scaffold blueprint extraction"
+    },
+    "kv-store-pattern": {
+      "files": [
+        "examples/kv-store/src/index.ts",
+        "examples/kv-store/src/utils.ts",
+        "examples/kv-store/package.json",
+        "examples/kv-store/tsconfig.json"
+      ],
+      "required": true,
+      "description": "KV Store example — docs pattern extraction"
+    },
+
+    "ab-testing-blueprint": {
+      "files": [
+        "examples/ab-testing/src/index.js",
+        "examples/ab-testing/package.json"
+      ],
+      "required": true,
+      "description": "A/B Testing example — scaffold blueprint extraction"
+    },
+    "ab-testing-pattern": {
+      "files": [
+        "examples/ab-testing/src/index.js",
+        "examples/ab-testing/package.json"
+      ],
+      "required": true,
+      "description": "A/B Testing example — docs pattern extraction"
+    },
+
+    "fetch-blueprint": {
+      "files": [
+        "examples/downstream-fetch/src/index.js",
+        "examples/downstream-fetch/package.json"
+      ],
+      "required": true,
+      "description": "Downstream Fetch example — scaffold blueprint extraction"
+    },
+    "fetch-pattern": {
+      "files": [
+        "examples/downstream-fetch/src/index.js",
+        "examples/downstream-fetch/package.json"
+      ],
+      "required": true,
+      "description": "Downstream Fetch example — docs pattern extraction"
+    },
+
+    "headers-blueprint": {
+      "files": [
+        "examples/headers/src/index.js",
+        "examples/headers/package.json"
+      ],
+      "required": true,
+      "description": "Headers manipulation example — scaffold blueprint extraction"
+    },
+    "headers-pattern": {
+      "files": [
+        "examples/headers/src/index.js",
+        "examples/headers/package.json"
+      ],
+      "required": true,
+      "description": "Headers manipulation example — docs pattern extraction"
+    },
+
+    "geo-redirect-blueprint": {
+      "files": [
+        "examples/geo-redirect/src/index.js",
+        "examples/geo-redirect/package.json"
+      ],
+      "required": true,
+      "description": "Geo Redirect example — scaffold blueprint extraction"
+    },
+    "geo-redirect-pattern": {
+      "files": [
+        "examples/geo-redirect/src/index.js",
+        "examples/geo-redirect/package.json"
+      ],
+      "required": true,
+      "description": "Geo Redirect example — docs pattern extraction"
     }
   },
   "target_mapping": {
@@ -60,10 +158,60 @@
     "quickstart": {
       "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/quickstart.md",
       "section": null
+    },
+
+    "hello-world-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/base-http-ts.md",
+      "section": null
+    },
+
+    "kv-store-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-kv-store.md",
+      "section": null
+    },
+    "kv-store-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-kv-store.md",
+      "section": null
+    },
+
+    "ab-testing-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-ab-testing.md",
+      "section": null
+    },
+    "ab-testing-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-ab-testing.md",
+      "section": null
+    },
+
+    "fetch-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-fetch.md",
+      "section": null
+    },
+    "fetch-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-fetch.md",
+      "section": null
+    },
+
+    "headers-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-headers.md",
+      "section": null
+    },
+    "headers-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-headers.md",
+      "section": null
+    },
+
+    "geo-redirect-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-geo-redirect.md",
+      "section": null
+    },
+    "geo-redirect-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-geo-redirect.md",
+      "section": null
     }
   },
   "validation": {
     "mode": "advisory",
-    "strict_fields": ["sdk-api", "build-cli", "quickstart"]
+    "strict_fields": ["sdk-api", "build-cli", "quickstart", "hello-world-blueprint"]
   }
 }

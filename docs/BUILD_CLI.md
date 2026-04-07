@@ -26,14 +26,14 @@ npx fastedge-build --version
 
 ## Options
 
-| Flag         | Alias | Type       | Description                      |
-| ------------ | ----- | ---------- | -------------------------------- |
-| `--input`    | `-i`  | `String`   | Input JavaScript/TypeScript file |
-| `--output`   | `-o`  | `String`   | Output WebAssembly file path     |
-| `--tsconfig` | `-t`  | `String`   | Path to tsconfig.json            |
-| `--config`   | `-c`  | `String[]` | Path(s) to build config files    |
-| `--help`     | `-h`  | `Boolean`  | Show help                        |
-| `--version`  | `-v`  | `Boolean`  | Show version                     |
+| Flag           | Alias | Type       | Description                      |
+| -------------- | ----- | ---------- | -------------------------------- |
+| `--input`      | `-i`  | `String`   | Input JavaScript/TypeScript file |
+| `--output`     | `-o`  | `String`   | Output WebAssembly file path     |
+| `--tsconfig`   | `-t`  | `String`   | Path to tsconfig.json            |
+| `--config`     | `-c`  | `String[]` | Path(s) to build config files    |
+| `--help`       | `-h`  | `Boolean`  | Show help                        |
+| `--version`    | `-v`  | `Boolean`  | Show version                     |
 
 ## Build Modes
 
@@ -127,14 +127,14 @@ export { config };
 
 When `type` is `'static'`, the following fields from `AssetCacheConfig` apply:
 
-| Field               | Type                           | Required | Description                                  |
-| ------------------- | ------------------------------ | -------- | -------------------------------------------- |
-| `publicDir`         | `string`                       | Yes      | Directory containing static files to embed   |
-| `assetManifestPath` | `string`                       | Yes      | Output path for the generated asset manifest |
-| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content type mappings                 |
-| `ignoreDotFiles`    | `boolean`                      | No       | Skip files beginning with `.`                |
-| `ignorePaths`       | `string[]`                     | No       | Paths to exclude from the manifest           |
-| `ignoreWellKnown`   | `boolean`                      | No       | Skip the `.well-known/` directory            |
+| Field                 | Type                           | Required | Description                                  |
+| --------------------- | ------------------------------ | -------- | -------------------------------------------- |
+| `publicDir`           | `string`                       | Yes      | Directory containing static files to embed   |
+| `assetManifestPath`   | `string`                       | Yes      | Output path for the generated asset manifest |
+| `contentTypes`        | `Array<ContentTypeDefinition>` | No       | Custom content type mappings                 |
+| `ignoreDotFiles`      | `boolean`                      | No       | Skip files beginning with `.`                |
+| `ignorePaths`         | `string[]`                     | No       | Paths to exclude from the manifest           |
+| `ignoreWellKnown`     | `boolean`                      | No       | Skip the `.well-known/` directory            |
 
 ### ContentTypeDefinition
 
@@ -189,13 +189,20 @@ If `type` is absent or does not match `'http'` or `'static'`, the build exits wi
 
 A successful build writes a `.wasm` file to the path specified by `wasmOutput` (or `--output` in direct mode). The file is a WebAssembly Component Model component compatible with the FastEdge runtime.
 
-On success the CLI prints:
+In direct mode, on success the CLI prints:
+
+```
+Build success!!
+"<input>" -> "<output>"
+```
+
+In config-driven mode, on success the CLI prints:
 
 ```
 Success: Built <wasmOutput>
 ```
 
-On failure it exits with a non-zero status code and prints an error message.
+On failure the CLI exits with a non-zero status code and prints an error message.
 
 ## See Also
 
