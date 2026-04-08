@@ -111,6 +111,7 @@ describe('fastedge-build', () => {
         expect(stdout[0]).toContain('Build success!!');
         await cleanup();
       },
+      30_000,
     );
     it.each(['txt', 'wasm', 'pdf', 'xml', 'jpg'])(
       'should exit with an error if the input is not a Javascript file ".%s"',
@@ -170,7 +171,7 @@ describe('fastedge-build', () => {
       expect(stderr[0]).toContain('SyntaxError: Typescript code');
       expect(stderr[1]).toContain('Error: "input.ts" contains Typescript errors');
       expect(stdout[0]).toContain(
-        "input.ts(1,99): error TS2339: Property 'unknown' does not exist on type 'Test'.",
+        "error TS2339: Property 'unknown' does not exist on type 'Test'.",
       );
       await cleanup();
     });

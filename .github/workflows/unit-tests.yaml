@@ -22,4 +22,4 @@ jobs:
 
       - name: Unit Tests
         run: |
-          npm run test:unit
+          pnpm run test:unit

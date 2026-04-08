@@ -15,7 +15,7 @@ jobs:
 
       - name: ESlint
         run: |
-          npm run lint
+          pnpm run lint
 
       - name: File naming convention
         run: |
