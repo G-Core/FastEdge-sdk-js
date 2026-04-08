@@ -63,8 +63,9 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
         ? []
         : ['--types', './node_modules/@gcoredev/fastedge-sdk-js'];
 
-    // moduleResolution 'node' (node10) is deprecated since TS 5.0;
-    // --ignoreDeprecations is only supported in TS >= 5
+    // ! This needs future work - moduleResolution 'node' (node10) is deprecated since TS 5.0;
+    // ! --ignoreDeprecations is only supported in TS >= 5
+
     const ignoreDeprecationsFlags =
       tsMajor >= 5 ? ['--ignoreDeprecations', tsMajor >= 6 ? '6.0' : '5.0'] : [];
 
