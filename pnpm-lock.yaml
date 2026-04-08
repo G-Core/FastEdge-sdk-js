@@ -26,6 +26,9 @@ importers:
       enquirer:
         specifier: ^2.4.1
         version: 2.4.1
+      esbuild:
+        specifier: ^0.28.0
+        version: 0.28.0
       event-target-polyfill:
         specifier: ^0.0.4
         version: 0.0.4
@@ -81,9 +84,6 @@ importers:
       conventional-changelog-eslint:
         specifier: ^5.0.0
         version: 5.0.0
-      esbuild:
-        specifier: ^0.28.0
-        version: 0.28.0
       esbuild-plugin-polyfill-node:
         specifier: ^0.3.0
         version: 0.3.0(esbuild@0.28.0)
