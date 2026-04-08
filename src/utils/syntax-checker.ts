@@ -64,8 +64,9 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
         : ['--types', './node_modules/@gcoredev/fastedge-sdk-js'];
 
     // moduleResolution 'node' (node10) is deprecated since TS 5.0;
-    // the ignoreDeprecations value must match the TS major version
-    const ignoreDeprecations = tsMajor >= 6 ? '6.0' : '5.0';
+    // --ignoreDeprecations is only supported in TS >= 5
+    const ignoreDeprecationsFlags =
+      tsMajor >= 5 ? ['--ignoreDeprecations', tsMajor >= 6 ? '6.0' : '5.0'] : [];
 
     const defaultTscBuildFlags = [
       '--noEmit',
@@ -76,13 +77,14 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
       'esnext',
       '--moduleResolution',
       'node',
-      '--ignoreDeprecations',
-      ignoreDeprecations,
+      ...ignoreDeprecationsFlags,
       ...includeFastEdgeTypes,
       tsInput,
     ];
 
-    const tscBuildFlags = tsConfigPath ? ['--project', tsConfigPath] : defaultTscBuildFlags;
+    const tscBuildFlags = tsConfigPath
+      ? ['--project', tsConfigPath, ...ignoreDeprecationsFlags]
+      : defaultTscBuildFlags;
 
     const nodeProcess: SpawnSyncReturns<string> = spawnSync('npx', ['tsc', ...tscBuildFlags], {
       stdio: [null, null, null],
