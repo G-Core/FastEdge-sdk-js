@@ -20,7 +20,7 @@ jest.mock('../create-manifest-file-map', () => ({
   prettierObjectString: (...args: any[]) => mockPrettierObjectString(...args),
 }));
 jest.mock('~utils/file-system', () => {
-  // eslint-disable-next-line unicorn/prefer-module, @typescript-eslint/no-var-requires
+  // eslint-disable-next-line unicorn/prefer-module, @typescript-eslint/no-require-imports
   const path = require('node:path');
   return {
     createOutputDirectory: (...args: any[]) => mockCreateOutputDirectory(...args),

@@ -374,7 +374,7 @@ describe('content-types', () => {
   });
 
   describe('getKnownContentTypes', () => {
-    let consoleSpy: jest.SpyInstance;
+    let consoleSpy: jest.Spied<typeof console.info>;
 
     beforeEach(() => {
       // Mock console methods to capture logging

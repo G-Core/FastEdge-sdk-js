@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   rules: {
     // Enforce return statements in callbacks of array's methods
     // https://eslint.org/docs/rules/array-callback-return
@@ -60,7 +60,7 @@ module.exports = {
     'no-duplicate-case': 'error',
     // Disallow duplicate module imports
     // https://eslint.org/docs/rules/no-duplicate-imports
-    // Replaced with import/no-duplicates
+    // Replaced with import-x/no-duplicates
     'no-duplicate-imports': 'off',
     // Disallow empty character classes in Regular Expressions
     // https://eslint.org/docs/rules/no-empty-character-class
@@ -97,16 +97,13 @@ module.exports = {
         skipTemplates: true,
       },
     ],
-    // Disallow number literals that lose precision
-    // https://eslint.org/docs/rules/no-loss-of-precision
-    // Turned off in favor of @typescript-eslint/no-loss-of-precision
-    'no-loss-of-precision': 'off',
     // Disallow characters which are made with multiple code points in character class syntax
     // https://eslint.org/docs/rules/no-misleading-character-class
     'no-misleading-character-class': 'error',
-    // Disallow `new` operators with the `Symbol` object
-    // https://eslint.org/docs/rules/no-new-symbol
-    'no-new-symbol': 'error',
+    // Disallow `new` operators with global non-constructor functions
+    // https://eslint.org/docs/rules/no-new-native-nonconstructor
+    // (renamed from no-new-symbol in ESLint v9)
+    'no-new-native-nonconstructor': 'error',
     // Disallow calling global object properties as functions
     // https://eslint.org/docs/rules/no-obj-calls
     'no-obj-calls': 'error',
@@ -182,7 +179,6 @@ module.exports = {
     'no-useless-backreference': 'error',
     // Disallow assignments that can lead to race conditions due to usage of `await` or `yield`
     // https://eslint.org/docs/rules/require-atomic-updates
-    // Consider disabling if flagging things incorrectly. According to airbnb it is buggy, but could have been resolved in recent versions
     'require-atomic-updates': 'error',
     // Require calls to `isNaN()` when check for `NaN`
     // https://eslint.org/docs/rules/use-isnan
