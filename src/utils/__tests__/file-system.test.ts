@@ -113,7 +113,6 @@ describe('file-system utilities', () => {
         { input: './current/dir', expected: 'current/dir' },
       ];
 
-      // eslint-disable-next-line unicorn/no-array-for-each
       testCases.forEach(({ input, expected }) => {
         const result = resolveOsPath(input);
         const expectedResult = path.normalize(path.resolve(expected));
@@ -614,7 +613,7 @@ describe('file-system utilities', () => {
 });
 // Helper function for creating symlinks (not available in original implementation)
 function symlinkSync(target: string, path: string): void {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, unicorn/prefer-module
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, unicorn/prefer-module
   const fs = require('node:fs');
   fs.symlinkSync(target, path);
 }

@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/prefer-module */
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import crypto from 'node:crypto';
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

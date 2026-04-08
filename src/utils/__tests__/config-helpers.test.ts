@@ -12,7 +12,7 @@ const createNormalizationMapping = () => ({
 
 describe('config-helpers', () => {
   // Mock console.warn to avoid output during tests
-  let consoleWarnSpy: jest.SpyInstance;
+  let consoleWarnSpy: jest.Spied<typeof console.warn>;
 
   beforeEach(() => {
     consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();

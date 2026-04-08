@@ -646,7 +646,7 @@ describe('deep-copy', () => {
         const original = {
           1: 'one',
           2: 'two',
-          // eslint-disable-next-line quote-props
+          // eslint-disable-next-line @stylistic/quote-props
           '3': 'three',
           normal: 'normal',
         };

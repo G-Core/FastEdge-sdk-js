@@ -1,5 +1,5 @@
-/* eslint-disable import/no-default-export */
-/* eslint-disable import/unambiguous */
+/* eslint-disable import-x/no-default-export */
+/* eslint-disable import-x/unambiguous */
 
 declare module '@bytecodealliance/wizer' {
   const wizer: string;
