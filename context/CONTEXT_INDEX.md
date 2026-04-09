@@ -36,6 +36,13 @@
 |----------|-------|---------|
 | `PROJECT_OVERVIEW.md` | ~150 | Lightweight project overview — architecture, key modules, dev setup, common commands. Read when new to the codebase. |
 | `CHANGELOG.md` | ~25+ | Change history. Use grep, don't read linearly as this file grows. |
+| `ENHANCEMENTS.md` | ~50 | Known inconsistencies and planned improvements. Read before refactoring related areas. |
+
+### Plugin Integration (read when modifying manifest or examples)
+
+| Document | Lines | Purpose |
+|----------|-------|---------|
+| `PLUGIN_CONTRACT.md` | ~70 | Naming conventions, manifest rules, intent file matching for the fastedge-plugin sync pipeline. Read when adding examples to `manifest.json` or changing `fastedge-plugin-source/`. |
 
 ### External (not in context/)
 
@@ -83,6 +90,7 @@
 4. **Every example MUST have its own `README.md`** explaining what it does
 5. **Every example MUST have an entry in `examples/README.md`** (the top-level index)
 6. **Terminology**: In READMEs, always refer to "environment variables" — never "dictionary variables". `dictionary` is the internal package name for accessing environment variables, not a user-facing concept
+7. **Plugin sync**: If this example should feed into fastedge-plugin, read `context/PLUGIN_CONTRACT.md` for manifest and naming conventions
 
 ### Changing the Build System
 1. Read `development/BUILD_SYSTEM.md`
