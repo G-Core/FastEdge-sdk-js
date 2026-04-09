@@ -36,9 +36,11 @@ plugins/gcore-fastedge/skills/
 
 1. **reference_file** paths must include the `http/` or `cdn/` subfolder for app_type-specific content
 2. **section** should be `null` for all entries (each file is owned by one repo — no splicing)
-3. **Dual-intent pattern**: each example gets two entries with the same `files` array:
+3. **Dual-intent pattern**: each **feature** example gets two entries with the same `files` array:
    - `{name}-blueprint` → `scaffold/reference/{appType}/{concept}-{lang}.md`
    - `{name}-pattern` → `fastedge-docs/reference/{appType}/examples-{concept}-{lang}.md`
+
+   **Exception**: Base skeleton examples (`hello-world`) only get a `-blueprint` entry pointing to `scaffold/reference/{appType}/base-{lang}.md`. They have no `-pattern` counterpart because they don't demonstrate a reusable feature pattern.
 
 ## Intent File Matching
 
@@ -51,7 +53,7 @@ Example:
 
 ## When Adding New Examples
 
-1. Add source entries (paired `-blueprint` and `-pattern`) to `manifest.json`
+1. Add source entries (paired `-blueprint` and `-pattern` for feature examples; `-blueprint` only for base skeletons) to `manifest.json`
 2. Add target_mapping entries pointing to `{appType}/{concept}-{lang}.md` paths
 3. Request intent files be created in `fastedge-plugin` repo (or create via PR):
    - `agent-intent-skills/fastedge-sdk-js/{appType}/{concept}-{lang}.md` (scaffold)

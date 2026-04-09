@@ -1,6 +1,6 @@
 {
   "$schema": "https://fastedge-plugin-source/manifest/v1",
-  "repo_id": "FastEdge-sdk-js",
+  "repo_id": "fastedge-sdk-js",
   "version": "1.1.0",
   "sources": {
     "sdk-api": {
