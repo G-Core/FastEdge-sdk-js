@@ -81,7 +81,6 @@ const createWasmInlineAsset = (metadata: StaticAssetMetadata): StaticAsset => {
     return createEmbeddedStoreEntry(source, contentEncoding, hash, size);
   };
 
-  // eslint-disable-next-line capitalized-comments
   const getText = (): string => {
     if (!_metadata.isText) {
       throw new Error("Can't getText() for non-text content");

@@ -131,6 +131,26 @@
 
 ---
 
+## Known Issues / Future Work
+
+Items that need attention. Surface these when asked "what's next" or "what needs work".
+
+### `moduleResolution: node` deprecation in syntax checker (HIGH PRIORITY)
+- **File:** `src/utils/syntax-checker.ts` (lines 71-80)
+- **Problem:** The `fastedge-build` CLI passes `--moduleResolution node` to `tsc` when validating user TypeScript files. `node` resolves to `node10`, which is deprecated since TS 5.0 and will be **removed in TypeScript 7.0**.
+- **Current workaround:** We detect the user's TypeScript major version and pass `--ignoreDeprecations 5.0` (TS 5.x) or `--ignoreDeprecations 6.0` (TS 6.x). This suppresses the deprecation error but **will break when TS 7 removes `node10` entirely**.
+- **Proper fix needed:** Migrate to a non-deprecated `moduleResolution` value (`bundler` or `nodenext`). This requires careful analysis because:
+  - `bundler` requires explicit file extensions for relative imports — may cause false type errors for users whose code uses extensionless imports
+  - `nodenext` requires `--module nodenext` and enforces strict ESM conventions (`.js` extensions) — more restrictive than current behavior
+  - The syntax checker is user-facing build tooling (not internal config) — changing resolution semantics affects all FastEdge developers
+- **Decision needed:** What module resolution strategy is correct for FastEdge developer code? Consider: what do most users' tsconfigs look like? Should we match esbuild's resolution behavior (which is closest to `bundler`)?
+
+### Deferred package upgrades
+- **semantic-release** 23 → 25: Two major versions, needs CI pipeline testing. Upgrade with `conventional-changelog-eslint` 5 → 6.
+- **TypeScript** 5.8 → 6.0: High risk, wait for ecosystem (`typescript-eslint`, tooling) to stabilize. Run `npx @andrewbranch/ts5to6` migration tool when ready.
+
+---
+
 ## Search Tips
 
 - **Don't** read `CHANGELOG.md` linearly — grep for keywords

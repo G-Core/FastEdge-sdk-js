@@ -44,7 +44,7 @@ jobs:
 
       - name: Build with Astro
         run: |
-          npm run build -- \
+          pnpm run build -- \
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${{ steps.pages.outputs.base_path }}"
         working-directory: ${{ env.BUILD_PATH }}

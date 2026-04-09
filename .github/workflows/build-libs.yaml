@@ -63,7 +63,7 @@ jobs:
 
       - name: Build Javascript libs
         if: steps.restore-build-cache.outputs.cache-hit != 'true'
-        run: npm run build:js
+        run: pnpm run build:js
 
       - name: Ensure bin files have execute permissions
         shell: bash
@@ -71,7 +71,7 @@ jobs:
           chmod +x ./bin/*.js
 
       - name: Run Integration Tests
-        run: npm run test:integration
+        run: pnpm run test:integration
 
       - name: Save build cache
         id: save-build-cache
