@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   rules: {
     // Enforce getter and setter pairs in objects and classes
     // https://eslint.org/docs/rules/accessor-pairs
@@ -21,7 +21,6 @@ module.exports = {
     camelcase: [
       'error',
       {
-        // properties: "never",
         properties: 'always',
         ignoreDestructuring: true,
         ignoreImports: false,
@@ -42,7 +41,6 @@ module.exports = {
     ],
     // Enforce that class methods utilize `this`
     // https://eslint.org/docs/rules/class-methods-use-this
-    // { exceptMethods: [],enforceForClassFields: true }
     'class-methods-use-this': 'error',
     // Enforce a maximum cyclomatic complexity allowed in a program
     // https://eslint.org/docs/rules/complexity
@@ -56,7 +54,6 @@ module.exports = {
     'consistent-this': ['error', 'self'],
     // Enforce consistent brace style for all control statements
     // https://eslint.org/docs/rules/curly
-    // FIXME: May conflict with prettier rules - if so, turn off
     curly: ['error', 'multi-line', 'consistent'],
     // Require `default` cases in `switch` statements
     // https://eslint.org/docs/rules/default-case
@@ -99,20 +96,15 @@ module.exports = {
     'guard-for-in': 'error',
     // Disallow specified identifiers
     // https://eslint.org/docs/rules/id-denylist
-    // Do not want to block ID's
     'id-denylist': 'off',
     // Enforce minimum and maximum identifier lengths
     // https://eslint.org/docs/rules/id-length
-    // Do not want to enforce
     'id-length': 'off',
     // Require identifiers to match a specified regular expression
     // https://eslint.org/docs/rules/id-match
-    // Do not want to enforce
     'id-match': ['off', '^[a-z]+([A-Z][a-z]+)*$'],
     // Require or disallow initialization in variable declarations
     // https://eslint.org/docs/rules/init-declarations
-    // Do not want to enforce as sometimes we don't want to initialize
-    // Prefer @typescript-eslint/init-declarations if this changes
     'init-declarations': 'off',
     // Enforce a maximum number of classes per file
     // https://eslint.org/docs/rules/max-classes-per-file
@@ -122,11 +114,9 @@ module.exports = {
     'max-depth': ['error', { max: 6 }],
     // Enforce a maximum number of lines per file
     // https://eslint.org/docs/rules/max-lines
-    // Do not want to enforce a limit
     'max-lines': ['off', { max: 300, skipBlankLines: true, skipComments: true }],
     // Enforce a maximum number of lines of code in a function
     // https://eslint.org/docs/rules/max-lines-per-function
-    // Do not want to enforce a limit
     'max-lines-per-function': [
       'off',
       { max: 50, skipBlankLines: true, skipComments: true, IIFEs: true },
@@ -136,11 +126,9 @@ module.exports = {
     'max-nested-callbacks': ['error', { max: 10 }],
     // Enforce a maximum number of parameters in function definitions
     // https://eslint.org/docs/rules/max-params
-    // Do not want to enforce a limit
     'max-params': ['off', { max: 3 }],
     // Enforce a maximum number of statements allowed in function blocks
     // https://eslint.org/docs/rules/max-statements
-    // Do not want to enforce a limit
     'max-statements': ['off', { max: 10, ignoreTopLevelFunctions: true }],
     // Enforce a particular style for multiline comments
     // https://eslint.org/docs/rules/multiline-comment-style
@@ -173,11 +161,6 @@ module.exports = {
     // Disallow lexical declarations in case clauses
     // https://eslint.org/docs/rules/no-case-declarations
     'no-case-declarations': 'error',
-    // Disallow arrow functions where they could be confused with comparisons
-    // https://eslint.org/docs/rules/no-confusing-arrow
-    // Off as causes issue with prettier, and it's unlikely we're using the style that
-    //  this rule was created to solve
-    'no-confusing-arrow': ['off', { allowParens: true }],
     // Disallow the use of `console`
     // https://eslint.org/docs/rules/no-console
     'no-console': 'warn',
@@ -202,7 +185,6 @@ module.exports = {
     'no-empty-function': ['off', { allow: [] }],
     // Disallow `null` comparisons without type-checking operators
     // https://eslint.org/docs/rules/no-eq-null
-    // 'eqeqeq' is more powerful and can enforce the same thing
     'no-eq-null': 'off',
     // Disallow the use of `eval()`
     // https://eslint.org/docs/rules/no-eval
@@ -219,19 +201,15 @@ module.exports = {
     // Disallow unnecessary labels
     // https://eslint.org/docs/rules/no-extra-label
     'no-extra-label': 'error',
-    // Disallow unnecessary semicolons
-    // https://eslint.org/docs/rules/no-extra-semi
-    // Turned off in favor of @typescript-eslint/no-extra-semi
-    'no-extra-semi': 'off',
     // Disallow leading or trailing decimal points in numeric literals
-    // https://eslint.org/docs/rules/no-floating-decimal
-    'no-floating-decimal': 'error',
+    // https://eslint.style/rules/js/no-floating-decimal
+    // (moved to @stylistic in ESLint v10)
+    '@stylistic/no-floating-decimal': 'error',
     // Disallow assignments to native objects or read-only global variables
     // https://eslint.org/docs/rules/no-global-assign
     'no-global-assign': ['error', { exceptions: [] }],
     // Disallow shorthand type conversions
     // https://eslint.org/docs/rules/no-implicit-coercion
-    // Do not want to enforce as shorthand can be convenient
     'no-implicit-coercion': [
       'off',
       {
@@ -244,18 +222,15 @@ module.exports = {
     ],
     // Disallow declarations in the global scope
     // https://eslint.org/docs/rules/no-implicit-globals
-    // Do not want to enforce
     'no-implicit-globals': ['off', { lexicalBindings: false }],
     // Disallow the use of `eval()`-like methods
     // https://eslint.org/docs/rules/no-implied-eval
     'no-implied-eval': 'error',
     // Disallow inline comments after code
     // https://eslint.org/docs/rules/no-inline-comments
-    // Want to allow inline comments
     'no-inline-comments': 'off',
     // Disallow `this` keywords outside of classes or class-like objects
     // https://eslint.org/docs/rules/no-invalid-this
-    // Want to be able to use `this` inside functions
     // Turned off in favor of @typescript-eslint/no-invalid-this
     'no-invalid-this': ['off', { capIsConstructor: true }],
     // Disallow the use of the `__iterator__` property
@@ -291,9 +266,9 @@ module.exports = {
       },
     ],
     // Disallow mixed binary operators
-    // https://eslint.org/docs/rules/no-mixed-operators
-    // FIXME: May cause issues with prettier- turn off if so
-    'no-mixed-operators': [
+    // https://eslint.style/rules/js/no-mixed-operators
+    // (moved to @stylistic in ESLint v10)
+    '@stylistic/no-mixed-operators': [
       'error',
       {
         groups: [
@@ -318,7 +293,6 @@ module.exports = {
     'no-multi-str': 'error',
     // Disallow negated conditions
     // https://eslint.org/docs/rules/no-negated-condition
-    // Want to allow negated conditions
     'no-negated-condition': 'off',
     // Disallow nested ternary expressions
     // https://eslint.org/docs/rules/no-nested-ternary
@@ -331,8 +305,9 @@ module.exports = {
     // https://eslint.org/docs/rules/no-new-func
     'no-new-func': 'error',
     // Disallow `Object` constructors
-    // https://eslint.org/docs/rules/no-new-object
-    'no-new-object': 'error',
+    // https://eslint.org/docs/rules/no-object-constructor
+    // (renamed from no-new-object in ESLint v9)
+    'no-object-constructor': 'error',
     // Disallow `new` operators with the `String`, `Number`, and `Boolean` objects
     // https://eslint.org/docs/rules/no-new-wrappers
     'no-new-wrappers': 'error',
@@ -445,11 +420,6 @@ module.exports = {
         message:
           'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
       },
-      // {
-      //   selector: 'ForOfStatement',
-      //   message:
-      //     'iterators/generators require regenerator-runtime, which is too heavyweight for this guide to allow them. Separately, loops should be avoided in favor of array iterations.',
-      // },
       {
         selector: 'LabeledStatement',
         message:
@@ -465,8 +435,9 @@ module.exports = {
     // https://eslint.org/docs/rules/no-return-assign
     'no-return-assign': ['error', 'always'],
     // Disallow unnecessary `return await`
-    // https://eslint.org/docs/rules/no-return-await
-    'no-return-await': 'error',
+    // (no-return-await removed from ESLint core in v9; @typescript-eslint/return-await
+    //  requires typed linting which is not enabled — rule disabled for now)
+    // '@typescript-eslint/return-await': 'error',
     // Disallow `javascript:` urls
     // https://eslint.org/docs/rules/no-script-url
     'no-script-url': 'error',
@@ -482,7 +453,6 @@ module.exports = {
     'no-shadow-restricted-names': 'error',
     // Disallow ternary operators
     // https://eslint.org/docs/rules/no-ternary
-    // Want to allow ternary operators
     'no-ternary': 'off',
     // Disallow throwing literals as exceptions
     // https://eslint.org/docs/rules/no-throw-literal
@@ -492,11 +462,9 @@ module.exports = {
     'no-undef-init': 'error',
     // Disallow the use of `undefined` as an identifier
     // https://eslint.org/docs/rules/no-undefined
-    // Off as other rules prevent shadowing, and typescript suggest using undefined rather than null
     'no-undefined': 'off',
     // Disallow dangling underscores in identifiers
     // https://eslint.org/docs/rules/no-underscore-dangle
-    // Off as we use underscore dangle (not neccessarily for private members)
     'no-underscore-dangle': [
       'off',
       {
@@ -627,7 +595,6 @@ module.exports = {
     // Disallow use of `Object.prototype.hasOwnProperty.call()` and prefer use of
     //  `Object.hasOwn()`
     // https://eslint.org/docs/rules/prefer-object-has-own
-    // Off as not using ES2022
     'prefer-object-has-own': 'off',
     // Disallow using Object.assign with an object literal as the first argument and prefer
     //  the use of object spread instead.
@@ -649,14 +616,14 @@ module.exports = {
     // https://eslint.org/docs/rules/
     'prefer-template': 'error',
     // Require quotes around object literal property names
-    // https://eslint.org/docs/rules/quote-props
-    'quote-props': ['error', 'as-needed', { keywords: false, unnecessary: true, numbers: false }],
+    // https://eslint.style/rules/js/quote-props
+    // (moved to @stylistic in ESLint v10)
+    '@stylistic/quote-props': ['error', 'as-needed', { keywords: false, unnecessary: true, numbers: false }],
     // Enforce the consistent use of the radix argument when using `parseInt()`
     // https://eslint.org/docs/rules/radix
     radix: ['error', 'always'],
     // Disallow async functions which have no `await` expression
     // https://eslint.org/docs/rules/require-await
-    // This is a bad rule according to airbnb
     'require-await': 'off',
     // Enforce the use of `u` flag on RegExp
     // https://eslint.org/docs/rules/require-unicode-regexp
@@ -666,7 +633,6 @@ module.exports = {
     'require-yield': 'error',
     // Enforce sorted import declarations within modules
     // https://eslint.org/docs/rules/sort-imports
-    // TODO: May wish to disable this rule if it causes issues
     'sort-imports': [
       'error',
       {
@@ -679,7 +645,6 @@ module.exports = {
     ],
     // Require object keys to be sorted
     // https://eslint.org/docs/rules/sort-keys
-    // Off as often there is a more sensible order than alphabetical
     'sort-keys': ['off', 'asc', { caseSensitive: false, minKeys: 2, natural: true }],
     // Require variables within the same declaration block to be sorted
     // https://eslint.org/docs/rules/sort-vars
@@ -693,19 +658,16 @@ module.exports = {
         line: {
           exceptions: ['-', '+'],
           markers: ['=', '!', '/'],
-          // space above to support sprockets directives, slash for TS /// comments
         },
         block: {
           exceptions: ['-', '+'],
           markers: ['=', '!', ':', '::'],
-          // space above to support sprockets directives and flow comment types
           balanced: true,
         },
       },
     ],
     // Require or disallow strict mode directives
     // https://eslint.org/docs/rules/strict
-    // babel and TS already enforce this
     strict: ['error', 'never'],
     // Require symbol descriptions
     // https://eslint.org/docs/rules/symbol-description

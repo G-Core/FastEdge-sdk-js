@@ -2,8 +2,8 @@
 import { colorLog } from '../color-log.ts';
 
 describe('color-log', () => {
-  let consoleInfoSpy: jest.SpyInstance;
-  let consoleErrorSpy: jest.SpyInstance;
+  let consoleInfoSpy: jest.Spied<typeof console.info>;
+  let consoleErrorSpy: jest.Spied<typeof console.error>;
 
   beforeEach(() => {
     consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();

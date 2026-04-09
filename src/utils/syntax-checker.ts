@@ -29,10 +29,10 @@ function containsJavascriptSyntaxErrors(jsInput: string): boolean {
 }
 
 /**
- * Checks if TypeScript is installed.
- * @returns `true` if TypeScript is installed, otherwise `false`.
+ * Gets the installed TypeScript major version.
+ * @returns The major version number, or `null` if TypeScript is not installed.
  */
-function isTypeScriptInstalled(): boolean {
+function getTypeScriptMajorVersion(): number | null {
   const result: SpawnSyncReturns<string> = spawnSync('npx', ['tsc', '--version'], {
     stdio: [null, null, null],
     shell: true,
@@ -40,12 +40,13 @@ function isTypeScriptInstalled(): boolean {
   });
 
   if (result.status === 0) {
-    return true;
+    const match = result.stdout.trim().match(/Version\s+(\d+)/u);
+    return match ? Number(match[1]) : null;
   }
 
   colorLog('error', 'TypeScript is not installed.');
   colorLog('error', 'Please run "npm install typescript"');
-  return false;
+  return null;
 }
 
 /**
@@ -55,11 +56,18 @@ function isTypeScriptInstalled(): boolean {
  * @returns `true` if the file contains syntax errors, otherwise `false`.
  */
 function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string): boolean {
-  if (isTypeScriptInstalled()) {
+  const tsMajor = getTypeScriptMajorVersion();
+  if (tsMajor !== null) {
     const includeFastEdgeTypes =
       process.env.NODE_ENV === 'test'
         ? []
         : ['--types', './node_modules/@gcoredev/fastedge-sdk-js'];
+
+    // ! This needs future work - moduleResolution 'node' (node10) is deprecated since TS 5.0;
+    // ! --ignoreDeprecations is only supported in TS >= 5
+
+    const ignoreDeprecationsFlags =
+      tsMajor >= 5 ? ['--ignoreDeprecations', tsMajor >= 6 ? '6.0' : '5.0'] : [];
 
     const defaultTscBuildFlags = [
       '--noEmit',
@@ -70,11 +78,14 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
       'esnext',
       '--moduleResolution',
       'node',
+      ...ignoreDeprecationsFlags,
       ...includeFastEdgeTypes,
       tsInput,
     ];
 
-    const tscBuildFlags = tsConfigPath ? ['--project', tsConfigPath] : defaultTscBuildFlags;
+    const tscBuildFlags = tsConfigPath
+      ? ['--project', tsConfigPath, ...ignoreDeprecationsFlags]
+      : defaultTscBuildFlags;
 
     const nodeProcess: SpawnSyncReturns<string> = spawnSync('npx', ['tsc', ...tscBuildFlags], {
       stdio: [null, null, null],

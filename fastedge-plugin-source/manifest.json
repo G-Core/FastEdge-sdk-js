@@ -1,6 +1,6 @@
 {
   "$schema": "https://fastedge-plugin-source/manifest/v1",
-  "repo_id": "FastEdge-sdk-js",
+  "repo_id": "fastedge-sdk-js",
   "version": "1.1.0",
   "sources": {
     "sdk-api": {
@@ -140,7 +140,7 @@
   },
   "target_mapping": {
     "sdk-api": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/sdk-reference.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/sdk-reference-js.md",
       "section": null
     },
     "build-cli": {
@@ -161,52 +161,52 @@
     },
 
     "hello-world-blueprint": {
-      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/base-http-ts.md",
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/base-ts.md",
       "section": null
     },
 
     "kv-store-blueprint": {
-      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-kv-store.md",
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/kv-store-ts.md",
       "section": null
     },
     "kv-store-pattern": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-kv-store.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-kv-store-js.md",
       "section": null
     },
 
     "ab-testing-blueprint": {
-      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-ab-testing.md",
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/ab-testing-ts.md",
       "section": null
     },
     "ab-testing-pattern": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-ab-testing.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-ab-testing-js.md",
       "section": null
     },
 
     "fetch-blueprint": {
-      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-fetch.md",
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/fetch-ts.md",
       "section": null
     },
     "fetch-pattern": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-fetch.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-fetch-js.md",
       "section": null
     },
 
     "headers-blueprint": {
-      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-headers.md",
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/headers-ts.md",
       "section": null
     },
     "headers-pattern": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-headers.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-headers-js.md",
       "section": null
     },
 
     "geo-redirect-blueprint": {
-      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http-ts-geo-redirect.md",
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/geo-redirect-ts.md",
       "section": null
     },
     "geo-redirect-pattern": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/examples-geo-redirect.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-geo-redirect-js.md",
       "section": null
     }
   },
