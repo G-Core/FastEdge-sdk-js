@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "rootDir": "./fastedge-server",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["@gcoredev/fastedge-sdk-js"]
+  },
+  "include": ["./fastedge-server/**/*"],
+  "exclude": ["node_modules", "./fastedge-server/dev-server.ts"]
+}

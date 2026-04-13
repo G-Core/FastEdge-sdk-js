@@ -36,6 +36,7 @@ export default [
       'eslint.config.js',
       '.github/**',
       '.releaserc.cjs',
+      'examples/react-with-hono-server/**',
     ],
   },
 

@@ -1,0 +1,41 @@
+{
+  "name": "react-app-fastedge",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "fastedge-server/server.ts",
+  "scripts": {
+    "dev": "npm-run-all -p dev:vite dev:api",
+    "dev:vite": "vite",
+    "dev:api": "node --import=tsx/esm fastedge-server/dev-server.ts",
+    "build": "npm-run-all -s build:client build:server",
+    "build:server": "npx fastedge-build --config ./fastedge-server/config/build-config.ts",
+    "build:client": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.0",
+    "hono": "^4.9.8",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@hono/node-server": "^1.19.5",
+    "@types/node": "^24.6.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "npm-run-all2": "^8.0.4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "^7.1.7"
+  }
+}

@@ -1,6 +1,6 @@
 # Plugin Source Contract — Naming Conventions
 
-This document describes the naming and structure conventions for `manifest.json` in this repo. These rules ensure the sync-reference-docs pipeline correctly maps source files to plugin reference docs and intent skills.
+This document describes the naming and structure conventions for `manifest.json` in this repo. These rules ensure the sync-reference-docs pipeline correctly maps source files to plugin reference docs and intent skills. The pipeline is operational — first PR generated and merged 2026-04-09.
 
 ## Reference File Structure
 

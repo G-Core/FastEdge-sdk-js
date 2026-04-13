@@ -50,7 +50,7 @@
 |----------|----------|---------|
 | TypeScript declarations | `types/` | Authoritative public API surface (env, fs, kv, secret, globals) |
 | GitHub Pages docs | `github-pages/` | Astro-based user-facing documentation site |
-| Pipeline docs | `docs/` (planned) | Human-facing docs feeding into fastedge-plugin |
+| Pipeline docs | `docs/` | 7 generated docs feeding into fastedge-plugin sync pipeline (operational since 2026-04-09) |
 | Examples | `examples/` | 13 standalone example apps showing real patterns |
 
 ---
