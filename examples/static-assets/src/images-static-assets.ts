@@ -5,8 +5,8 @@
  */
 
 const staticAssetManifest = {
-  '/gcore.png': { assetKey: '/gcore.png', contentType: 'image/png', isText: false, fileInfo: { size: 40261, hash: 'af4a1427e9072e0a17ea2d74cfb47082db334a9ca4b1747cf1cd45e78c0f8c84', lastModifiedTime: 1768985591, assetPath: './images/gcore.png' }, lastModifiedTime: 1768985591, type: 'wasm-inline' },
-  '/home.png': { assetKey: '/home.png', contentType: 'image/png', isText: false, fileInfo: { size: 1502064, hash: '14fcd7ae0ab7080ddec2d1fa1af265432e93bd662f5f714512b3fda3157a4825', lastModifiedTime: 1768985591, assetPath: './images/home.png' }, lastModifiedTime: 1768985591, type: 'wasm-inline' },
+  '/gcore.png': { assetKey: '/gcore.png', contentType: 'image/png', isText: false, fileInfo: { size: 40261, hash: 'af4a1427e9072e0a17ea2d74cfb47082db334a9ca4b1747cf1cd45e78c0f8c84', lastModifiedTime: 1775648879, assetPath: './images/gcore.png' }, lastModifiedTime: 1775648879, type: 'wasm-inline' },
+  '/home.png': { assetKey: '/home.png', contentType: 'image/png', isText: false, fileInfo: { size: 1502064, hash: '14fcd7ae0ab7080ddec2d1fa1af265432e93bd662f5f714512b3fda3157a4825', lastModifiedTime: 1775648879, assetPath: './images/home.png' }, lastModifiedTime: 1775648879, type: 'wasm-inline' },
 };
 
 export { staticAssetManifest };
