@@ -6,9 +6,10 @@ This project now has a clean separation between static site serving and API back
 
 ```
 fastedge-server/
-├── server.tsx              # Main FastEdge server (production)
+├── server.ts               # Main FastEdge server (production)
 ├── dev-server.ts           # Development API server
-├── server.config.ts        # Static server configuration
+├── config/
+|   └──server.config.ts        # Static server configuration
 └── api/
     └── routes.ts           # API route definitions
 ```
@@ -50,24 +51,24 @@ The API server provides the following endpoints:
 
 ```javascript
 // Import the API utility
-import { api } from "./utils/api";
+import { api } from './utils/api';
 
 // Fetch users
-const users = await api.get("api/users");
+const users = await api.get('api/users');
 
 // Create a user
-const newUser = await api.post("api/users", {
-  name: "John Doe",
-  email: "john@example.com",
+const newUser = await api.post('api/users', {
+  name: 'John Doe',
+  email: 'john@example.com',
 });
 
 // Update a user
-const updatedUser = await api.put("api/users/1", {
-  name: "Jane Doe",
+const updatedUser = await api.put('api/users/1', {
+  name: 'Jane Doe',
 });
 
 // Delete a user
-await api.delete("api/users/1");
+await api.delete('api/users/1');
 ```
 
 ### Environment Configuration
@@ -85,7 +86,8 @@ Environment files:
 
 ## Production
 
-In production (FastEdge WASM environment), both static files and API routes are served from the same server on the same domain, avoiding CORS issues.
+In production (FastEdge WASM environment), both static files and API routes are served from the same
+server on the same domain, avoiding CORS issues.
 
 The API routes will be available at:
 

@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "fastedge-server/server.ts",
   "scripts": {
     "dev": "npm-run-all -p dev:vite dev:api",
     "dev:vite": "vite",
