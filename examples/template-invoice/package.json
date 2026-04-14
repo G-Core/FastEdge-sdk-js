@@ -7,7 +7,7 @@
     "build": "fastedge-build src/index.js dist/template-invoice.wasm"
   },
   "dependencies": {
-    "@gcoredev/fastedge-sdk-js": "^2.1.0",
+    "@gcoredev/fastedge-sdk-js": "^2.2.2",
     "handlebars": "^4.7.9"
   }
 }
