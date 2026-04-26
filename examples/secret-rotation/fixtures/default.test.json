@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "No headers — uses TOKEN_SECRET and the current unix timestamp as the slot",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

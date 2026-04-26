@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-request-inspection",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: echo the incoming request for debugging",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/request-inspection.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+  }
+}

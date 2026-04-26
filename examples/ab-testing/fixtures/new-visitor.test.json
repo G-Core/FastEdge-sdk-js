@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "No x-fastedge-abid cookie — generates a new xid, assigns variants, sets cookie on response",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

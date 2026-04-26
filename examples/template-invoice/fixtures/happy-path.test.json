@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Renders the hardcoded Homer Simpson invoice as HTML via Handlebars",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  }
+}

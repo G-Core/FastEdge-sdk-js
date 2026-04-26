@@ -1,0 +1,11 @@
+{
+  "appType": "http-wasm",
+  "description": "No BASE_ORIGIN configured — returns 500",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "geoip-country-code": "US"
+    }
+  }
+}

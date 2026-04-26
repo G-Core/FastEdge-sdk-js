@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-tls-client-info",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: inspect TLS client metadata from event.client",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/tls-client-info.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+  }
+}

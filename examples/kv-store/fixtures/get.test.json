@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "KV get — requires ?store=<name>&action=get&key=<key> (populate store out of band)",
+  "request": {
+    "method": "GET",
+    "path": "/?store=my-store&action=get&key=greeting",
+    "headers": {}
+  }
+}

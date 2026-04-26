@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "GET request with a handful of headers — handler echoes method, URL, client, and headers",
+  "request": {
+    "method": "GET",
+    "path": "/debug",
+    "headers": {
+      "user-agent": "fastedge-debugger/1.0",
+      "accept": "text/plain",
+      "x-custom-trace": "trace-12345"
+    }
+  }
+}

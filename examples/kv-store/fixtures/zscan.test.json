@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "KV zscan — scan a sorted set with a match pattern",
+  "request": {
+    "method": "GET",
+    "path": "/?store=my-store&action=zscan&key=leaderboard&match=player:*",
+    "headers": {}
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "MCP JSON-RPC initialize request — handshake with protocol version and capabilities",
+  "request": {
+    "method": "POST",
+    "path": "/mcp",
+    "headers": {
+      "content-type": "application/json",
+      "accept": "application/json, text/event-stream"
+    },
+    "body": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"debugger\",\"version\":\"1.0\"}}}"
+  }
+}

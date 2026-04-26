@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /images/gcore.png — served from the images static asset manifest",
+  "request": {
+    "method": "GET",
+    "path": "/images/gcore.png",
+    "headers": {}
+  }
+}

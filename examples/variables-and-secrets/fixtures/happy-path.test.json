@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "Reads USERNAME env var and PASSWORD secret, returns them in the response body",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

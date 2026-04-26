@@ -1,0 +1,15 @@
+{
+  "appType": "http-wasm",
+  "description": "Returning visitor — x-fastedge-abid=0.5000 reused from cookie; variants deterministic",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "cookie": "x-fastedge-abid=0.5000; session=abc123"
+    }
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

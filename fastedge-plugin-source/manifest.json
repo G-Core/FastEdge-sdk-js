@@ -89,19 +89,19 @@
 
     "fetch-blueprint": {
       "files": [
-        "examples/downstream-fetch/src/index.js",
-        "examples/downstream-fetch/package.json"
+        "examples/outbound-fetch/src/index.js",
+        "examples/outbound-fetch/package.json"
       ],
       "required": true,
-      "description": "Downstream Fetch example — scaffold blueprint extraction"
+      "description": "Outbound Fetch example — scaffold blueprint extraction"
     },
     "fetch-pattern": {
       "files": [
-        "examples/downstream-fetch/src/index.js",
-        "examples/downstream-fetch/package.json"
+        "examples/outbound-fetch/src/index.js",
+        "examples/outbound-fetch/package.json"
       ],
       "required": true,
-      "description": "Downstream Fetch example — docs pattern extraction"
+      "description": "Outbound Fetch example — docs pattern extraction"
     },
 
     "headers-blueprint": {
