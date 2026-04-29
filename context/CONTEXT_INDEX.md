@@ -135,6 +135,12 @@
 
 Items that need attention. Surface these when asked "what's next" or "what needs work".
 
+### Cache API — C++ wiring pending (RESUMABLE)
+- **Branch:** `feature/cache-api`
+- **State:** WIT submodule bumped, host-api bindings regenerated to expose `cache-sync` + `utils`, and `types/fastedge-cache.d.ts` published. C++ host-api wrappers + builtin + JS shim for `getOrSet` are not yet written.
+- **Read first:** `context/CACHE_API_HANDOFF.md` — design decisions, what's done, what's left, and how to resume.
+- **Sibling branch:** `feature/cache-api-async` is exploration-only (preview-3 async ABI investigation) — do not merge.
+
 ### `moduleResolution: node` deprecation in syntax checker (HIGH PRIORITY)
 - **File:** `src/utils/syntax-checker.ts` (lines 71-80)
 - **Problem:** The `fastedge-build` CLI passes `--moduleResolution node` to `tsc` when validating user TypeScript files. `node` resolves to `node10`, which is deprecated since TS 5.0 and will be **removed in TypeScript 7.0**.
