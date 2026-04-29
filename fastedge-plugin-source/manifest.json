@@ -40,6 +40,12 @@
       "description": "Installation, first build, basic usage patterns with code examples"
     },
 
+    "runtime-constraints": {
+      "files": ["docs/RUNTIME_CONSTRAINTS.md"],
+      "required": true,
+      "description": "JS runtime constraints — StarlingMonkey, WinterCG capabilities, crypto.subtle support matrix, Node.js polyfill impossibility, SAML library compatibility. Hand-curated research"
+    },
+
     "hello-world-blueprint": {
       "files": [
         "examples/hello-world/src/index.js",
@@ -136,6 +142,24 @@
       ],
       "required": true,
       "description": "Geo Redirect example — docs pattern extraction"
+    },
+
+    "hono-pattern": {
+      "files": ["docs/HONO_PATTERNS.md"],
+      "required": true,
+      "description": "Hono framework patterns — routing, middleware, error handling, FastEdge Service Worker integration. Source-of-truth: examples/react-with-hono-server/ + hand-curated guidance"
+    },
+
+    "auth-pattern": {
+      "files": ["docs/AUTH_PATTERNS.md"],
+      "required": true,
+      "description": "Auth patterns — bearer token middleware, HMAC-SHA256 JWT verification with crypto.subtle, getSecret usage. Source-of-truth: examples/crypto-hmac-jwt/ + hand-curated guidance"
+    },
+
+    "proxy-pattern": {
+      "files": ["docs/PROXY_PATTERNS.md"],
+      "required": true,
+      "description": "Proxy and response transform patterns — outbound fetch forwarding, JSON transform, header manipulation, KV-backed caching. Source-of-truth: examples/outbound-modify-response/ + hand-curated guidance"
     }
   },
   "target_mapping": {
@@ -156,7 +180,12 @@
       "section": null
     },
     "quickstart": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/quickstart.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/quickstart-js.md",
+      "section": null
+    },
+
+    "runtime-constraints": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/js-runtime.md",
       "section": null
     },
 
@@ -207,6 +236,21 @@
     },
     "geo-redirect-pattern": {
       "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-geo-redirect-js.md",
+      "section": null
+    },
+
+    "hono-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-hono-js.md",
+      "section": null
+    },
+
+    "auth-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-auth-js.md",
+      "section": null
+    },
+
+    "proxy-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-proxy-js.md",
       "section": null
     }
   },
