@@ -1,229 +1,191 @@
-# Cache API — In-progress Handoff
+# Cache API — Implementation Notes
 
-**Status:** API design landed. C++ wiring not started. Resumable.
+**Status:** All C++ + JS API surface implemented and building cleanly. Awaiting manual verification, integration tests, and an example app.
+
 **Branch:** `feature/cache-api`
-**Sibling exploration branch:** `feature/cache-api-async` (DO NOT MERGE — kept for reference).
+**Sibling exploration branch:** `feature/cache-api-async` (DO NOT MERGE — kept for reference; preview-3 async exploration only).
 
 ## What this is
 
-A new `fastedge::cache` module surfacing the FastEdge POP-local cache that the runtime team has added to the WIT. It is positioned as a sibling to `fastedge::kv`:
+A new `fastedge::cache` module surfacing the FastEdge POP-local cache that the runtime team has added to the WIT. Positioned alongside `fastedge::kv`:
 
 - **`fastedge::kv`** — globally replicated, eventually consistent, Redis-shaped key/value store with `scan` / `zrange` / bloom filters. Reads are fast (Redis colocated to every edge); writes are slow (cross-region propagation).
 - **`fastedge::cache`** (new) — data-center-scoped, strongly consistent within a single POP, fast reads *and* writes. Includes atomic `incr` so it can be used for rate limiting and other counter primitives that the eventually-consistent KV cannot do reliably. Future work may layer Request/Response Cache-API semantics on top of this byte cache.
 
-## What is already done
+## What is implemented
 
-### WIT submodule + bindings (commits `31322c9`, `b207bed`)
+### WIT submodule + bindings
 
 - `runtime/FastEdge-wit` bumped to `b6fdc9f73`. Adds `cache.wit` (async), `cache-sync.wit` (sync, identical surface), `cache-types.wit`, `utils.wit`, plus updated `world.wit`.
-- `merge-wit-bindings.js` extended to strip `cache` (the async variant) from the merged world. Reason: async uses WIT's `async func` syntax which compiles to component-model preview-3 ABI (subtask handles, waitable sets, etc.). Our pinned `wit-bindgen-cli@0.37.0` cannot parse `async func`. StarlingMonkey has no integration for preview-3 either. Async is deferred until the runtime team confirms preview-3 canonicals are enabled in production AND the StarlingMonkey integration is built. See `feature/cache-api-async` for an exploration of what async output looks like (regenerated with `wit-bindgen-cli@0.57.1`).
-- `cache-sync` and `utils` are now visible in `runtime/fastedge/host-api/bindings/bindings.h` as plain `extern bool gcore_fastedge_cache_sync_*(...)` symbols, structurally identical to the existing `gcore_fastedge_key_value_*` symbols.
+- `merge-wit-bindings.js` extended to strip the async `cache` interface from the merged world. Reason: async uses WIT's `async func` syntax which compiles to component-model preview-3 ABI (subtask handles, waitable sets, etc.). Our pinned `wit-bindgen-cli@0.37.0` cannot parse `async func`. StarlingMonkey has no integration for preview-3 either. Async is deferred until the runtime team confirms preview-3 canonicals are enabled in production AND the StarlingMonkey integration is built. See `feature/cache-api-async` for an exploration of what async output looks like (regenerated with `wit-bindgen-cli@0.57.1`).
+- `cache-sync` and `utils` are now in `runtime/fastedge/host-api/bindings/bindings.h` as plain `extern bool gcore_fastedge_cache_sync_*(...)` symbols, structurally identical to the existing `gcore_fastedge_key_value_*` symbols.
 
-Generated symbols to wrap (in `bindings.h`):
+### Public TypeScript API
 
-```c
-extern bool gcore_fastedge_cache_sync_get(bindings_string_t *key, bindings_option_payload_t *ret, gcore_fastedge_cache_sync_error_t *err);
-extern bool gcore_fastedge_cache_sync_set(bindings_string_t *key, gcore_fastedge_cache_sync_payload_t *value, uint64_t *maybe_ttl_ms, gcore_fastedge_cache_sync_error_t *err);
-extern bool gcore_fastedge_cache_sync_delete(bindings_string_t *key, gcore_fastedge_cache_sync_error_t *err);
-extern bool gcore_fastedge_cache_sync_exists(bindings_string_t *key, bool *ret, gcore_fastedge_cache_sync_error_t *err);
-extern bool gcore_fastedge_cache_sync_incr(bindings_string_t *key, int64_t delta, int64_t *ret, gcore_fastedge_cache_sync_error_t *err);
-extern bool gcore_fastedge_cache_sync_expire(bindings_string_t *key, uint64_t ttl_ms, bool *ret, gcore_fastedge_cache_sync_error_t *err);
-extern void gcore_fastedge_utils_set_user_diag(bindings_string_t *name);
-```
-
-Errors variant: `access-denied`, `internal-error`, `other(string)` — same shape as the existing `key-value` errors.
-
-Note the `option<u64>` for ttl-ms maps to `uint64_t *maybe_ttl_ms` — pass `NULL` for "no TTL".
-
-### Public TypeScript API (committed alongside this doc)
-
-- `types/fastedge-cache.d.ts` — full API contract with JSDoc.
+- `types/fastedge-cache.d.ts` — full API contract with JSDoc, all methods Promise-returning.
 - `types/index.d.ts` — references the new file.
 - `pnpm run typecheck` passes.
 
-## API design summary
-
-Static `Cache` class on `fastedge::cache`. Methods:
-
-| Method | Signature | Sync / async |
-|---|---|---|
-| `get(key)` | `(string) → CacheEntry \| null` | sync |
-| `exists(key)` | `(string) → boolean` | sync |
-| `set(key, value, options?)` | `(string, CacheValue, WriteOptions?) → Promise<void>` | **async** |
-| `delete(key)` | `(string) → void` | sync |
-| `expire(key, options)` | `(string, WriteOptions) → boolean` | sync — false if missing |
-| `incr(key, delta?)` | `(string, number?) → number` | sync — defaults `delta=1` |
-| `decr(key, delta?)` | `(string, number?) → number` | sync — sugar for `incr(-delta)` |
-| `getOrSet(key, populate, options?)` | `(string, () => CacheValue \| Promise<CacheValue>, WriteOptions?) → Promise<CacheEntry>` | **async**, JS-side coalescing |
-
-Design decisions worth recalling:
-
-- **`set` is async** because it accepts `Response` and `ReadableStream` (must be collected before the host call). Reads / counters stay sync — the underlying host call is sync, and that matches the existing `KvStore` precedent.
-- **`get` returns a `CacheEntry`** (Body-like with `arrayBuffer()`, `text()`, `json()` — all `Promise<T>` to match the standard Web `Body` shape). Diverges from `KvStore`'s raw-bytes return; deliberate ergonomics improvement on the new surface.
-- **TTL outside the populator** in `getOrSet`. Shape is `getOrSet(key, () => fetch(...), { ttl: 5 })`. The dynamic-TTL case (TTL derived from populator output) is **not** supported in v1 — see "Open questions" below.
-- **`WriteOptions`** is a flat options bag with optional `ttl` (seconds), `ttlMs`, `expiresAt` (Unix epoch seconds). Mutually exclusive at runtime — the builtin must throw `TypeError` if more than one is set. WIT takes `ttl-ms`, so the JS layer translates: `ttlMs` direct, `ttl × 1000`, `(expiresAt × 1000) − Date.now()`.
-- **Strings are UTF-8 encoded**. The cache stores raw bytes only; no type marker. Readers decode via the `CacheEntry` accessor that fits.
-- **`Response` accepted as a write value**; status and headers are discarded (this is a byte cache, not an HTTP cache). The future HTTP Cache-API layer is a separate piece of work that would key by Request and serialise full Response.
-- **Errors throw** as plain JS `Error` objects with descriptive messages. Same pattern as `KvStore` builtin.
-- **`getOrSet` coalescing is in-process only.** Concurrent requests on the same WASM instance share one `populate` execution; concurrent requests on other instances or POPs race independently. Documented in the JSDoc.
-
-## What remains — C++ wiring
-
 ### Layer 1: Host-API wrappers
 
-**Files:** `runtime/fastedge/host-api/fastedge_host_api.cpp` + `include/fastedge_host_api.h`.
+In `runtime/fastedge/host-api/`:
 
-Add C++ wrappers around the new C bindings, mirroring the existing `kv_store_*` pattern. The `KvStoreResult<T>` / `KvStoreOption<T>` templates are reusable — either rename to `HostResult<T>` / `HostOption<T>` (worth doing — they're not KV-specific, and the cache bindings will reuse them) or just parallel them as `CacheResult<T>` if you don't want to refactor existing call sites.
+- **`include/fastedge_host_api.h`** — adds `CacheResult<T>`, `CacheOption<T>`, `CacheError`, `CacheBytes`, `CacheBytesView` types (parallel to `KvStore*` templates — see "future cleanup" below), plus declarations for the six cache wrappers and `utils_set_user_diag`.
+- **`fastedge_host_api.cpp`** — implementations. Mechanical translation from the C bindings, follows the existing `kv_store_*` pattern exactly. `cache_set` / `cache_delete` return `std::optional<CacheError>` (none = success) since the host functions have void result types. Other functions return `CacheResult<T>`.
 
-Functions to add:
+Confirmed compilation produces correct C++ symbols and correctly references all `gcore_fastedge_cache_sync_*` and `gcore_fastedge_utils_*` C imports.
 
-```cpp
-HostResult<HostOption<HostBytes>> cache_get(std::string_view key);
-HostResult<void> cache_set(std::string_view key, ByteSpan value, std::optional<uint64_t> ttl_ms);
-HostResult<void> cache_delete(std::string_view key);
-HostResult<bool> cache_exists(std::string_view key);
-HostResult<int64_t> cache_incr(std::string_view key, int64_t delta);
-HostResult<bool> cache_expire(std::string_view key, uint64_t ttl_ms);
+### Layer 2: Cache builtin
 
-void utils_set_user_diag(std::string_view name);
-```
+`runtime/fastedge/builtins/cache.cpp` (~1100 lines, single file). Pure C++; no embedded JS shim. Structure:
 
-Use `host_api::fastedge_host_api.cpp`'s existing `to_host_string` / `string_view_to_world_string` helpers; the patterns map 1:1.
+| Component | Description |
+|---|---|
+| `Cache` class | Static methods: `get`, `exists`, `set`, `delete`, `expire`, `incr`, `decr`, `getOrSet`. Plus six private Promise reaction handlers for the async coercion paths in `set` and `getOrSet`. |
+| `CacheEntry` class | Body-like wrapper with `arrayBuffer()`, `text()`, `json()` — all Promise-returning. Stores bytes via a Uint8Array in a reserved slot (no manual finalization needed). |
+| `INFLIGHT_MAP` | Module-static `JS::PersistentRooted<JSObject*>` for `getOrSet` coalescing. No-prototype JSObject so user keys cannot collide with inherited names like `"constructor"`. Initialised in `install()`. |
+| `resolve_with` | Convenience helper — wraps a value in a resolved Promise and sets `args.rval()`. Mirrors `ReturnPromiseRejectedWithPendingError` from `builtin.h`. |
+| `build_ttl_ms` | Validates `WriteOptions`, enforces mutual exclusion of `ttl` / `ttlMs` / `expiresAt`, translates everything to milliseconds. Used by `set`, `expire`, `getOrSet`. |
+| `try_sync_coerce_bytes` | Sync coercion path for string / ArrayBuffer / ArrayBufferView. Used by `set` and `getOrSet`. |
+| `finish_set` | Common cache-set + outer-Promise resolution path used by `set`'s sync and async paths. |
+| `getOrSet_finalize` | Common cache-set + CacheEntry construction + outer-Promise resolution + inflight cleanup, used by `getOrSet`'s sync and async paths. |
+| `reject_and_finish` | Cleanup helper for getOrSet error paths: capture pending exception, reject outer Promise, remove from inflight, clear `args.rval()`. |
 
-### Layer 2: Builtin
-
-**Files:** `runtime/fastedge/builtins/cache.cpp` + `cache.h`. Closest existing template: `runtime/fastedge/builtins/kv-store.cpp`.
-
-The builtin is *simpler* than `KvStore`:
-- No `open(name)` static factory — single global, no resource handle.
-- No instance — just static methods on the `Cache` class.
-- No reserved slots — nothing to finalise.
-
-The shape:
-
-```cpp
-class Cache : public builtins::BuiltinNoConstructor<Cache> {
-public:
-  static constexpr const char *class_name = "Cache";
-
-  static bool get(JSContext *cx, unsigned argc, JS::Value *vp);
-  static bool exists(JSContext *cx, unsigned argc, JS::Value *vp);
-  static bool set(JSContext *cx, unsigned argc, JS::Value *vp);
-  static bool delete_(JSContext *cx, unsigned argc, JS::Value *vp);
-  static bool expire(JSContext *cx, unsigned argc, JS::Value *vp);
-  static bool incr(JSContext *cx, unsigned argc, JS::Value *vp);
-  static bool decr(JSContext *cx, unsigned argc, JS::Value *vp);
-
-  // getOrSet is installed via JS source string in install(); not a C++ method.
-  static bool install(api::Engine *engine);
-
-  static const JSClass class_;
-  static const JSFunctionSpec static_methods[];
-};
-```
-
-`install()` should:
-
-1. Create a `Cache` constructor object with the static methods defined above.
-2. Compile and execute a JS string that:
-   - Defines `coerceToBytes`, `makeCacheEntry`, and the in-flight `Map`.
-   - Adds `Cache.getOrSet` as a property on the constructor.
-   - Wraps `Cache.get` so it returns a `CacheEntry` (the C++ method should return a `Uint8Array`-like result; the JS shim wraps it).
-   - Wraps `Cache.set` so it accepts `string | ArrayBuffer | ArrayBufferView | ReadableStream | Response`, coerces to bytes via `coerceToBytes`, then calls the underlying C++ method (which can take a `Uint8Array` directly).
-3. Register the module via `engine->define_builtin_module("fastedge::cache", cache_val)`.
-
-**Open question — implementation of the JS shim:** the existing builtins (e.g. `fastedge.cpp`) install pure-C++ methods directly. There is no current precedent for compiling JS source as part of `install()`. Two options to evaluate:
-
-- **A: JS-as-string in C++.** Embed the shim source as a `static constexpr const char[]` and compile via `JS::Compile` + `JS::CloneAndExecuteScript`. Self-contained but the JS lives in C++ source (awkward to lint/format).
-- **B: Separate `.js` file bundled into runtime.** Less ergonomic with the existing build system. Investigate how StarlingMonkey itself ships its built-in JS (the `console`, `URL` etc. polyfills) — there may be a precedent (`runtime/builtins/*.js`) to follow.
-
-Look at `runtime/StarlingMonkey/builtins/` for any embedded JS pattern before choosing.
+Async patterns: when `set` or `getOrSet` receives a `Response` / `ReadableStream` / anything with `.arrayBuffer()`, the C++ uses `JS::Call(cx, value_obj, "arrayBuffer", ...)` to get a `Promise<ArrayBuffer>`, then `JS::AddPromiseReactions(cx, inner, then_h, catch_h)` with `create_internal_method<Cache::*_then>` from `runtime/StarlingMonkey/include/builtin.h:335`. The reaction handlers are static class members so their addresses can be passed as template arguments (free functions in anonymous namespaces cannot be).
 
 ### Layer 3: CMake registration
 
-**File:** `runtime/fastedge/CMakeLists.txt`. Add:
+`runtime/fastedge/CMakeLists.txt` — added `add_builtin(fastedge::cache SRC builtins/cache.cpp)`. The build system auto-discovers and registers the namespace via `runtime/fastedge/build-debug/starling-raw.wasm/builtins.incl` (generated, not tracked).
 
-```cmake
-add_builtin(fastedge::cache SRC builtins/cache.cpp)
-```
+### Layer 4: Module import resolution
 
-Alongside the existing `add_builtin` calls.
+`src/componentize/es-bundle.ts` — extended the `fastedge::*` esbuild plugin with a case for `'cache'` returning `export const Cache = globalThis.Cache;`. Same pattern the existing `fastedge::kv` import already uses.
 
-### Layer 4: Tests
+## API design summary
 
-- Integration tests in `integration-tests/` exercising end-to-end cache flow.
-- Test the `WriteOptions` mutual-exclusion runtime check.
-- Test `getOrSet` coalescing with two concurrent inserters (in-process).
-- Test that `set` accepts each `CacheValue` shape (string, ArrayBuffer, View, ReadableStream, Response).
-- Integration tests need a running runtime — see existing tests for how kv-store is exercised.
+All methods are static and Promise-returning. `Cache` is never constructed.
 
-## Reference — the JS shim for `getOrSet` (drafted, not committed)
+| Method | Signature |
+|---|---|
+| `get(key)` | `(string) → Promise<CacheEntry \| null>` |
+| `exists(key)` | `(string) → Promise<boolean>` |
+| `set(key, value, options?)` | `(string, CacheValue, WriteOptions?) → Promise<void>` |
+| `delete(key)` | `(string) → Promise<void>` |
+| `expire(key, options)` | `(string, WriteOptions) → Promise<boolean>` (false if missing) |
+| `incr(key, delta?)` | `(string, number?) → Promise<number>` (default delta = 1) |
+| `decr(key, delta?)` | `(string, number?) → Promise<number>` (sugar over `incr(-delta)`) |
+| `getOrSet(key, populate, options?)` | `(string, () => CacheValue \| Promise<CacheValue>, WriteOptions?) → Promise<CacheEntry>` |
 
-```js
-const inflight = new Map(); // string -> Promise<CacheEntry>
+`CacheValue = string | ArrayBuffer | ArrayBufferView | ReadableStream | Response`
 
-async function getOrSet(key, populate, options) {
-  const hit = Cache.get(key);
-  if (hit !== null) return hit;
+`CacheEntry` exposes `arrayBuffer(): Promise<ArrayBuffer>`, `text(): Promise<string>`, `json(): Promise<unknown>`.
 
-  const pending = inflight.get(key);
-  if (pending !== undefined) return pending;
+`WriteOptions` is `{ ttl?: number } | { ttlMs?: number } | { expiresAt?: number } | {}` with mutual exclusion enforced at runtime.
 
-  const promise = (async () => {
-    try {
-      const value = await populate();
-      const bytes = await coerceToBytes(value);
-      await Cache.set(key, bytes, options);
-      return makeCacheEntry(bytes);
-    } finally {
-      inflight.delete(key);
-    }
-  })();
+## Key design decisions
 
-  inflight.set(key, promise);
-  return promise;
-}
+### All-async surface (decided 2026-04-29)
 
-async function coerceToBytes(value) {
-  if (typeof value === 'string') return new TextEncoder().encode(value);
-  if (value instanceof Uint8Array) return value;
-  if (value instanceof ArrayBuffer) return new Uint8Array(value);
-  if (ArrayBuffer.isView(value)) {
-    return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-  }
-  if (value instanceof Response) return new Uint8Array(await value.arrayBuffer());
-  if (value instanceof ReadableStream) {
-    return new Uint8Array(await new Response(value).arrayBuffer());
-  }
-  throw new TypeError('Unsupported CacheValue type');
-}
+Initial design had reads/counters as sync and `set`/`getOrSet` as async (since those needed body collection). Refactored mid-implementation to make every method Promise-returning, including `get` / `exists` / `delete` / `expire` / `incr` / `decr`.
 
-function makeCacheEntry(bytes) {
-  const decode = () => new TextDecoder().decode(bytes);
-  return {
-    arrayBuffer: () => Promise.resolve(
-      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
-    ),
-    text: () => Promise.resolve(decode()),
-    json: () => Promise.resolve(JSON.parse(decode())),
-  };
-}
-```
+**Why:** the `cache.wit` interface is async-first; `cache-sync` exists only as a toolchain fallback. When wit-bindgen + StarlingMonkey gain preview-3 async support, we want to switch to the async host calls without forcing customers to migrate `count = Cache.incr(k)` → `count = await Cache.incr(k)`. With the all-async surface today, swapping the host implementation is invisible to user code.
 
-## Open questions
+Cost is negligible: each method ends with `JS::CallOriginalPromiseResolve(...)` instead of setting `args.rval()` directly. Validation errors still throw synchronously (caught by `await` the same way as a rejection).
 
-- **Where does WriteOptions runtime validation live?** Probably in a JS helper called from both `set` and `expire`. The mutual-exclusion check (`ttl` ⊕ `ttlMs` ⊕ `expiresAt`) and the "no zero/negative" check should be one place.
-- **`incr` integer-not-an-integer semantics.** The JSDoc claims `incr` "throws if the stored value at `key` is not an integer." The WIT only has the generic error variant — confirm with the runtime team that `internal-error` or `other(string)` is what gets returned in that case, and decide if we want to surface it as `TypeError` specifically.
-- **Dynamic-TTL future for `getOrSet`.** Shipped without it. If a customer use case emerges, the *purely additive* extension is to allow `options` to also be a function `(value: CacheValue) => WriteOptions`. That signature change is backwards-compatible with all existing callers. Don't do it speculatively.
-- **JS shim install pattern.** See "Layer 2 / Open question" above — investigate StarlingMonkey precedent before choosing A vs B.
-- **Response storage scope.** The current contract says status/headers are discarded. If we ever want to evolve this into the future HTTP Cache API, that future API should take `Request` keys and store the full `Response` (likely in a JSON envelope, or via a separate WIT). It does not change any of the v1 byte-cache work.
+### Pure C++ builtin, no embedded JS
 
-## How to resume
+StarlingMonkey itself ships every builtin in pure C++ (`blob.cpp`, `url.cpp`, `console.cpp`, etc.). There is no `.js`-embedded-as-C-string pattern anywhere in the upstream tree, no CMake helper for it, no `js2c.py`-style build step. Existing FastEdge builtins are also all-C++. Embedding JS source would establish a brand-new pattern; not worth it for the size of shim we'd save. Reference templates for unfamiliar patterns:
+- Body-like Promise-returning methods → `runtime/StarlingMonkey/builtins/web/blob.cpp`.
+- Promise reactions from C++ → `runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp`.
 
-1. **Read this file.**
-2. **Read `types/fastedge-cache.d.ts`** — the contract is the source of truth for the JS surface.
-3. **Read `runtime/fastedge/builtins/kv-store.cpp`** as the closest C++ template.
-4. **Read `runtime/fastedge/host-api/fastedge_host_api.cpp`** for the host-api wrapper pattern.
-5. **Confirm `wit-bindgen-cli@0.37.0` is installed** before any regeneration — see memory.
-6. Implement Layer 1 (host-api), then Layer 2 (builtin), then Layer 3 (CMake), then Layer 4 (tests). Commit per layer.
-7. **Do not** reference Fastly / Cloudflare / Redis / Memcached etc. in any user-facing artifact (JSDoc, READMEs, examples, generated docs). See memory.
+There's also a JS-runtime-perf argument: SpiderMonkey-on-WASM lacks its top-tier JIT (Ion/Warp need runtime code generation, which WASM doesn't allow). JS in builtins runs at interpreter or baseline-compiler speed; native WASM C++ runs at full LLVM-AOT speed. Builtin code on every request's hot path matters more than user code where JIT amortisation works.
+
+### Body-like `CacheEntry` return from `get`
+
+Diverges from `KvStore`'s raw `ArrayBuffer | null` return — deliberate ergonomics improvement. Most cache use ends in `JSON.parse(decode(bytes))`; the wrapper removes the boilerplate. Body methods are Promise-returning to match the standard Web `Body` shape, even though we resolve synchronously today; this leaves room for streaming when the WIT supports it.
+
+### `WriteOptions` mutual exclusion
+
+`ttl` (seconds) / `ttlMs` (milliseconds) / `expiresAt` (Unix epoch seconds) are mutually exclusive — `build_ttl_ms` throws `TypeError` if more than one is set, or if a value is non-finite or non-positive. Empty options bag = no expiry. The TTL knobs match the conventional cache-API unit (seconds) plus host-native ms granularity for sub-second cases plus an absolute-time form for "expire at midnight" patterns.
+
+### `getOrSet` coalescing
+
+Implemented in C++ via a module-static no-prototype JSObject (`INFLIGHT_MAP`). Concurrent callers for the same key in the same WASM instance share one populator execution; the inserter is not re-run for joiners. **Coalescing scope is in-process only** — concurrent requests handled by other WASM instances or other POPs race independently. For a POP-local cache that's the honest guarantee. Documented in the JSDoc.
+
+`getOrSet`'s populator returns the `CacheValue` directly (TTL goes in the call-site `options` bag, not in the populator's return). The dynamic-TTL pattern (TTL derived from populator output) is not supported in v1 — see "future work" below.
+
+### `Response` accepted as a write value
+
+Status and headers are discarded; only `await response.arrayBuffer()` is stored. The cache is a byte cache, not an HTTP cache. The future HTTP Cache-API layer is a separate piece of work that would key by Request and serialise full Response (likely as JSON envelope or via a separate WIT).
+
+### `incr` returns Number
+
+WIT host returns `s64`; we surface as JS `Number` for ergonomics (BigInt return would force `> 100n` everywhere — bad DX). Values above `Number.MAX_SAFE_INTEGER` (2^53 − 1) are not represented exactly. Practically unreachable for typical counter use cases. Documented in JSDoc.
+
+## Future cleanup / extension
+
+These are deliberate punts, not bugs. Each is purely additive — no breaking change from v1 to do them later.
+
+### Generalise host-result types (small refactor)
+
+`KvStoreResult<T>` / `KvStoreOption<T>` / `KvStoreError` and the parallel `CacheResult<T>` / `CacheOption<T>` / `CacheError` are not actually domain-specific. A small follow-up PR after cache ships should:
+- Rename `KvStoreResult` → `HostResult`, etc.
+- Update existing kv-store call sites (one file: `kv-store.cpp` plus the host-api header).
+- Drop the parallel `Cache*` types in favour of the shared generics.
+
+5-minute change once both shipping forms are in tree.
+
+### Async WIT (when toolchain supports preview-3)
+
+When wit-bindgen gains stable preview-3 async support AND StarlingMonkey gains the subtask/waitable-set integration, switch the host calls from `gcore_fastedge_cache_sync_*` to the async `gcore_fastedge_cache_*`. The JS surface is already Promise-returning; users see no change. See `feature/cache-api-async` for what the async C surface looks like.
+
+### Dynamic TTL for `getOrSet`
+
+If a real customer use case emerges for "TTL derived from populator output" (e.g. honour `Cache-Control: max-age=N` from an upstream Response), the *additive* extension is to allow `options` to also be a function `(value: CacheValue) => WriteOptions`. Backwards-compatible with all existing call sites. Don't do speculatively.
+
+### `utils.set-user-diag` JS surface
+
+The `gcore:fastedge/utils` interface (one function: `set-user-diag(name)`) has its host-api wrapper in place but no JS-facing surface. Decide where it belongs (a new `fastedge::utils` module, or hung off `fastedge::env` as a sibling to `getEnv`), then add the builtin method and TypeScript declarations. Small follow-up.
+
+### HTTP Cache API layer
+
+The byte cache is the foundation. A future `caches` global (or `fastedge::http-cache` module) could layer Service-Worker `CacheStorage` semantics on top: keyed by `Request` (with selected `Vary` headers), values are full `Response` envelopes (status + headers + body), TTL derived from `Cache-Control` parsing. None of that requires changing the v1 byte cache.
+
+## Open questions (need runtime team)
+
+- **`incr` non-integer behaviour.** The JSDoc claims `incr` rejects if the stored value at `key` is not an integer. The WIT only has the generic error variant — confirm with the runtime team that `internal-error` or `other("not an integer")` is what gets returned in that case. Our error path surfaces whatever the host gives; if the host returns generic `internal-error`, the message will say "Internal cache error" rather than something more specific.
+
+## What's left for ship
+
+1. **Manual testing.** Build a cold WASM, deploy to a POP, exercise each method against a real host. The host imports must be answered by the production runtime — none of our host calls are mocked locally.
+2. **Integration tests.** `integration-tests/` template is the existing kv-store flow. Need cache-flow tests covering: round-trip set/get, TTL expiry, atomic incr (concurrent), getOrSet coalescing, error propagation, all `CacheValue` input types.
+3. **Example app.** `examples/cache/` demonstrating the API. Rate-limit + getOrSet (origin-cache proxy) cover the two highest-value patterns.
+4. **PR / review.** The branch has 4+ commits; squash or keep as-is for review depending on team convention.
+
+## How to verify
+
+1. **Build the runtime in debug mode**: `pnpm run build:monkey:dev`. Should produce `lib/fastedge-runtime.wasm`.
+2. **Inspect symbols**: `/opt/wasi-sdk/bin/llvm-nm runtime/fastedge/build-debug/CMakeFiles/builtin_fastedge_cache.dir/builtins/cache.cpp.obj | grep -E "Cache|getOrSet"` — should show all eight methods plus the four reaction handlers.
+3. **Confirm the WIT host imports**: `grep gcore_fastedge_cache_sync runtime/fastedge/host-api/bindings/bindings.h` — all six imports should be present.
+4. **Typecheck the public API**: `pnpm run typecheck`.
+5. **Build a tiny WASM via fastedge-build with a cache import**: smoke-tests the esbuild plugin path.
+
+## Reference: file map
+
+| File | Role |
+|---|---|
+| `runtime/FastEdge-wit/` (submodule @ `b6fdc9f`) | Source-of-truth WIT |
+| `runtime/fastedge/scripts/merge-wit-bindings.js` | Strips async `cache`; merges sync into host-api/wit |
+| `runtime/fastedge/host-api/bindings/bindings.{h,c}` | Generated C bindings (don't edit) |
+| `runtime/fastedge/host-api/include/fastedge_host_api.h` | Layer 1 — C++ types + declarations |
+| `runtime/fastedge/host-api/fastedge_host_api.cpp` | Layer 1 — C++ wrappers |
+| `runtime/fastedge/builtins/cache.cpp` | Layer 2 — JS-facing builtin |
+| `runtime/fastedge/CMakeLists.txt` | Builtin registration |
+| `src/componentize/es-bundle.ts` | esbuild plugin: `fastedge::cache` import resolution |
+| `types/fastedge-cache.d.ts` | Public TS contract |
+| `types/index.d.ts` | Type entrypoint reference |
+
+## Memory
+
+- `wit-bindgen-cli@0.37.0` is the pinned version. Install with `cargo install --locked wit-bindgen-cli@0.37.0` if regenerating bindings.
+- **Never** reference Fastly / Cloudflare / Redis / Memcached etc. in any user-facing artifact (JSDoc, READMEs, examples, generated docs). Internal design discussion only.
