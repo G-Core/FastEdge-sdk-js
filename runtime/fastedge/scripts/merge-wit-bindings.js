@@ -10,7 +10,12 @@ const dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../'
 const witDir = path.join(dirname, 'host-api/wit');
 const starlingHostApisDir = path.resolve(dirname, '../StarlingMonkey/host-apis');
 const fastedgeWitDir = path.resolve(dirname, '../FastEdge-wit');
-const fastedgeDepsToRemove = ['http-client', 'http-handler', 'http']; // These are Rust specific. we use wasi-http
+// http* interfaces are Rust-specific (we use wasi-http). The async `cache`
+// interface uses component-model preview-3 `async func` ABI which our pinned
+// wit-bindgen (0.37.0) cannot parse and StarlingMonkey has no integration
+// for; we use `cache-sync` instead. See feature/cache-api-async for the
+// async exploration.
+const fastedgeDepsToRemove = ['http-client', 'http-handler', 'http', 'cache'];
 
 function clearExistingWitFiles() {
   // Remove all files from the ./wit directory
