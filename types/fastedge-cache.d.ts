@@ -25,17 +25,18 @@ declare module 'fastedge::cache' {
    * async function app(event) {
    *   // Rate-limit by client IP — 100 requests per minute
    *   const ip = event.request.headers.get("x-forwarded-for") ?? "unknown";
-   *   const count = Cache.incr(`rl:${ip}`);
-   *   if (count === 1) Cache.expire(`rl:${ip}`, { ttl: 60 });
+   *   const count = await Cache.incr(`rl:${ip}`);
+   *   if (count === 1) await Cache.expire(`rl:${ip}`, { ttl: 60 });
    *   if (count > 100) {
    *     return new Response("Too Many Requests", { status: 429 });
    *   }
    *
    *   // Memoise an expensive computation for 5 minutes
-   *   const entry = await Cache.getOrSet("expensive-result", async () => ({
-   *     value: JSON.stringify(await compute()),
-   *     ttl: 300,
-   *   }));
+   *   const entry = await Cache.getOrSet(
+   *     "expensive-result",
+   *     async () => JSON.stringify(await compute()),
+   *     { ttl: 300 },
+   *   );
    *   return new Response(await entry.text(), {
    *     headers: { "content-type": "application/json" },
    *   });
@@ -126,46 +127,42 @@ declare module 'fastedge::cache' {
   /**
    * Static interface to the FastEdge POP-local cache.
    *
-   * All methods are static; `Cache` is never constructed. Reads, counter
-   * operations, and metadata operations are synchronous; `set` is async
-   * because it accepts body-like inputs (`Response`, `ReadableStream`)
-   * that must be collected before the host call.
+   * All methods are static; `Cache` is never constructed. Every method
+   * returns a `Promise` so the API stays stable as the underlying host
+   * interface evolves: the cache is sync today (using the `cache-sync`
+   * WIT) and will become async once the toolchain supports the async
+   * `cache` WIT — application code keeps working unchanged either way.
    *
-   * Errors from the host (access denied, internal error, implementation-
-   * specific I/O) surface as thrown `Error` objects with descriptive
-   * messages. Wrap calls in `try`/`catch` if you need to handle them.
+   * Operational errors from the host (access denied, internal error,
+   * implementation-specific I/O) surface as Promise rejections.
+   * Validation errors on call arguments (wrong types, conflicting
+   * `WriteOptions` fields) are thrown synchronously; both forms are
+   * caught the same way by `try`/`catch` around an `await`.
    */
   export class Cache {
     /**
      * Get the entry for `key`, or `null` if absent or expired.
      *
-     * Synchronous. The bytes are returned by the host in a single call;
-     * decode via the `CacheEntry` accessors.
-     *
      * @example
      * ```js
-     * const entry = Cache.get("user:42");
+     * const entry = await Cache.get("user:42");
      * if (entry) {
      *   const user = await entry.json();
      *   // ...
      * }
      * ```
      */
-    static get(key: string): CacheEntry | null;
+    static get(key: string): Promise<CacheEntry | null>;
 
     /**
      * Test whether `key` exists in the cache without transferring its value.
      *
-     * Cheaper than `get` when you only need presence. Synchronous.
+     * Cheaper than `get` when you only need presence.
      */
-    static exists(key: string): boolean;
+    static exists(key: string): Promise<boolean>;
 
     /**
      * Store `value` under `key`, optionally with an expiry.
-     *
-     * Returns a `Promise<void>` because `Response` and `ReadableStream`
-     * inputs must be collected before the host call. The Promise resolves
-     * once the value has been written.
      *
      * Overwrites any existing value at `key`. Pass an empty options bag —
      * or omit `options` — to store with no expiry.
@@ -185,48 +182,51 @@ declare module 'fastedge::cache' {
     /**
      * Remove `key` from the cache.
      *
-     * Synchronous. A no-op if the key does not exist.
+     * A no-op if the key does not exist.
      */
-    static delete(key: string): void;
+    static delete(key: string): Promise<void>;
 
     /**
      * Update the expiry of an existing key.
      *
-     * Returns `true` if the expiry was set, `false` if the key does not
-     * exist. Synchronous.
+     * Resolves to `true` if the expiry was set, `false` if the key does
+     * not exist.
      *
      * @example
      * ```js
-     * Cache.expire("rl:1.2.3.4", { ttl: 60 });
+     * await Cache.expire("rl:1.2.3.4", { ttl: 60 });
      * ```
      */
-    static expire(key: string, options: WriteOptions): boolean;
+    static expire(key: string, options: WriteOptions): Promise<boolean>;
 
     /**
      * Atomically increment the integer at `key` by `delta` (default 1).
      *
      * If the key does not exist, it is initialised to `0` before
-     * incrementing. Returns the new value. Synchronous.
+     * incrementing. Resolves to the new value.
      *
      * `delta` may be negative; for readability prefer `Cache.decr` in
-     * that case. Throws if the stored value at `key` is not an integer.
+     * that case. Rejects if the stored value at `key` is not an integer.
+     *
+     * Note on precision: integer values larger than
+     * `Number.MAX_SAFE_INTEGER` (2^53 − 1) are not represented exactly.
+     * This is unreachable for typical counter use cases.
      *
      * @example
      * ```js
      * // Per-IP request counter, reset every minute
-     * const count = Cache.incr(`rl:${ip}`);
-     * if (count === 1) Cache.expire(`rl:${ip}`, { ttl: 60 });
+     * const count = await Cache.incr(`rl:${ip}`);
+     * if (count === 1) await Cache.expire(`rl:${ip}`, { ttl: 60 });
      * ```
      */
-    static incr(key: string, delta?: number): number;
+    static incr(key: string, delta?: number): Promise<number>;
 
     /**
      * Atomically decrement the integer at `key` by `delta` (default 1).
      *
-     * Sugar for `incr(key, -(delta ?? 1))`. Returns the new value.
-     * Synchronous.
+     * Sugar for `incr(key, -(delta ?? 1))`. Resolves to the new value.
      */
-    static decr(key: string, delta?: number): number;
+    static decr(key: string, delta?: number): Promise<number>;
 
     /**
      * Get the entry for `key`, or run `populate` and cache its result.
