@@ -1,6 +1,6 @@
 # Cache API — Implementation Notes
 
-**Status:** All C++ + JS API surface implemented and building cleanly. Awaiting manual verification, integration tests, and an example app.
+**Status:** All C++ + JS API surface implemented and building cleanly. Two example apps shipped (`examples/cache-basic/`, `examples/cache/`) and proven to produce wasm with the correct host imports. Awaiting manual host verification and integration tests.
 
 **Branch:** `feature/cache-api`
 **Sibling exploration branch:** `feature/cache-api-async` (DO NOT MERGE — kept for reference; preview-3 async exploration only).
@@ -157,10 +157,17 @@ The byte cache is the foundation. A future `caches` global (or `fastedge::http-c
 
 ## What's left for ship
 
-1. **Manual testing.** Build a cold WASM, deploy to a POP, exercise each method against a real host. The host imports must be answered by the production runtime — none of our host calls are mocked locally.
+1. **Manual testing.** Build a cold WASM, deploy to a POP, exercise each method against a real host. The host imports must be answered by the production runtime — none of our host calls are mocked locally. The two new examples (`examples/cache-basic`, `examples/cache`) are the natural fixtures: deploy each, hit every action, confirm responses match the documented shapes.
 2. **Integration tests.** `integration-tests/` template is the existing kv-store flow. Need cache-flow tests covering: round-trip set/get, TTL expiry, atomic incr (concurrent), getOrSet coalescing, error propagation, all `CacheValue` input types.
-3. **Example app.** `examples/cache/` demonstrating the API. Rate-limit + getOrSet (origin-cache proxy) cover the two highest-value patterns.
-4. **PR / review.** The branch has 4+ commits; squash or keep as-is for review depending on team convention.
+3. **PR / review.** The branch has 5+ commits; squash or keep as-is for review depending on team convention.
+
+### Done since initial handoff
+
+- ✅ **Example apps.** Two examples landed (2026-04-30):
+  - `examples/cache-basic/` (JS) — set / get / exists / delete with action-based routing. Heavy teaching comments.
+  - `examples/cache/` (TS) — three flagship patterns: per-IP rate limiting (`incr` + `expire`), origin-cache proxy (`getOrSet` + `fetch`), JSON memoisation (`getOrSet` with synchronous populator). Uses `event.client.address` for the rate-limit key.
+  - Both registered in `examples/README.md`. Both build cleanly via `pnpm run build`. `wasm-tools component wit` confirms the produced wasm imports `gcore:fastedge/cache-types` and `gcore:fastedge/cache-sync` — the cache plumbing is wired through end-to-end inside the workspace.
+- ✅ **Workspace SDK override.** Added `overrides: { '@gcoredev/fastedge-sdk-js': 'link:.' }` to `pnpm-workspace.yaml` so all in-workspace example builds use the in-tree SDK (with the cache resolution case) instead of the published 2.2.2. Examples keep `^2.2.3` as their published-artefact pin, so copy-paste-and-run remains the experience for end users once the next SDK release lands on npm. Invisible to anyone outside the workspace.
 
 ## How to verify
 

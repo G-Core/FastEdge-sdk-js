@@ -2,6 +2,9 @@ packages:
   - github-pages
   - examples/*
 
+overrides:
+  '@gcoredev/fastedge-sdk-js': 'link:.'
+
 onlyBuiltDependencies:
   - esbuild
   - sharp
