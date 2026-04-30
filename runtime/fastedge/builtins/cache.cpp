@@ -4,6 +4,7 @@
 
 #include <js/ArrayBuffer.h>
 #include <js/CallAndConstruct.h>
+#include <js/CharacterEncoding.h>
 #include <js/JSON.h>
 #include <js/Promise.h>
 #include <js/Stream.h>
@@ -701,7 +702,11 @@ bool try_sync_coerce_bytes(JSContext *cx, JS::HandleValue value,
     JS::RootedString str(cx, value.toString());
     JS::UniqueChars utf8 = JS_EncodeStringToUTF8(cx, str);
     if (!utf8) return false;
-    size_t len = strlen(utf8.get());
+    // Use the encoded UTF-8 byte length, not strlen — values are raw bytes
+    // and may legitimately contain embedded NULs.
+    JSLinearString *linear = JS_EnsureLinearString(cx, str);
+    if (!linear) return false;
+    size_t len = JS::GetDeflatedUTF8StringLength(linear);
     out->assign(reinterpret_cast<uint8_t *>(utf8.get()),
                 reinterpret_cast<uint8_t *>(utf8.get()) + len);
     *done = true;
@@ -1114,6 +1119,19 @@ bool incr_common(JSContext *cx, JS::CallArgs &args, const char *fn_name,
     if (!JS::ToNumber(cx, args[1], &d)) return false;
     if (!std::isfinite(d)) {
       JS_ReportErrorUTF8(cx, "%s: delta must be a finite number", fn_name);
+      return false;
+    }
+    if (std::trunc(d) != d) {
+      JS_ReportErrorUTF8(cx, "%s: delta must be an integer", fn_name);
+      return false;
+    }
+    // Beyond Number.MAX_SAFE_INTEGER, JS Numbers can't represent integers
+    // exactly. The bound also keeps `-delta` (decr path) and the int64 cast
+    // safe — INT64_MIN/MAX would otherwise be reachable as UB.
+    constexpr double max_safe = 9007199254740991.0;  // 2^53 - 1
+    if (d > max_safe || d < -max_safe) {
+      JS_ReportErrorUTF8(cx,
+          "%s: delta must be within ±Number.MAX_SAFE_INTEGER", fn_name);
       return false;
     }
     delta = static_cast<int64_t>(d);

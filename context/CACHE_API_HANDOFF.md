@@ -126,14 +126,41 @@ WIT host returns `s64`; we surface as JS `Number` for ergonomics (BigInt return 
 
 These are deliberate punts, not bugs. Each is purely additive — no breaking change from v1 to do them later.
 
-### Generalise host-result types (small refactor)
+### Generalise host-result types + fix WIT-payload ownership leak (combined refactor)
 
 `KvStoreResult<T>` / `KvStoreOption<T>` / `KvStoreError` and the parallel `CacheResult<T>` / `CacheOption<T>` / `CacheError` are not actually domain-specific. A small follow-up PR after cache ships should:
 - Rename `KvStoreResult` → `HostResult`, etc.
 - Update existing kv-store call sites (one file: `kv-store.cpp` plus the host-api header).
 - Drop the parallel `Cache*` types in favour of the shared generics.
 
-5-minute change once both shipping forms are in tree.
+**Bundle in: WIT-payload ownership leak.** Both `kv_store_*` and `cache_*` wrappers in `runtime/fastedge/host-api/fastedge_host_api.cpp` borrow host-allocated buffers (`bindings_option_payload_t.val.ptr`, `bindings_string_t` inside the error `OTHER` variant, the `list<u8>`/`list<string>`/`list<tuple<value, f64>>` returns from `kv_store_get` / `kv_store_scan` / `kv_store_zrange_by_score` / `kv_store_zscan`) without ever calling the matching `gcore_fastedge_*_free(...)` helpers from `bindings.h`. The raw pointers are surfaced as `KvStoreValue { uint8_t* ptr; size_t len; }` / `CacheBytes { uint8_t* ptr; size_t len; }` / `KvStoreError.val.other { char* ptr; size_t len; }` / `CacheError.val.other { ... }` and copied at the call site, leaving the original host allocation dangling.
+
+**Why we deferred.** FastEdge application instances are one-shot: each incoming request gets a fresh WASM instance, the leaked buffers die with linear memory at end-of-request. Worst-case bound is "what one request can leak" (a few MB for a cache-heavy request). Acceptable today. **The minute the host platform starts reusing instances across requests for warm-start, this becomes a slow-burn OOM** — flag this assumption to the runtime team if instance-pooling is ever proposed.
+
+**Recipe when doing the refactor:**
+1. Change owning shapes in `include/fastedge_host_api.h`:
+   - `KvStoreValue` / `CacheBytes` → `std::vector<uint8_t>` (or a thin `HostBytes` wrapper if we want a named type).
+   - `KvStoreError.val.other` / `CacheError.val.other` → `std::string`.
+   - List returns (`KvStoreStringList`, `KvStoreZList`) → `std::vector<...>` with owned elements.
+2. In each wrapper in `fastedge_host_api.cpp`: after the host call returns success, copy bytes/strings out of `ret` into the owning C++ types, **then** call the matching `*_free` helper (`bindings_option_payload_free(&ret)`, `gcore_fastedge_key_value_*_free(&ret)`, etc.) before returning.
+3. Error-conversion helpers (`convert_cache_error`, the inline kv error block) take a non-const reference and free internally after copying — keeps call sites clean.
+4. Update consumers — `cache.cpp` (`bytes.ptr/len` → `bytes.data()/size()`; `err.val.other.ptr/len` → `.c_str()/size()`) and `kv-store.cpp` (same shape).
+
+The leak fix and the type unification touch the same lines in the same files; doing them together is one diff instead of two overlapping ones. Originally surfaced as a PR review comment on `feature/cache-api` (2026-04-30).
+
+### Sweep `JS_EncodeStringToUTF8` + `strlen` for keys (cache + kv-store)
+
+The `value` path in `cache.cpp` uses `JS::GetDeflatedUTF8StringLength` to get the encoded UTF-8 byte length (so embedded NULs are preserved). **Cache and KV `key` parameters still use the implicit-`strlen` pattern**: `JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str)` followed by passing `key.get()` to a host API that takes `std::string_view` — the view's length comes from `strlen` on the NUL-terminated buffer, so a key containing an embedded NUL silently truncates.
+
+Keys aren't documented as "raw bytes" so the contract violation is fuzzier than the value path, but the behaviour is still surprising: `Cache.set("a\0b", v)` and `Cache.set("a\0c", v)` would collide. Same bug exists pervasively in `kv-store.cpp`.
+
+**Sites to update** (all pass `key.get()` into a `std::string_view`-typed host API):
+- `cache.cpp`: lines ~360, 389, 408, 558, 671, 803, 846, 1108.
+- `kv-store.cpp`: lines ~64, 136, 194, 251, 333, 343, 420, 430.
+
+**Recipe**: replace `JS::UniqueChars key = JS_EncodeStringToUTF8(...)` + `key.get()` with `core::encode(cx, key_str)` (already in `runtime/StarlingMonkey/runtime/encode.cpp` — returns `host_api::HostString { JS::UniqueChars ptr; size_t len; }` with the actual UTF-8 byte length). Then pass `std::string_view(host_str.ptr.get(), host_str.len)` to the host API. Single `#include "encode.h"` per builtin.
+
+Originally surfaced alongside the value-path NUL-truncation fix (PR review on `feature/cache-api`, 2026-04-30) and deferred as a wider sweep.
 
 ### Async WIT (when toolchain supports preview-3)
 
