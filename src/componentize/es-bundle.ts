@@ -35,6 +35,13 @@ const fastedgePackagePlugin: Plugin = {
             `,
           };
         }
+        case 'cache': {
+          return {
+            contents: `
+            export const Cache = globalThis.Cache;
+            `,
+          };
+        }
         default: {
           return { contents: '' };
         }

@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-cache-basic",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: simple Cache set/get/exists/delete operations",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/cache-basic.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.3"
+  }
+}

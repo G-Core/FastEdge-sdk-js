@@ -1,0 +1,15 @@
+/// Shared cache types for sync and async interfaces.
+interface cache-types {
+  type payload = list<u8>;
+
+  /// The set of errors that may be returned by cache operations.
+  variant error {
+    /// The requesting component does not have access to the specified cache
+    /// (which may or may not exist).
+    access-denied,
+    /// An unexpected internal error occurred.
+    internal-error,
+    /// An implementation-specific error occurred (for example, I/O).
+    other(string)
+  }
+}
