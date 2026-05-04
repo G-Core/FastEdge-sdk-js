@@ -45,10 +45,10 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 import { getSecret, getSecretEffectiveAt } from "fastedge::secret";
 ```
 
-| Function                                  | Signature                                                       | Returns          |
-| ----------------------------------------- | --------------------------------------------------------------- | ---------------- |
-| `getSecret(name)`                         | `(name: string) => string \| null`                              | `string \| null` |
-| `getSecretEffectiveAt(name, effectiveAt)` | `(name: string, effectiveAt: number) => string \| null`         | `string \| null` |
+| Function                                  | Signature                                               | Returns          |
+| ----------------------------------------- | ------------------------------------------------------- | ---------------- |
+| `getSecret(name)`                         | `(name: string) => string \| null`                      | `string \| null` |
+| `getSecretEffectiveAt(name, effectiveAt)` | `(name: string, effectiveAt: number) => string \| null` | `string \| null` |
 
 **Note:** Secrets can only be read during request processing, not during build-time initialization.
 
@@ -104,6 +104,8 @@ import { KvStore } from "fastedge::kv";
 
 The `KvStore` class provides access to key-value stores attached to the application. Open a store by name using the static `open` method, then use the returned instance to query data.
 
+`KvStore` is globally replicated with eventual consistency. Values written in one data center eventually become visible in others. It is suited to globally-shared configuration, lookup tables, and sorted sets. For strongly-consistent, POP-local storage with atomic counter primitives, see [Cache](#cache) below.
+
 #### `KvStore.open`
 
 ```typescript
@@ -136,15 +138,30 @@ async function app(event) {
 addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
+#### KvStoreEntry
+
+A handle to a value retrieved from the KV store. The bytes are already in memory when you receive a `KvStoreEntry`; the accessor methods return `Promise` to align with the standard Web `Body` interface, but they resolve immediately.
+
+| Method          | Signature                    | Returns                |
+| --------------- | ---------------------------- | ---------------------- |
+| `arrayBuffer()` | `() => Promise<ArrayBuffer>` | `Promise<ArrayBuffer>` |
+| `text()`        | `() => Promise<string>`      | `Promise<string>`      |
+| `json()`        | `() => Promise<unknown>`     | `Promise<unknown>`     |
+
+`json()` rejects with a `SyntaxError` if the bytes are not valid JSON.
+
 #### KvStoreInstance methods
 
-| Method                         | Signature                                                                 | Returns                        |
-| ------------------------------ | ------------------------------------------------------------------------- | ------------------------------ |
-| `get(key)`                     | `(key: string) => ArrayBuffer \| null`                                    | `ArrayBuffer \| null`          |
-| `scan(pattern)`                | `(pattern: string) => Array<string>`                                      | `Array<string>`                |
-| `zrangeByScore(key, min, max)` | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>` | `Array<[ArrayBuffer, number]>` |
-| `zscan(key, pattern)`          | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`          | `Array<[ArrayBuffer, number]>` |
-| `bfExists(key, value)`         | `(key: string, value: string) => boolean`                                 | `boolean`                      |
+| Method                                   | Signature                                                                                       | Returns                                         |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `get(key)`                               | `(key: string) => ArrayBuffer \| null`                                                          | `ArrayBuffer \| null`                           |
+| `getEntry(key)`                          | `(key: string) => Promise<KvStoreEntry \| null>`                                                | `Promise<KvStoreEntry \| null>`                 |
+| `scan(pattern)`                          | `(pattern: string) => Array<string>`                                                            | `Array<string>`                                 |
+| `zrangeByScore(key, min, max)`           | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>`                       | `Array<[ArrayBuffer, number]>`                  |
+| `zrangeByScoreEntries(key, min, max)`    | `(key: string, min: number, max: number) => Promise<Array<[KvStoreEntry, number]>>`             | `Promise<Array<[KvStoreEntry, number]>>`        |
+| `zscan(key, pattern)`                    | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`                                | `Array<[ArrayBuffer, number]>`                  |
+| `zscanEntries(key, pattern)`             | `(key: string, pattern: string) => Promise<Array<[KvStoreEntry, number]>>`                      | `Promise<Array<[KvStoreEntry, number]>>`        |
+| `bfExists(key, value)`                   | `(key: string, value: string) => boolean`                                                       | `boolean`                                       |
 
 ##### `get`
 
@@ -155,6 +172,30 @@ const buf = kv.get("my-key");
 if (buf !== null) {
   const text = new TextDecoder().decode(buf);
 }
+```
+
+##### `getEntry`
+
+Retrieves the value for a key as a `KvStoreEntry` with `text()`, `json()`, and `arrayBuffer()` accessors. Use this instead of `get` when you want to decode the value as a string or JSON without manual `TextDecoder` work.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv    = KvStore.open("my-store");
+  const entry = await kv.getEntry("user:42");
+
+  if (entry === null) {
+    return new Response("not found", { status: 404 });
+  }
+
+  const user = await entry.json();
+  return Response.json(user, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `scan`
@@ -178,6 +219,29 @@ for (const [buf, score] of entries) {
 }
 ```
 
+##### `zrangeByScoreEntries`
+
+Equivalent to `zrangeByScore` but each tuple's value is a `KvStoreEntry` instead of a raw `ArrayBuffer`.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv      = KvStore.open("my-store");
+  const entries = await kv.zrangeByScoreEntries("leaderboard", 100, 500);
+
+  const rows = await Promise.all(
+    entries.map(async ([entry, score]) => ({ name: await entry.text(), score }))
+  );
+
+  return Response.json(rows, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
 ##### `zscan`
 
 Returns all entries from a sorted set whose values match a prefix pattern. The pattern must include a wildcard (e.g., `"foo*"`). Each entry is a `[value, score]` tuple where `value` is an `ArrayBuffer`. Returns an empty array if no entries match.
@@ -190,12 +254,246 @@ for (const [buf, score] of entries) {
 }
 ```
 
+##### `zscanEntries`
+
+Equivalent to `zscan` but each tuple's value is a `KvStoreEntry` instead of a raw `ArrayBuffer`.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv      = KvStore.open("my-store");
+  const entries = await kv.zscanEntries("leaderboard", "user:*");
+
+  const rows = await Promise.all(
+    entries.map(async ([entry, score]) => ({ name: await entry.text(), score }))
+  );
+
+  return Response.json(rows, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
 ##### `bfExists`
 
 Checks whether a value is present in a Bloom Filter stored under the given key. Returns `true` if the value likely exists, `false` if it definitely does not.
 
 ```javascript
 const seen = kv.bfExists("visited-ips", event.client.address);
+```
+
+---
+
+### Cache
+
+**Module:** `fastedge::cache`
+
+```typescript
+import { Cache } from "fastedge::cache";
+```
+
+`Cache` is a POP-local key/value store with TTL and atomic counter primitives. It is strongly consistent within a single point-of-presence and is designed for transient, request-time state: rate limiting, hit counters, response memoisation, and deduplicated origin fetches. A value written from one data center is not visible to another.
+
+**`Cache` vs `KvStore` at a glance:**
+
+| Concern             | `Cache`                                        | `KvStore`                                 |
+| ------------------- | ---------------------------------------------- | ----------------------------------------- |
+| Consistency scope   | Strong within a POP; independent across POPs   | Eventual; globally replicated             |
+| Atomic operations   | `incr`, `decr`, `getOrSet` coalescing          | Not available                             |
+| Typical use cases   | Rate limits, counters, request coalescing      | Configuration, lookup tables, sorted sets |
+| Data persistence    | Evicted; no durability guarantee               | Durable; persists across deployments      |
+
+Strong per-POP consistency makes `Cache.incr` / `Cache.decr` reliable for per-POP rate limits and `Cache.getOrSet` coalescing reliable for deduplicating concurrent origin fetches within a single POP. For globally-shared data that must be visible across all POPs, use `fastedge::kv`.
+
+#### CacheValue
+
+Values accepted by `Cache.set` and the `populate` callback of `Cache.getOrSet`:
+
+```typescript
+type CacheValue = string | ArrayBuffer | ArrayBufferView | ReadableStream | Response;
+```
+
+All forms are stored as raw bytes:
+
+- `string` — encoded as UTF-8.
+- `ArrayBuffer` / `ArrayBufferView` — used directly.
+- `ReadableStream` — fully consumed before storage.
+- `Response` — `response.arrayBuffer()` is consumed; status and headers are discarded. The cache stores bytes only. To round-trip status or headers, encode them into the value (e.g., as a JSON envelope).
+
+#### WriteOptions
+
+Controls how long a cache entry lives. Pass exactly one of `ttl`, `ttlMs`, or `expiresAt`. Passing more than one, or a zero or negative value, throws `TypeError`. Omitting `options` entirely stores the entry with no expiry (subject to host eviction policy).
+
+| Field       | Type     | Description                                                                      |
+| ----------- | -------- | -------------------------------------------------------------------------------- |
+| `ttl`       | `number` | Relative TTL, seconds from now. Mutually exclusive with `ttlMs`, `expiresAt`.    |
+| `ttlMs`     | `number` | Relative TTL, milliseconds from now. Mutually exclusive with `ttl`, `expiresAt`. |
+| `expiresAt` | `number` | Absolute expiry, Unix epoch seconds. Mutually exclusive with `ttl`, `ttlMs`.     |
+
+#### CacheEntry
+
+A handle to a cached value. The bytes are already in memory when you receive a `CacheEntry`; the accessor methods return `Promise` to align with the standard Web `Body` interface, but they resolve immediately.
+
+| Method          | Signature                    | Returns                |
+| --------------- | ---------------------------- | ---------------------- |
+| `arrayBuffer()` | `() => Promise<ArrayBuffer>` | `Promise<ArrayBuffer>` |
+| `text()`        | `() => Promise<string>`      | `Promise<string>`      |
+| `json()`        | `() => Promise<unknown>`     | `Promise<unknown>`     |
+
+`json()` rejects with a `SyntaxError` if the bytes are not valid JSON.
+
+#### Cache methods
+
+All methods are static; `Cache` is never constructed. All methods return `Promise`. Operational errors surface as Promise rejections. Argument validation errors (wrong types, conflicting `WriteOptions` fields) throw synchronously; both are caught the same way by `try`/`catch` around an `await`.
+
+| Method                              | Signature                                                                                                         | Returns                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `get(key)`                          | `(key: string) => Promise<CacheEntry \| null>`                                                                    | `Promise<CacheEntry \| null>` |
+| `exists(key)`                       | `(key: string) => Promise<boolean>`                                                                               | `Promise<boolean>`            |
+| `set(key, value, options?)`         | `(key: string, value: CacheValue, options?: WriteOptions) => Promise<void>`                                       | `Promise<void>`               |
+| `delete(key)`                       | `(key: string) => Promise<void>`                                                                                  | `Promise<void>`               |
+| `expire(key, options)`              | `(key: string, options: WriteOptions) => Promise<boolean>`                                                        | `Promise<boolean>`            |
+| `incr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                | `Promise<number>`             |
+| `decr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                | `Promise<number>`             |
+| `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions) => Promise<CacheEntry>` | `Promise<CacheEntry>`         |
+
+##### `get`
+
+Returns the entry for `key`, or `null` if absent or expired.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  const entry = await Cache.get("user:42");
+
+  if (entry === null) {
+    return new Response("not found", { status: 404 });
+  }
+
+  const user = await entry.json();
+  return Response.json(user, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+##### `exists`
+
+Returns `true` if `key` is present in the cache. Cheaper than `get` when you only need presence, as no value bytes are transferred.
+
+```javascript
+const present = await Cache.exists("feature-flag:beta");
+```
+
+##### `set`
+
+Stores `value` under `key`, optionally with an expiry. Overwrites any existing value at `key`.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  const session = { userId: 42, role: "admin" };
+
+  // Store for 10 minutes
+  await Cache.set("session:abc", JSON.stringify(session), { ttl: 600 });
+
+  // Store with sub-second TTL
+  await Cache.set("nonce:xyz", "used", { ttlMs: 500 });
+
+  // Store until a fixed deadline
+  await Cache.set("promo:summer", "active", { expiresAt: 1751328000 });
+
+  return new Response("ok", { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+##### `delete`
+
+Removes `key` from the cache. A no-op if the key does not exist.
+
+```javascript
+await Cache.delete("session:abc");
+```
+
+##### `expire`
+
+Updates the expiry of an existing key without changing its value. Resolves to `true` if the expiry was set, `false` if the key does not exist.
+
+```javascript
+await Cache.expire("rl:1.2.3.4", { ttl: 60 });
+```
+
+##### `incr` and `decr`
+
+Atomically increment or decrement an integer stored at `key`. If the key does not exist, it is initialised to `0` before the operation. Resolves to the new value after the operation. Rejects if the stored value is not an integer.
+
+`delta` defaults to `1`. `Cache.decr` is sugar for `Cache.incr(key, -(delta ?? 1))`. `delta` may be any integer; prefer `decr` when subtracting for readability.
+
+Strong per-POP consistency makes these operations reliable for per-POP rate limits and hit counters. Set the TTL on the first increment to establish the window:
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  const ip    = event.client.address;
+  const key   = `rl:${ip}`;
+  const count = await Cache.incr(key);
+
+  if (count === 1) {
+    // First request in this window — set the 60-second expiry
+    await Cache.expire(key, { ttl: 60 });
+  }
+
+  if (count > 100) {
+    return new Response("Too Many Requests", { status: 429 });
+  }
+
+  return new Response("ok", { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+##### `getOrSet`
+
+Returns the entry for `key`, or calls `populate` on a cache miss and stores the result. All concurrent callers for the same key within the same WASM instance share a single `populate` execution — the callback is not duplicated for joiners. Concurrent requests handled by other WASM instances race independently and may each call `populate`.
+
+If `populate` throws or its Promise rejects, the rejection propagates to all current waiters. The next call after a failure retries `populate` (no negative caching).
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  const url = new URL(event.request.url);
+
+  // Coalesce concurrent origin fetches; cache result for 30 seconds
+  const entry = await Cache.getOrSet(
+    url.pathname,
+    () => fetch(`https://origin.example.com${url.pathname}`),
+    { ttl: 30 },
+  );
+
+  return new Response(await entry.arrayBuffer(), {
+    headers: { "content-type": "application/json" },
+  });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ---

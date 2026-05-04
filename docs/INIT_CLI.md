@@ -83,12 +83,12 @@ npx fastedge-build --config .fastedge/build-config.js
 
 ### Prompts
 
-| Prompt                                   | Default                        | Validation                                  |
-| ---------------------------------------- | ------------------------------ | ------------------------------------------- |
-| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                       |
-| Path to your public directory            | `./build`                      | Directory must exist                        |
-| Is your site a single page application?  | `No`                           | —                                           |
-| Path to your SPA entrypoint *(SPA only)* | `./index.html`                 | File must exist inside the public directory |
+| Prompt                                   | Default                        | Validation                                 |
+| ---------------------------------------- | ------------------------------ | ------------------------------------------ |
+| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                      |
+| Path to your public directory            | `./build`                      | Directory must exist                       |
+| Is your site a single page application?  | `No`                           | —                                          |
+| Path to your SPA entrypoint *(SPA only)* | `./index.html`                 | Warns if not found in the public directory |
 
 ### Files Created
 

@@ -14,7 +14,8 @@ npx fastedge-build --input src/index.js --output app.wasm
 
 # Config-driven build
 npx fastedge-build --config .fastedge/build-config.js
-npx fastedge-build -c                    # uses default config path
+npx fastedge-build .fastedge/build-config.js  # single positional arg as config file
+npx fastedge-build -c                         # uses default config path
 
 # Multiple configs
 npx fastedge-build -c config1.js -c config2.js
@@ -26,14 +27,14 @@ npx fastedge-build --version
 
 ## Options
 
-| Flag           | Alias | Type       | Description                      |
-| -------------- | ----- | ---------- | -------------------------------- |
-| `--input`      | `-i`  | `String`   | Input JavaScript/TypeScript file |
-| `--output`     | `-o`  | `String`   | Output WebAssembly file path     |
-| `--tsconfig`   | `-t`  | `String`   | Path to tsconfig.json            |
-| `--config`     | `-c`  | `String[]` | Path(s) to build config files    |
-| `--help`       | `-h`  | `Boolean`  | Show help                        |
-| `--version`    | `-v`  | `Boolean`  | Show version                     |
+| Flag         | Alias | Type       | Description                      |
+| ------------ | ----- | ---------- | -------------------------------- |
+| `--input`    | `-i`  | `String`   | Input JavaScript/TypeScript file |
+| `--output`   | `-o`  | `String`   | Output WebAssembly file path     |
+| `--tsconfig` | `-t`  | `String`   | Path to tsconfig.json            |
+| `--config`   | `-c`  | `String[]` | Path(s) to build config files    |
+| `--help`     | `-h`  | `Boolean`  | Show help                        |
+| `--version`  | `-v`  | `Boolean`  | Show version                     |
 
 ## Build Modes
 
@@ -70,6 +71,12 @@ For projects using a build config file (created by `fastedge-init`):
 
 ```bash
 npx fastedge-build --config .fastedge/build-config.js
+```
+
+A single positional argument is also accepted as a config file path:
+
+```bash
+npx fastedge-build .fastedge/build-config.js
 ```
 
 Config-driven builds support both `http` and `static` build types. Multiple config files are processed sequentially, each producing its own output `.wasm` file:
@@ -125,16 +132,16 @@ export { config };
 
 ### Static-Only Fields
 
-When `type` is `'static'`, the following fields from `AssetCacheConfig` apply:
+When `type` is `'static'`, the following fields from `AssetCacheConfig` apply. Because `BuildConfig extends Partial<AssetCacheConfig>`, all are optional at the type level; however, a static build requires `publicDir` and `assetManifestPath` to produce output.
 
-| Field                 | Type                           | Required | Description                                  |
-| --------------------- | ------------------------------ | -------- | -------------------------------------------- |
-| `publicDir`           | `string`                       | Yes      | Directory containing static files to embed   |
-| `assetManifestPath`   | `string`                       | Yes      | Output path for the generated asset manifest |
-| `contentTypes`        | `Array<ContentTypeDefinition>` | No       | Custom content type mappings                 |
-| `ignoreDotFiles`      | `boolean`                      | No       | Skip files beginning with `.`                |
-| `ignorePaths`         | `string[]`                     | No       | Paths to exclude from the manifest           |
-| `ignoreWellKnown`     | `boolean`                      | No       | Skip the `.well-known/` directory            |
+| Field               | Type                           | Required | Description                                  |
+| ------------------- | ------------------------------ | -------- | -------------------------------------------- |
+| `publicDir`         | `string`                       | No       | Directory containing static files to embed   |
+| `assetManifestPath` | `string`                       | No       | Output path for the generated asset manifest |
+| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content type mappings                 |
+| `ignoreDotFiles`    | `boolean`                      | No       | Skip files beginning with `.`                |
+| `ignorePaths`       | `string[]`                     | No       | Paths to exclude from the manifest           |
+| `ignoreWellKnown`   | `boolean`                      | No       | Skip the `.well-known/` directory            |
 
 ### ContentTypeDefinition
 
@@ -152,7 +159,7 @@ Custom content-type rules are merged with the built-in defaults. Each rule match
 
 ### `type: 'http'`
 
-Runs the standard pipeline: esbuild → Wizer → JCO. Produces a single `.wasm` component from the entry point.
+Runs the standard pipeline: esbuild → regex precompilation → Wizer → JCO. Produces a single `.wasm` component from the entry point.
 
 ```js
 const config = {

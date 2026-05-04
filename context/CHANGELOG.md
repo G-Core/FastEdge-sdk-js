@@ -5,6 +5,23 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-05-04] — KvStoreEntry: entry-style accessors for KV Store
+
+### Overview
+Added an entry-shaped read API to `fastedge::kv` mirroring the `CacheEntry` shape from `fastedge::cache`. Three new methods on `KvStoreInstance` (`getEntry`, `zrangeByScoreEntries`, `zscanEntries`) return `KvStoreEntry` wrappers exposing `arrayBuffer()`, `text()`, and `json()` Promise-returning accessors. The existing `get` / `zrangeByScore` / `zscan` methods are unchanged and remain fully supported.
+
+### Changes
+- **`runtime/fastedge/builtins/kv-store.{h,cpp}`** — added `KvStoreEntry` class (anonymous-namespace, mirrors `CacheEntry` from `cache.cpp`) and three new `KvStore` methods (`get_entry`, `zrange_by_score_entries`, `zscan_entries`) registered as `getEntry`, `zrangeByScoreEntries`, `zscanEntries` on the JS instance prototype. No WIT changes — the new methods reuse the existing `kv_store_get` / `kv_store_zrange_by_score` / `kv_store_zscan` host functions.
+- **`types/fastedge-kv.d.ts`** — added `KvStoreEntry` interface and three new method signatures. Existing methods cross-referenced via `@see` tags pointing to their entry-style counterparts. Top-of-file example updated to use `getEntry().text()`.
+- **`examples/kv-store-basic/src/index.js`** — switched to `getEntry().text()` (the previous template-literal interpolation of an `ArrayBuffer` rendered as `[object ArrayBuffer]` rather than the stored value).
+- **`github-pages/src/content/docs/reference/fastedge/kv/key-value.md`** and **`zset.md`** — added documentation for `getEntry`, `zrangeByScoreEntries`, and `zscanEntries`; fixed the buggy template-literal example in the `get` section. Language is neutral — neither form is presented as preferred.
+
+### Migration
+- **No breaking changes.** Code using `get` / `zrangeByScore` / `zscan` continues to work indefinitely; the entry-style methods are additive and recommended for new code.
+- The entry methods are Promise-returning (matching `Cache`); the legacy methods remain synchronous.
+
+---
+
 ## [2026-04-30] — Cache API examples + workspace SDK override
 
 ### Overview

@@ -147,14 +147,13 @@ addEventListener('fetch', (event) => {
   event.respondWith(
     (async () => {
       const store = KvStore.open('my-store');
-      const value = store.get('my-key');
+      const entry = await store.getEntry('my-key');
 
-      if (value) {
-        const text = new TextDecoder().decode(value);
-        return new Response(text);
+      if (entry === null) {
+        return new Response('Key not found', { status: 404 });
       }
 
-      return new Response('Key not found', { status: 404 });
+      return new Response(await entry.text());
     })(),
   );
 });
@@ -164,10 +163,19 @@ addEventListener('fetch', (event) => {
 
 - `KvStore.open(name: string): KvStoreInstance`
 - `KvStoreInstance.get(key: string): ArrayBuffer | null`
+- `KvStoreInstance.getEntry(key: string): Promise<KvStoreEntry | null>`
 - `KvStoreInstance.scan(pattern: string): Array<string>`
 - `KvStoreInstance.zrangeByScore(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`
+- `KvStoreInstance.zrangeByScoreEntries(key: string, min: number, max: number): Promise<Array<[KvStoreEntry, number]>>`
 - `KvStoreInstance.zscan(key: string, pattern: string): Array<[ArrayBuffer, number]>`
+- `KvStoreInstance.zscanEntries(key: string, pattern: string): Promise<Array<[KvStoreEntry, number]>>`
 - `KvStoreInstance.bfExists(key: string, value: string): boolean`
+
+**`KvStoreEntry` methods:**
+
+- `arrayBuffer(): Promise<ArrayBuffer>`
+- `text(): Promise<string>`
+- `json(): Promise<unknown>`
 
 ## Next Steps
 

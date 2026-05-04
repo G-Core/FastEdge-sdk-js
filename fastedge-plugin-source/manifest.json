@@ -1,14 +1,14 @@
 {
   "$schema": "https://fastedge-plugin-source/manifest/v1",
   "repo_id": "fastedge-sdk-js",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "sources": {
     "sdk-api": {
       "files": [
         "docs/SDK_API.md"
       ],
       "required": true,
-      "description": "Runtime APIs — environment variables, secrets, KV store, Web APIs available in WASM"
+      "description": "Runtime APIs — environment variables, secrets, KV store, Cache, Web APIs available in WASM"
     },
     "build-cli": {
       "files": [
@@ -136,6 +136,25 @@
       ],
       "required": true,
       "description": "Geo Redirect example — docs pattern extraction"
+    },
+
+    "cache-blueprint": {
+      "files": [
+        "examples/cache/src/index.ts",
+        "examples/cache/package.json",
+        "examples/cache/tsconfig.json"
+      ],
+      "required": true,
+      "description": "Cache example — scaffold blueprint extraction (per-IP rate limiting, getOrSet origin proxy, JSON memoisation)"
+    },
+    "cache-pattern": {
+      "files": [
+        "examples/cache/src/index.ts",
+        "examples/cache/package.json",
+        "examples/cache/tsconfig.json"
+      ],
+      "required": true,
+      "description": "Cache example — docs pattern extraction"
     }
   },
   "target_mapping": {
@@ -207,6 +226,15 @@
     },
     "geo-redirect-pattern": {
       "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-geo-redirect-js.md",
+      "section": null
+    },
+
+    "cache-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/cache-ts.md",
+      "section": null
+    },
+    "cache-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-cache-js.md",
       "section": null
     }
   },
