@@ -1,4 +1,4 @@
-/// Shared cache types for sync and async interfaces.
+/// Shared cache types for cache interfaces.
 interface cache-types {
   type payload = list<u8>;
 
