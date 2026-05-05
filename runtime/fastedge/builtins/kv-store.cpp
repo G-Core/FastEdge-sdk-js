@@ -1,4 +1,5 @@
 #include "kv-store.h"
+#include "encode.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -72,13 +73,13 @@ bool KvStore::open(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars store_name = JS_EncodeStringToUTF8(cx, store_name_str);
+    auto store_name = core::encode(cx, store_name_str);
     if (!store_name) {
         return false;
     }
 
     // Call the host API to open the store
-    auto result = host_api::kv_store_open(store_name.get());
+    auto result = host_api::kv_store_open(std::string_view(store_name.ptr.get(), store_name.len));
 
     // THROW ERRORS...
     if (!result.is_ok()) {
@@ -86,16 +87,16 @@ bool KvStore::open(JSContext *cx, unsigned argc, JS::Value *vp) {
         auto error = result.unwrap_err();
         switch (error.tag) {
             case host_api::KvStoreErrorTag::NO_SUCH_STORE:
-                JS_ReportErrorUTF8(cx, "No such store: %s", store_name.get());
+                JS_ReportErrorUTF8(cx, "No such store: %s", store_name.ptr.get());
                 break;
             case host_api::KvStoreErrorTag::ACCESS_DENIED:
-                JS_ReportErrorUTF8(cx, "Access denied to store: %s", store_name.get());
+                JS_ReportErrorUTF8(cx, "Access denied to store: %s", store_name.ptr.get());
                 break;
             case host_api::KvStoreErrorTag::INTERNAL_ERROR:
-                JS_ReportErrorUTF8(cx, "Internal error opening store: %s", store_name.get());
+                JS_ReportErrorUTF8(cx, "Internal error opening store: %s", store_name.ptr.get());
                 break;
             case host_api::KvStoreErrorTag::OTHER:
-                JS_ReportErrorUTF8(cx, "Error opening store %s: %s", store_name.get(), error.val.other.ptr);
+                JS_ReportErrorUTF8(cx, "Error opening store %s: %s", store_name.ptr.get(), error.val.other.ptr);
                 break;
         }
         return false;
@@ -144,17 +145,17 @@ bool KvStore::get(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
 
     // Call the host API
-    auto result = host_api::kv_store_get(store->store_handle_, key.get());
+    auto result = host_api::kv_store_get(store->store_handle_, std::string_view(key.ptr.get(), key.len));
 
     if (!result.is_ok()) {
         // Handle error
-        JS_ReportErrorUTF8(cx, "Error getting key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error getting key: %s", key.ptr.get());
         return false;
     }
 
@@ -202,15 +203,15 @@ bool KvStore::scan(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars pattern = JS_EncodeStringToUTF8(cx, pattern_str);
+    auto pattern = core::encode(cx, pattern_str);
     if (!pattern) {
         return false;
     }
 
-    auto result = host_api::kv_store_scan(store->store_handle_, pattern.get());
+    auto result = host_api::kv_store_scan(store->store_handle_, std::string_view(pattern.ptr.get(), pattern.len));
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error scanning with pattern: %s (Only prefix matching is supported. e.g. 'foo*')", pattern.get());
+        JS_ReportErrorUTF8(cx, "Error scanning with pattern: %s (Only prefix matching is supported. e.g. 'foo*')", pattern.ptr.get());
         return false;
     }
 
@@ -259,7 +260,7 @@ bool KvStore::zrange_by_score(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
@@ -269,10 +270,10 @@ bool KvStore::zrange_by_score(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, key.get(), min, max);
+    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, std::string_view(key.ptr.get(), key.len), min, max);
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error in zrangeByScore for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error in zrangeByScore for key: %s", key.ptr.get());
         return false;
     }
 
@@ -341,7 +342,7 @@ bool KvStore::zscan(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
@@ -351,15 +352,15 @@ bool KvStore::zscan(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars pattern = JS_EncodeStringToUTF8(cx, pattern_str);
+    auto pattern = core::encode(cx, pattern_str);
     if (!pattern) {
         return false;
     }
 
-    auto result = host_api::kv_store_zscan(store->store_handle_, key.get(), pattern.get());
+    auto result = host_api::kv_store_zscan(store->store_handle_, std::string_view(key.ptr.get(), key.len), std::string_view(pattern.ptr.get(), pattern.len));
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error in zscan for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error in zscan for key: %s", key.ptr.get());
         return false;
     }
 
@@ -428,7 +429,7 @@ bool KvStore::bf_exists(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
@@ -438,15 +439,15 @@ bool KvStore::bf_exists(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars item = JS_EncodeStringToUTF8(cx, item_str);
+    auto item = core::encode(cx, item_str);
     if (!item) {
         return false;
     }
 
-    auto result = host_api::kv_store_bf_exists(store->store_handle_, key.get(), item.get());
+    auto result = host_api::kv_store_bf_exists(store->store_handle_, std::string_view(key.ptr.get(), key.len), std::string_view(item.ptr.get(), item.len));
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error checking bloom filter for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error checking bloom filter for key: %s", key.ptr.get());
         return false;
     }
 
@@ -646,12 +647,12 @@ bool KvStore::get_entry(JSContext *cx, unsigned argc, JS::Value *vp) {
     JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
     if (!key_str) return false;
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) return false;
 
-    auto result = host_api::kv_store_get(store->store_handle_, key.get());
+    auto result = host_api::kv_store_get(store->store_handle_, std::string_view(key.ptr.get(), key.len));
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error getting key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error getting key: %s", key.ptr.get());
         return ReturnPromiseRejectedWithPendingError(cx, args);
     }
 
@@ -686,7 +687,7 @@ bool KvStore::zrange_by_score_entries(JSContext *cx, unsigned argc, JS::Value *v
     JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
     if (!key_str) return false;
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) return false;
 
     double min, max;
@@ -694,9 +695,9 @@ bool KvStore::zrange_by_score_entries(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, key.get(), min, max);
+    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, std::string_view(key.ptr.get(), key.len), min, max);
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error in zrangeByScoreEntries for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error in zrangeByScoreEntries for key: %s", key.ptr.get());
         return ReturnPromiseRejectedWithPendingError(cx, args);
     }
 
@@ -746,18 +747,18 @@ bool KvStore::zscan_entries(JSContext *cx, unsigned argc, JS::Value *vp) {
     JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
     if (!key_str) return false;
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) return false;
 
     JS::RootedString pattern_str(cx, JS::ToString(cx, args[1]));
     if (!pattern_str) return false;
 
-    JS::UniqueChars pattern = JS_EncodeStringToUTF8(cx, pattern_str);
+    auto pattern = core::encode(cx, pattern_str);
     if (!pattern) return false;
 
-    auto result = host_api::kv_store_zscan(store->store_handle_, key.get(), pattern.get());
+    auto result = host_api::kv_store_zscan(store->store_handle_, std::string_view(key.ptr.get(), key.len), std::string_view(pattern.ptr.get(), pattern.len));
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error in zscanEntries for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error in zscanEntries for key: %s", key.ptr.get());
         return ReturnPromiseRejectedWithPendingError(cx, args);
     }
 

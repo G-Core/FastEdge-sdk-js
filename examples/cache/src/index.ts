@@ -22,8 +22,9 @@ import { Cache } from 'fastedge::cache';
 // ---------------------------------------------------------------------------
 //
 // Increment a per-IP counter. On the first hit (count === 1) we attach
-// a TTL so the window slides correctly: the counter resets 60 seconds
-// after the user's *first* request, not after every request.
+// a TTL to create a fixed 60-second window anchored to that request:
+// the counter resets 60 seconds after the user's *first* request, not
+// after every request.
 //
 // `Cache.incr` is atomic: under concurrent load, two simultaneous
 // requests cannot both see "count === 1" and double-set the expiry.
@@ -66,27 +67,24 @@ async function rateLimit(event: FetchEvent): Promise<Response> {
 }
 
 // ---------------------------------------------------------------------------
-// Pattern 2 — Origin-cache proxy via getOrSet with a fetch populator
+// Pattern 2 — Origin-cache proxy with conditional caching
 // ---------------------------------------------------------------------------
 //
-// `Cache.getOrSet` returns the cached entry on a hit, and otherwise
-// runs the populator function, stores its result, and returns it.
-// The populator can return any `CacheValue` — including a `Response`,
-// in which case the response body bytes are stored (status and
-// headers are not preserved; the cache is a byte cache, not an HTTP
-// cache).
+// Cache successful upstream responses for PROXY_TTL_S seconds; pass
+// non-2xx and redirects through *without* caching, so a transient 404
+// or 500 doesn't get pinned for the rest of the window. The cache is
+// a byte cache (no status/headers), so we only cache when "200 OK with
+// application/octet-stream" is a faithful replay of the upstream.
 //
-// Concurrent requests for the same key inside one WASM instance share
-// a single populator execution — useful for protecting an origin from
-// thundering herds when many users request the same uncached URL at
-// once. (Coalescing is in-process only; other workers may still hit
-// the origin independently.)
+// `getOrSet` is not used here because its populator can't signal
+// "fetched, but don't cache" — we need that distinction to handle
+// error responses safely. See Pattern 3 for `getOrSet` in a context
+// where every populator output is cacheable.
 
 const PROXY_TTL_S = 30;
 
 async function proxy(url: string): Promise<Response> {
-  // Validate the URL before we use it as a cache key — a malformed URL
-  // would still cache, but the populator would throw on every miss.
+  // Validate the URL before we use it as a cache key.
   let parsed: URL;
   try {
     parsed = new URL(url);
@@ -99,21 +97,33 @@ async function proxy(url: string): Promise<Response> {
 
   const key = `proxy:${parsed.toString()}`;
 
-  // The populator runs only on a cache miss. On a hit, the existing
-  // bytes are returned and the upstream is not contacted.
-  const entry = await Cache.getOrSet(
-    key,
-    () => fetch(parsed.toString()),
-    { ttl: PROXY_TTL_S },
-  );
+  // Cache hit — replay the bytes as 200 OK. Status/headers from the
+  // original response are not preserved by the byte cache.
+  const cached = await Cache.get(key);
+  if (cached !== null) {
+    return new Response(await cached.arrayBuffer(), {
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-cache': 'hit',
+        'x-cache-ttl': String(PROXY_TTL_S),
+      },
+    });
+  }
 
-  // The cache stores raw bytes — we re-attach a sensible content type
-  // here. A more complete implementation would encode the original
-  // response's headers into a JSON envelope on write so they could be
-  // restored on read.
-  return new Response(await entry.arrayBuffer(), {
+  // Cache miss — fetch upstream and only cache successful responses.
+  // Non-2xx and redirects flow through unchanged so callers see the
+  // real status code instead of a synthetic 200.
+  const upstream = await fetch(parsed.toString());
+  if (!upstream.ok) {
+    return upstream;
+  }
+
+  const bytes = await upstream.arrayBuffer();
+  await Cache.set(key, bytes, { ttl: PROXY_TTL_S });
+  return new Response(bytes, {
     headers: {
       'content-type': 'application/octet-stream',
+      'x-cache': 'miss',
       'x-cache-ttl': String(PROXY_TTL_S),
     },
   });

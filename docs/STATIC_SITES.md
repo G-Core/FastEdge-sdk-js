@@ -349,12 +349,12 @@ addEventListener('fetch', (event) => event.respondWith(handleRequest(event)));
 
 **What changed:**
 
-| Area               | v1.x                                          | v2.x                                        |
-| ------------------ | --------------------------------------------- | ------------------------------------------- |
-| API                | `createStaticAssetsCache` + `getStaticServer` | `createStaticServer`                        |
-| Multiple manifests | Not supported                                 | Supported — one server per manifest         |
-| Read file as string | Not available                                | `server.readFileString(path)`               |
-| Manifest file name | `static-server-manifest.js`                   | `static-asset-manifest.js` (by convention) |
+| Area                | v1.x                                          | v2.x                                       |
+| ------------------- | --------------------------------------------- | ------------------------------------------ |
+| API                 | `createStaticAssetsCache` + `getStaticServer` | `createStaticServer`                       |
+| Multiple manifests  | Not supported                                 | Supported — one server per manifest        |
+| Read file as string | Not available                                 | `server.readFileString(path)`              |
+| Manifest file name  | `static-server-manifest.js`                   | `static-asset-manifest.js` (by convention) |
 
 If you used `fastedge-init` to scaffold your project, re-running `npx fastedge-init` updates the generated `static-index.js` entry point automatically.
 

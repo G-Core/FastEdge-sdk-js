@@ -152,16 +152,16 @@ A handle to a value retrieved from the KV store. The bytes are already in memory
 
 #### KvStoreInstance methods
 
-| Method                                   | Signature                                                                                       | Returns                                         |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `get(key)`                               | `(key: string) => ArrayBuffer \| null`                                                          | `ArrayBuffer \| null`                           |
-| `getEntry(key)`                          | `(key: string) => Promise<KvStoreEntry \| null>`                                                | `Promise<KvStoreEntry \| null>`                 |
-| `scan(pattern)`                          | `(pattern: string) => Array<string>`                                                            | `Array<string>`                                 |
-| `zrangeByScore(key, min, max)`           | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>`                       | `Array<[ArrayBuffer, number]>`                  |
-| `zrangeByScoreEntries(key, min, max)`    | `(key: string, min: number, max: number) => Promise<Array<[KvStoreEntry, number]>>`             | `Promise<Array<[KvStoreEntry, number]>>`        |
-| `zscan(key, pattern)`                    | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`                                | `Array<[ArrayBuffer, number]>`                  |
-| `zscanEntries(key, pattern)`             | `(key: string, pattern: string) => Promise<Array<[KvStoreEntry, number]>>`                      | `Promise<Array<[KvStoreEntry, number]>>`        |
-| `bfExists(key, value)`                   | `(key: string, value: string) => boolean`                                                       | `boolean`                                       |
+| Method                                | Signature                                                                           | Returns                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------- |
+| `get(key)`                            | `(key: string) => ArrayBuffer \| null`                                              | `ArrayBuffer \| null`                    |
+| `getEntry(key)`                       | `(key: string) => Promise<KvStoreEntry \| null>`                                    | `Promise<KvStoreEntry \| null>`          |
+| `scan(pattern)`                       | `(pattern: string) => Array<string>`                                                | `Array<string>`                          |
+| `zrangeByScore(key, min, max)`        | `(key: string, min: number, max: number) => Array<[ArrayBuffer, number]>`           | `Array<[ArrayBuffer, number]>`           |
+| `zrangeByScoreEntries(key, min, max)` | `(key: string, min: number, max: number) => Promise<Array<[KvStoreEntry, number]>>` | `Promise<Array<[KvStoreEntry, number]>>` |
+| `zscan(key, pattern)`                 | `(key: string, pattern: string) => Array<[ArrayBuffer, number]>`                    | `Array<[ArrayBuffer, number]>`           |
+| `zscanEntries(key, pattern)`          | `(key: string, pattern: string) => Promise<Array<[KvStoreEntry, number]>>`          | `Promise<Array<[KvStoreEntry, number]>>` |
+| `bfExists(key, value)`                | `(key: string, value: string) => boolean`                                           | `boolean`                                |
 
 ##### `get`
 
@@ -299,12 +299,12 @@ import { Cache } from "fastedge::cache";
 
 **`Cache` vs `KvStore` at a glance:**
 
-| Concern             | `Cache`                                        | `KvStore`                                 |
-| ------------------- | ---------------------------------------------- | ----------------------------------------- |
-| Consistency scope   | Strong within a POP; independent across POPs   | Eventual; globally replicated             |
-| Atomic operations   | `incr`, `decr`, `getOrSet` coalescing          | Not available                             |
-| Typical use cases   | Rate limits, counters, request coalescing      | Configuration, lookup tables, sorted sets |
-| Data persistence    | Evicted; no durability guarantee               | Durable; persists across deployments      |
+| Concern           | `Cache`                                       | `KvStore`                                 |
+| ----------------- | --------------------------------------------- | ----------------------------------------- |
+| Consistency scope | Strong within a POP; independent across POPs  | Eventual; globally replicated             |
+| Atomic operations | `incr`, `decr`, `getOrSet` coalescing         | Not available                             |
+| Typical use cases | Rate limits, counters, request coalescing     | Configuration, lookup tables, sorted sets |
+| Data persistence  | Evicted; no durability guarantee              | Durable; persists across deployments      |
 
 Strong per-POP consistency makes `Cache.incr` / `Cache.decr` reliable for per-POP rate limits and `Cache.getOrSet` coalescing reliable for deduplicating concurrent origin fetches within a single POP. For globally-shared data that must be visible across all POPs, use `fastedge::kv`.
 
@@ -587,26 +587,27 @@ const data = await response.json();
 new Request(input: RequestInfo | URL, init?: RequestInit): Request
 ```
 
-| `RequestInit` field    | Type               | Description                                                |
-| ---------------------- | ------------------ | ---------------------------------------------------------- |
-| `method`               | `string`           | HTTP method. Defaults to `"GET"`.                          |
-| `headers`              | `HeadersInit`      | Request headers.                                           |
-| `body`                 | `BodyInit \| null` | Request body.                                              |
-| `manualFramingHeaders` | `boolean`          | When `true`, disables automatic framing header management. |
+| `RequestInit` field | Type                  | Description                       |
+| ------------------- | --------------------- | --------------------------------- |
+| `method`            | `string`              | HTTP method. Defaults to `"GET"`. |
+| `headers`           | `HeadersInit`         | Request headers.                  |
+| `body`              | `BodyInit \| null`    | Request body.                     |
+| `signal`            | `AbortSignal \| null` | Abort signal for the request.     |
 
-| `Request` property / method       | Type                                 | Description                                       |
-| --------------------------------- | ------------------------------------ | ------------------------------------------------- |
-| `method`                          | `string`                             | HTTP method.                                      |
-| `url`                             | `string`                             | Request URL as a string.                          |
-| `headers`                         | `Headers`                            | Request headers (read-only on incoming requests). |
-| `body`                            | `ReadableStream<Uint8Array> \| null` | Request body stream.                              |
-| `bodyUsed`                        | `boolean`                            | Whether the body has already been consumed.       |
-| `clone()`                         | `() => Request`                      | Creates a copy of the request.                    |
-| `text()`                          | `() => Promise<string>`              | Reads body as a string.                           |
-| `json()`                          | `() => Promise<any>`                 | Reads body and parses as JSON.                    |
-| `arrayBuffer()`                   | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.                   |
-| `setCacheKey(key)`                | `(key: string) => void`              | Sets a custom cache key for the request.          |
-| `setManualFramingHeaders(manual)` | `(manual: boolean) => void`          | Toggles manual framing header control.            |
+| `Request` property / method | Type                                 | Description                                       |
+| --------------------------- | ------------------------------------ | ------------------------------------------------- |
+| `method`                    | `string`                             | HTTP method.                                      |
+| `url`                       | `string`                             | Request URL as a string.                          |
+| `headers`                   | `Headers`                            | Request headers (read-only on incoming requests). |
+| `signal`                    | `AbortSignal`                        | Abort signal associated with this request.        |
+| `body`                      | `ReadableStream<Uint8Array> \| null` | Request body stream.                              |
+| `bodyUsed`                  | `boolean`                            | Whether the body has already been consumed.       |
+| `clone()`                   | `() => Request`                      | Creates a copy of the request.                    |
+| `text()`                    | `() => Promise<string>`              | Reads body as a string.                           |
+| `json()`                    | `() => Promise<any>`                 | Reads body and parses as JSON.                    |
+| `arrayBuffer()`             | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.                   |
+| `blob()`                    | `() => Promise<Blob>`                | Reads body as a `Blob`.                           |
+| `formData()`                | `() => Promise<FormData>`            | Reads body as `FormData`.                         |
 
 **Note:** The `headers` property on an incoming `request` object (from `event.request`) is immutable — calls to `append`, `set`, or `delete` will throw. Clone the request or construct a new `Headers` object to modify headers.
 
@@ -618,26 +619,28 @@ Response.redirect(url: string | URL, status?: number): Response
 Response.json(data: any, init?: ResponseInit): Response
 ```
 
-| `ResponseInit` field   | Type          | Description                                                |
-| ---------------------- | ------------- | ---------------------------------------------------------- |
-| `status`               | `number`      | HTTP status code. Defaults to `200`.                       |
-| `statusText`           | `string`      | HTTP status text.                                          |
-| `headers`              | `HeadersInit` | Response headers.                                          |
-| `manualFramingHeaders` | `boolean`     | When `true`, disables automatic framing header management. |
+| `ResponseInit` field | Type          | Description                          |
+| -------------------- | ------------- | ------------------------------------ |
+| `status`             | `number`      | HTTP status code. Defaults to `200`. |
+| `statusText`         | `string`      | HTTP status text.                    |
+| `headers`            | `HeadersInit` | Response headers.                    |
 
-| `Response` property / method      | Type                                 | Description                                 |
-| --------------------------------- | ------------------------------------ | ------------------------------------------- |
-| `status`                          | `number`                             | HTTP status code.                           |
-| `statusText`                      | `string`                             | HTTP status text.                           |
-| `ok`                              | `boolean`                            | `true` if status is in the range 200–299.   |
-| `url`                             | `string`                             | URL of the response.                        |
-| `headers`                         | `Headers`                            | Response headers.                           |
-| `body`                            | `ReadableStream<Uint8Array> \| null` | Response body stream.                       |
-| `bodyUsed`                        | `boolean`                            | Whether the body has already been consumed. |
-| `text()`                          | `() => Promise<string>`              | Reads body as a string.                     |
-| `json()`                          | `() => Promise<any>`                 | Reads body and parses as JSON.              |
-| `arrayBuffer()`                   | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.             |
-| `setManualFramingHeaders(manual)` | `(manual: boolean) => void`          | Toggles manual framing header control.      |
+| `Response` property / method | Type                                 | Description                                 |
+| ---------------------------- | ------------------------------------ | ------------------------------------------- |
+| `status`                     | `number`                             | HTTP status code.                           |
+| `statusText`                 | `string`                             | HTTP status text.                           |
+| `ok`                         | `boolean`                            | `true` if status is in the range 200–299.   |
+| `redirected`                 | `boolean`                            | `true` if the response was redirected.      |
+| `url`                        | `string`                             | URL of the response.                        |
+| `type`                       | `ResponseType`                       | Response type (e.g., `"basic"`, `"cors"`).  |
+| `headers`                    | `Headers`                            | Response headers.                           |
+| `body`                       | `ReadableStream<Uint8Array> \| null` | Response body stream.                       |
+| `bodyUsed`                   | `boolean`                            | Whether the body has already been consumed. |
+| `text()`                     | `() => Promise<string>`              | Reads body as a string.                     |
+| `json()`                     | `() => Promise<any>`                 | Reads body and parses as JSON.              |
+| `arrayBuffer()`              | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.             |
+| `blob()`                     | `() => Promise<Blob>`                | Reads body as a `Blob`.                     |
+| `formData()`                 | `() => Promise<FormData>`            | Reads body as `FormData`.                   |
 
 #### `Headers`
 
@@ -654,6 +657,7 @@ new Headers(init?: HeadersInit): Headers
 | `set(name, value)`    | `(name: string, value: string) => void`                                     |
 | `append(name, value)` | `(name: string, value: string) => void`                                     |
 | `delete(name)`        | `(name: string) => void`                                                    |
+| `getSetCookie()`      | `() => string[]`                                                            |
 | `forEach(callback)`   | `(callback: (value: string, key: string, parent: Headers) => void) => void` |
 | `entries()`           | `() => IterableIterator<[string, string]>`                                  |
 | `keys()`              | `() => IterableIterator<string>`                                             |
@@ -754,6 +758,8 @@ new ReadableStream<R>(underlyingSource?: UnderlyingSource<R>, strategy?: Queuing
 | `tee()`                            | `() => [ReadableStream<R>, ReadableStream<R>]`                                              |
 | `cancel(reason?)`                  | `(reason?: any) => Promise<void>`                                                           |
 
+To read a byte stream with a caller-supplied buffer, call `getReader({ mode: 'byob' })` which returns a `ReadableStreamBYOBReader`. The BYOB reader's `read(view)` method fills the provided `ArrayBufferView` in-place.
+
 ```javascript
 const stream = new ReadableStream({
   start(controller) {
@@ -792,6 +798,47 @@ new TransformStream<I, O>(
 | `readable` | `ReadableStream<O>` | The readable side of the transform. |
 | `writable` | `WritableStream<I>` | The writable side of the transform. |
 
+#### Queuing Strategies
+
+Two built-in queuing strategies control backpressure. Both accept `{ highWaterMark: number }`.
+
+```typescript
+new ByteLengthQueuingStrategy(init: QueuingStrategyInit): ByteLengthQueuingStrategy
+new CountQueuingStrategy(init: QueuingStrategyInit): CountQueuingStrategy
+```
+
+| Strategy                    | Counts                                      |
+| --------------------------- | ------------------------------------------- |
+| `ByteLengthQueuingStrategy` | Byte length of each `ArrayBufferView` chunk |
+| `CountQueuingStrategy`      | Each chunk as a single unit                 |
+
+#### Compression Streams
+
+```typescript
+new CompressionStream(format: CompressionFormat): CompressionStream
+new DecompressionStream(format: CompressionFormat): DecompressionStream
+```
+
+`CompressionFormat` is one of `"deflate"`, `"deflate-raw"`, or `"gzip"`. Both implement the transform-stream shape (`readable` / `writable`) and can be piped directly with `pipeThrough`.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const upstream   = await fetch("https://origin.example.com/data");
+  const compressed = upstream.body.pipeThrough(new CompressionStream("gzip"));
+
+  return new Response(compressed, {
+    headers: {
+      "content-type":     upstream.headers.get("content-type") ?? "application/octet-stream",
+      "content-encoding": "gzip",
+    },
+  });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
 ---
 
 ### Encoding API
@@ -804,6 +851,8 @@ Standard `TextEncoder` and `TextDecoder` are available as globals for converting
 const encoded = new TextEncoder().encode("hello");    // Uint8Array
 const decoded = new TextDecoder().decode(encoded);    // "hello"
 ```
+
+`TextDecoder` accepts an optional encoding label (default `"utf-8"`) and options `{ fatal?: boolean, ignoreBOM?: boolean }`. `TextEncoder` always encodes as UTF-8 and additionally exposes `encodeInto(source, destination)` which writes into a pre-allocated `Uint8Array` and returns `{ read, written }`.
 
 #### Base64
 
@@ -824,6 +873,106 @@ const decoded = atob(encoded);          // "hello world"
 
 ---
 
+### File API
+
+#### `Blob`
+
+```typescript
+new Blob(blobParts?: BlobPart[], options?: BlobPropertyBag): Blob
+```
+
+`BlobPart` is `BufferSource | Blob | string`. `BlobPropertyBag` accepts `{ type?: string, endings?: "native" | "transparent" }`.
+
+| `Blob` property / method            | Type / Signature                                               | Description                              |
+| ----------------------------------- | -------------------------------------------------------------- | ---------------------------------------- |
+| `size`                              | `number`                                                       | Total byte length.                       |
+| `type`                              | `string`                                                       | MIME type string.                        |
+| `arrayBuffer()`                     | `() => Promise<ArrayBuffer>`                                   | Reads content as an `ArrayBuffer`.       |
+| `bytes()`                           | `() => Promise<Uint8Array>`                                    | Reads content as a `Uint8Array`.         |
+| `text()`                            | `() => Promise<string>`                                        | Reads content as a UTF-8 string.         |
+| `stream()`                          | `() => ReadableStream<Uint8Array>`                             | Returns a `ReadableStream` of the bytes. |
+| `slice(start?, end?, contentType?)` | `(start?: number, end?: number, contentType?: string) => Blob` | Returns a sub-blob.                      |
+
+#### `File`
+
+```typescript
+new File(fileBits: BlobPart[], fileName: string, options?: FilePropertyBag): File
+```
+
+`File` extends `Blob` and adds:
+
+| Property       | Type     | Description                               |
+| -------------- | -------- | ----------------------------------------- |
+| `name`         | `string` | File name as provided to the constructor. |
+| `lastModified` | `number` | Last modified timestamp in milliseconds.  |
+
+#### `FormData`
+
+```typescript
+new FormData(): FormData
+```
+
+`FormDataEntryValue` is `File | string`.
+
+| Method                | Signature                                                                                |
+| --------------------- | ---------------------------------------------------------------------------------------- |
+| `append(name, value)` | `(name: string, value: string \| Blob, fileName?: string) => void`                       |
+| `delete(name)`        | `(name: string) => void`                                                                 |
+| `get(name)`           | `(name: string) => FormDataEntryValue \| null`                                           |
+| `getAll(name)`        | `(name: string) => FormDataEntryValue[]`                                                 |
+| `has(name)`           | `(name: string) => boolean`                                                              |
+| `set(name, value)`    | `(name: string, value: string \| Blob, fileName?: string) => void`                       |
+| `forEach(callback)`   | `(callback: (value: FormDataEntryValue, key: string, parent: FormData) => void) => void` |
+| `entries()`           | `() => IterableIterator<[string, FormDataEntryValue]>`                                   |
+| `keys()`              | `() => IterableIterator<string>`                                                         |
+| `values()`            | `() => IterableIterator<FormDataEntryValue>`                                             |
+
+---
+
+### Abort API
+
+#### `AbortController` / `AbortSignal`
+
+```typescript
+new AbortController(): AbortController
+```
+
+| `AbortController` member | Type / Signature         | Description                          |
+| ------------------------ | ------------------------ | ------------------------------------ |
+| `signal`                 | `AbortSignal`            | The associated signal object.        |
+| `abort(reason?)`         | `(reason?: any) => void` | Triggers the signal's aborted state. |
+
+| `AbortSignal` member         | Type / Signature                          | Description                                         |
+| ---------------------------- | ----------------------------------------- | --------------------------------------------------- |
+| `aborted`                    | `boolean`                                 | Whether the signal has been aborted.                |
+| `reason`                     | `any`                                     | The abort reason, if any.                           |
+| `onabort`                    | `((ev: Event) => any) \| null`            | Event handler fired when the signal aborts.         |
+| `throwIfAborted()`           | `() => void`                              | Throws the abort reason if the signal is aborted.   |
+| `AbortSignal.abort(reason?)` | `(reason?: any) => AbortSignal`           | Returns an already-aborted signal.                  |
+| `AbortSignal.timeout(ms)`    | `(milliseconds: number) => AbortSignal`   | Returns a signal that aborts after the given delay. |
+| `AbortSignal.any(signals)`   | `(signals: AbortSignal[]) => AbortSignal` | Returns a signal that aborts when any input aborts. |
+
+Pass a signal via `RequestInit.signal` to cancel an in-flight `fetch`:
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  try {
+    const response = await fetch("https://slow-origin.example.com/data", {
+      signal: AbortSignal.timeout(5000),
+    });
+    return new Response(await response.text(), { status: 200 });
+  } catch (err) {
+    return new Response("upstream timeout", { status: 504 });
+  }
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+---
+
 ### Crypto API
 
 #### `crypto`
@@ -840,12 +989,21 @@ crypto.subtle: SubtleCrypto
 
 Available as `crypto.subtle`. Supported operations:
 
-| Method      | Signature                                                                                                           |
-| ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| `digest`    | `(algorithm: AlgorithmIdentifier, data: BufferSource) => Promise<ArrayBuffer>`                                      |
-| `importKey` | See overloads below                                                                                                 |
-| `sign`      | `(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource) => Promise<ArrayBuffer>`                      |
-| `verify`    | `(algorithm: AlgorithmIdentifier, key: CryptoKey, signature: BufferSource, data: BufferSource) => Promise<boolean>` |
+| Method      | Signature                                                                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `digest`    | `(algorithm: AlgorithmIdentifier, data: BufferSource) => Promise<ArrayBuffer>`                                                     |
+| `importKey` | See overloads below                                                                                                                |
+| `sign`      | `(algorithm: AlgorithmIdentifier \| EcdsaParams, key: CryptoKey, data: BufferSource) => Promise<ArrayBuffer>`                      |
+| `verify`    | `(algorithm: AlgorithmIdentifier \| EcdsaParams, key: CryptoKey, signature: BufferSource, data: BufferSource) => Promise<boolean>` |
+
+Supported algorithms:
+
+| Operation   | Algorithms                               |
+| ----------- | ---------------------------------------- |
+| `digest`    | `SHA-1`, `SHA-256`, `SHA-384`, `SHA-512` |
+| `sign`      | `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`    |
+| `verify`    | `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`    |
+| `importKey` | `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`    |
 
 `importKey` overloads:
 
@@ -854,22 +1012,30 @@ Available as `crypto.subtle`. Supported operations:
 subtle.importKey(
   format: 'jwk',
   keyData: JsonWebKey,
-  algorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams,
+  algorithm: AlgorithmIdentifier | HmacImportParams | RsaHashedImportParams | EcKeyImportParams,
   extractable: boolean,
   keyUsages: ReadonlyArray<KeyUsage>,
 ): Promise<CryptoKey>
 
-// Raw / other formats
+// Raw / SPKI / PKCS#8 formats
 subtle.importKey(
   format: Exclude<KeyFormat, 'jwk'>,
   keyData: BufferSource,
-  algorithm: AlgorithmIdentifier | RsaHashedImportParams | HmacImportParams,
+  algorithm: AlgorithmIdentifier | HmacImportParams | RsaHashedImportParams | EcKeyImportParams,
   extractable: boolean,
   keyUsages: KeyUsage[],
 ): Promise<CryptoKey>
 ```
 
-Supported `KeyFormat` values: `"jwk"`, `"raw"`.
+Supported `(algorithm, format)` combinations:
+
+| Algorithm           | Supported formats                      |
+| ------------------- | -------------------------------------- |
+| `HMAC`              | `'raw'`, `'jwk'`                       |
+| `RSASSA-PKCS1-v1_5` | `'jwk'`, `'spki'`, `'pkcs8'`           |
+| `ECDSA`             | `'jwk'`, `'raw'`, `'spki'`, `'pkcs8'` |
+
+`ECDSA` requires `EcdsaParams` (`{ name: 'ECDSA', hash: AlgorithmIdentifier }`) for `sign` and `verify` so that the hash function can be specified.
 
 ```javascript
 // Compute SHA-256 digest
@@ -944,6 +1110,20 @@ console.log(`elapsed: ${elapsed}ms`);
 
 ---
 
+### DOM Events
+
+The standard `Event`, `EventTarget`, and `CustomEvent` interfaces are available as globals. These underpin the `FetchEvent` mechanism and can be used to implement custom event dispatch within an application.
+
+```typescript
+new Event(type: string, eventInitDict?: EventInit): Event
+new CustomEvent<T>(type: string, eventInitDict?: CustomEventInit<T>): CustomEvent<T>
+new EventTarget(): EventTarget
+```
+
+`EventTarget` exposes `addEventListener`, `removeEventListener`, and `dispatchEvent`. `CustomEvent` extends `Event` and adds a `detail` property carrying application-defined data.
+
+---
+
 ### Additional Globals
 
 | Global                          | Type / Signature                                            | Description                                       |
@@ -952,6 +1132,8 @@ console.log(`elapsed: ${elapsed}ms`);
 | `location`                      | `WorkerLocation`                                            | URL of the current worker script.                 |
 | `queueMicrotask(callback)`      | `(callback: () => void) => void`                            | Queues a microtask.                               |
 | `structuredClone(value, opts?)` | `(value: any, options?: StructuredSerializeOptions) => any` | Deep-clones a value. Transferable: `ArrayBuffer`. |
+
+`WorkerLocation` exposes `href`, `origin`, `protocol`, `host`, `hostname`, `port`, `pathname`, `search`, and `hash` as read-only string properties.
 
 ---
 

@@ -123,12 +123,12 @@ export { config };
 
 ### BuildConfig Fields
 
-| Field          | Type                 | Required | Description                                        |
-| -------------- | -------------------- | -------- | -------------------------------------------------- |
-| `type`         | `'http' \| 'static'` | No       | Build type; must be `http` or `static` if provided |
-| `entryPoint`   | `string`             | Yes      | Input JavaScript/TypeScript file                   |
-| `wasmOutput`   | `string`             | Yes      | Output WASM file path                              |
-| `tsConfigPath` | `string`             | No       | Path to tsconfig.json                              |
+| Field          | Type                  | Required | Description                                        |
+| -------------- | --------------------- | -------- | -------------------------------------------------- |
+| `type`         | `'http' \| 'static'`  | No       | Build type; must be `http` or `static` if provided |
+| `entryPoint`   | `string`              | Yes      | Input JavaScript/TypeScript file                   |
+| `wasmOutput`   | `string`              | Yes      | Output WASM file path                              |
+| `tsConfigPath` | `string`              | No       | Path to tsconfig.json                              |
 
 ### Static-Only Fields
 

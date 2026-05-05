@@ -83,12 +83,12 @@ npx fastedge-build --config .fastedge/build-config.js
 
 ### Prompts
 
-| Prompt                                   | Default                        | Validation                                 |
-| ---------------------------------------- | ------------------------------ | ------------------------------------------ |
-| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                      |
-| Path to your public directory            | `./build`                      | Directory must exist                       |
-| Is your site a single page application?  | `No`                           | —                                          |
-| Path to your SPA entrypoint *(SPA only)* | `./index.html`                 | Warns if not found in the public directory |
+| Prompt                                   | Default                        | Validation                                              |
+| ---------------------------------------- | ------------------------------ | ------------------------------------------------------- |
+| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                   |
+| Path to your public directory            | `./build`                      | Directory must exist                                    |
+| Is your site a single page application?  | `No`                           | —                                                       |
+| Path to your SPA entrypoint *(SPA only)* | `./index.html`                 | Warns if not found in the public directory              |
 
 ### Files Created
 
@@ -97,7 +97,7 @@ npx fastedge-build --config .fastedge/build-config.js
 | `.fastedge/static-index.js` | Generated entry file that wires the static server together |
 | `.fastedge/build-config.js` | Build and server configuration module                      |
 | `.fastedge/package.json`    | Marks `.fastedge/` as an ES module project                 |
-| `.fastedge/jsconfig.json`   | Sets the compiler target to ES6 for the project directory  |
+| `.fastedge/jsconfig.json`   | Sets the compiler target to ES2023 for the project directory |
 
 ### Generated Entry File
 

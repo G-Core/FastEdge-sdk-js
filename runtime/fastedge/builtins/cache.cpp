@@ -1,4 +1,5 @@
 #include "builtin.h"
+#include "encode.h"
 
 #include "../host-api/include/fastedge_host_api.h"
 
@@ -358,10 +359,10 @@ bool Cache::get(JSContext *cx, unsigned argc, JS::Value *vp) {
 
   JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
   if (!key_str) return false;
-  JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+  auto key = core::encode(cx, key_str);
   if (!key) return false;
 
-  auto result = host_api::cache_get(key.get());
+  auto result = host_api::cache_get(std::string_view(key.ptr.get(), key.len));
   if (!result.is_ok()) {
     throw_cache_error(cx, result.unwrap_err());
     return ReturnPromiseRejectedWithPendingError(cx, args);
@@ -387,10 +388,10 @@ bool Cache::exists(JSContext *cx, unsigned argc, JS::Value *vp) {
 
   JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
   if (!key_str) return false;
-  JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+  auto key = core::encode(cx, key_str);
   if (!key) return false;
 
-  auto result = host_api::cache_exists(key.get());
+  auto result = host_api::cache_exists(std::string_view(key.ptr.get(), key.len));
   if (!result.is_ok()) {
     throw_cache_error(cx, result.unwrap_err());
     return ReturnPromiseRejectedWithPendingError(cx, args);
@@ -406,10 +407,10 @@ bool Cache::delete_op(JSContext *cx, unsigned argc, JS::Value *vp) {
 
   JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
   if (!key_str) return false;
-  JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+  auto key = core::encode(cx, key_str);
   if (!key) return false;
 
-  auto err = host_api::cache_delete(key.get());
+  auto err = host_api::cache_delete(std::string_view(key.ptr.get(), key.len));
   if (err) {
     throw_cache_error(cx, *err);
     return ReturnPromiseRejectedWithPendingError(cx, args);
@@ -556,7 +557,7 @@ bool Cache::getOrSet(JSContext *cx, unsigned argc, JS::Value *vp) {
   // 1. Validate key — sync throw.
   JS::RootedString key_jsstring(cx, JS::ToString(cx, args[0]));
   if (!key_jsstring) return false;
-  JS::UniqueChars key_chars = JS_EncodeStringToUTF8(cx, key_jsstring);
+  auto key_chars = core::encode(cx, key_jsstring);
   if (!key_chars) return false;
 
   // 2. Validate populate — must be callable.
@@ -573,7 +574,7 @@ bool Cache::getOrSet(JSContext *cx, unsigned argc, JS::Value *vp) {
   }
 
   // 4. Cache hit fast path: return resolved Promise<CacheEntry>.
-  auto cache_result = host_api::cache_get(key_chars.get());
+  auto cache_result = host_api::cache_get(std::string_view(key_chars.ptr.get(), key_chars.len));
   if (!cache_result.is_ok()) {
     throw_cache_error(cx, cache_result.unwrap_err());
     return ReturnPromiseRejectedWithPendingError(cx, args);
@@ -669,7 +670,7 @@ bool Cache::expire(JSContext *cx, unsigned argc, JS::Value *vp) {
 
   JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
   if (!key_str) return false;
-  JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+  auto key = core::encode(cx, key_str);
   if (!key) return false;
 
   std::optional<uint64_t> ttl_ms;
@@ -679,7 +680,7 @@ bool Cache::expire(JSContext *cx, unsigned argc, JS::Value *vp) {
     return false;
   }
 
-  auto result = host_api::cache_expire(key.get(), *ttl_ms);
+  auto result = host_api::cache_expire(std::string_view(key.ptr.get(), key.len), *ttl_ms);
   if (!result.is_ok()) {
     throw_cache_error(cx, result.unwrap_err());
     return ReturnPromiseRejectedWithPendingError(cx, args);
@@ -805,14 +806,14 @@ bool getOrSet_finalize(JSContext *cx, JS::HandleObject outer_promise,
                        JS::HandleString key_jsstring,
                        std::optional<uint64_t> ttl_ms, const uint8_t *bytes,
                        size_t len) {
-  JS::UniqueChars key_chars = JS_EncodeStringToUTF8(cx, key_jsstring);
+  auto key_chars = core::encode(cx, key_jsstring);
   if (!key_chars) {
     inflight_delete(cx, key_jsstring);
     return false;
   }
 
   host_api::CacheBytesView view{bytes, len};
-  auto err = host_api::cache_set(key_chars.get(), view, ttl_ms);
+  auto err = host_api::cache_set(std::string_view(key_chars.ptr.get(), key_chars.len), view, ttl_ms);
   if (err) {
     throw_cache_error(cx, *err);
     JS::RootedValue exc(cx);
@@ -848,11 +849,11 @@ bool getOrSet_finalize(JSContext *cx, JS::HandleObject outer_promise,
 bool finish_set(JSContext *cx, JS::HandleObject outer_promise,
                 JS::HandleString key_jsstring, const uint8_t *bytes,
                 size_t len, std::optional<uint64_t> ttl_ms) {
-  JS::UniqueChars key_chars = JS_EncodeStringToUTF8(cx, key_jsstring);
+  auto key_chars = core::encode(cx, key_jsstring);
   if (!key_chars) return false;
 
   host_api::CacheBytesView view{bytes, len};
-  auto err = host_api::cache_set(key_chars.get(), view, ttl_ms);
+  auto err = host_api::cache_set(std::string_view(key_chars.ptr.get(), key_chars.len), view, ttl_ms);
   if (err) {
     throw_cache_error(cx, *err);
     JS::RootedValue exc(cx);
@@ -963,6 +964,17 @@ bool Cache::getOrSet_populate_then(JSContext *cx,
   if (ttl_n >= 0.0) ttl_ms = static_cast<uint64_t>(ttl_n);
 
   JS::RootedValue value(cx, args.get(0));
+
+  // null from the populator → don't cache; resolve outer Promise with null.
+  // Coalesced waiters share the same outer Promise and receive null as well.
+  // This lets users wrap fallible work and only pin successes:
+  //   getOrSet(k, async () => { const r = await fetch(u); return r.ok ? r : null; }, ...)
+  if (value.isNull()) {
+    inflight_delete(cx, key_jsstring);
+    JS::RootedValue null_val(cx, JS::NullValue());
+    args.rval().setUndefined();
+    return JS::ResolvePromise(cx, outer_promise, null_val);
+  }
 
   // Sync coercion (string / ArrayBuffer / ArrayBufferView).
   std::vector<uint8_t> bytes;
@@ -1110,7 +1122,7 @@ bool incr_common(JSContext *cx, JS::CallArgs &args, const char *fn_name,
 
   JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
   if (!key_str) return false;
-  JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+  auto key = core::encode(cx, key_str);
   if (!key) return false;
 
   int64_t delta = 1;
@@ -1138,7 +1150,7 @@ bool incr_common(JSContext *cx, JS::CallArgs &args, const char *fn_name,
   }
   if (negate) delta = -delta;
 
-  auto result = host_api::cache_incr(key.get(), delta);
+  auto result = host_api::cache_incr(std::string_view(key.ptr.get(), key.len), delta);
   if (!result.is_ok()) {
     throw_cache_error(cx, result.unwrap_err());
     return ReturnPromiseRejectedWithPendingError(cx, args);

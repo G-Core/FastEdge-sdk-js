@@ -245,14 +245,28 @@ declare module 'fastedge::cache' {
      * rejection propagates to all current waiters. The next call after
      * the rejection retries `populate` (no negative caching).
      *
+     * **Skip-cache signal:** if `populate` resolves with `null`, the
+     * value is *not* written to the cache and `getOrSet` resolves with
+     * `null`. Use this to wrap fallible work and only pin successes —
+     * for example, caching only `response.ok` upstream fetches so that a
+     * transient 5xx doesn't get held for the rest of the TTL window. To
+     * also surface the original error response (e.g. return a 404 to the
+     * caller), use manual `Cache.get` + conditional `Cache.set` instead.
+     *
      * @example
      * ```js
-     * // Simple origin proxy with a 5-second cache
+     * // Cache only successful upstream responses; null skips the write.
      * const entry = await Cache.getOrSet(
-     *   request.url,
-     *   () => fetch(`origin-url/${request.path}`),
-     *   { ttl: 5 },
+     *   `proxy:${url}`,
+     *   async () => {
+     *     const r = await fetch(url);
+     *     return r.ok ? r : null;
+     *   },
+     *   { ttl: 30 },
      * );
+     * if (entry === null) {
+     *   return Response.json({ error: 'upstream unavailable' }, { status: 503 });
+     * }
      * return new Response(await entry.arrayBuffer());
      * ```
      */
@@ -261,5 +275,10 @@ declare module 'fastedge::cache' {
       populate: () => CacheValue | Promise<CacheValue>,
       options?: WriteOptions,
     ): Promise<CacheEntry>;
+    static getOrSet(
+      key: string,
+      populate: () => CacheValue | null | Promise<CacheValue | null>,
+      options?: WriteOptions,
+    ): Promise<CacheEntry | null>;
   }
 }
