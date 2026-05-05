@@ -5,6 +5,29 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-05-05] — Pin host-api bindings to wit-bindgen 0.30.0 (fix wasmtime 36 trap)
+
+### Overview
+Reverted the wit-bindgen pin from 0.37.0 back to 0.30.0 after a canonical-ABI lowering regression in 0.37.0 caused every JS-built component to trap `pointer not aligned` on wasmtime 36 hosts (FastEdge edge), surfacing as `530: fastedge: Execute error` for all examples — including hello-world that doesn't touch any new interface.
+
+### Root cause
+`wit-bindgen` 0.37.0 generates lowering code that reads pointer/length fields from variant-with-string types at unaligned offsets (e.g. `ptr+1` where 0.30.0 used `ptr+4`). wasi:http result/option decoding hits these helpers early on every incoming request, so the trap fires before the guest can invoke `response-outparam::set`.
+
+### Changes
+- **Regenerated** `runtime/fastedge/host-api/bindings/{bindings.c,bindings.h,bindings_component_type.o}` with `wit-bindgen-cli@0.30.0` against the full branch WIT (cache-sync, cache-types, utils included). 0.30.0 parses these interfaces fine — the prior 0.37.0 pin was unnecessary.
+- **Documented** the regression and required version in `context/development/BUILD_SYSTEM.md` (new "WIT Bindings & wit-bindgen Version" section) including diff illustrating the offset change.
+- **No source changes** to `fastedge_host_api.{cpp,h}`, `world.wit`, `cache.cpp`, or any builtin — only the generated bindings layer.
+
+### Verification
+- `examples/hello-world/dist/hello-world.wasm` runs cleanly on the wasmtime 36 edge host.
+- `examples/cache-basic/dist/cache-basic.wasm` runs and exercises the `Cache.get/set/exists/delete` flow.
+
+### Notes
+- The fix is silent at build time — only request-time execution surfaces the trap. Any future wit-bindgen bump must be retested on a wasmtime 36 host before merging.
+- The `runtime/fastedge/scripts/create-wit-bindings.sh` script does not enforce the version. We intentionally did not hard-code it; the version contract is documented in `BUILD_SYSTEM.md` instead.
+
+---
+
 ## [2026-05-05] — Customer tsconfig modernisation + globals.d.ts audit
 
 ### Overview
