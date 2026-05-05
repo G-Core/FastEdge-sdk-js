@@ -134,9 +134,13 @@ async function createProjectFiles(): Promise<void> {
 
   await writeFile(`${PROJECT_DIRECTORY}/package.json`, packageJsonContents, 'utf-8');
 
-  const jsConfigContents = ['{', '  "compilerOptions": {', '    "target": "ES6"', '  }', '}'].join(
-    '\n',
-  );
+  const jsConfigContents = [
+    '{',
+    '  "compilerOptions": {',
+    '    "target": "ES2023"',
+    '  }',
+    '}',
+  ].join('\n');
 
   await writeFile(`${PROJECT_DIRECTORY}/jsconfig.json`, jsConfigContents, 'utf-8');
 }

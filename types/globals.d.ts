@@ -257,7 +257,14 @@ and limitations under the License.
  * ({@linkcode Request}, and {@linkcode Response})
  * @group Fetch API
  */
-declare type BodyInit = ReadableStream | ArrayBufferView | ArrayBuffer | URLSearchParams | string;
+declare type BodyInit =
+  | ReadableStream
+  | ArrayBufferView
+  | ArrayBuffer
+  | Blob
+  | FormData
+  | URLSearchParams
+  | string;
 
 /**
  * Body for Fetch HTTP Requests and Responses
@@ -269,8 +276,8 @@ declare interface Body {
   readonly body: ReadableStream<Uint8Array> | null;
   readonly bodyUsed: boolean;
   arrayBuffer(): Promise<ArrayBuffer>;
-  // blob(): Promise<Blob>;
-  // formData(): Promise<FormData>;
+  blob(): Promise<Blob>;
+  formData(): Promise<FormData>;
   json(): Promise<any>;
   text(): Promise<string>;
 }
@@ -314,11 +321,10 @@ declare interface RequestInit {
   // referrer?: string;
   // /** A referrer policy to set request's referrerPolicy. */
   // referrerPolicy?: ReferrerPolicy;
-  // /** An AbortSignal to set request's signal. */
-  // signal?: AbortSignal | null;
+  /** An AbortSignal to set request's signal. */
+  signal?: AbortSignal | null;
   // /** Can only be null. Used to disassociate request from any Window. */
   // window?: null;
-  manualFramingHeaders?: boolean;
 }
 
 /**
@@ -352,16 +358,13 @@ interface Request extends Body {
   // readonly referrer: string;
   // /** Returns the referrer policy associated with request. This is used during fetching to compute the value of the request's referrer. */
   // readonly referrerPolicy: ReferrerPolicy;
-  // /** Returns the signal associated with request, which is an AbortSignal object indicating whether or not request has been aborted, and its abort event handler. */
-  // readonly signal: AbortSignal;
+  /** Returns the signal associated with request, which is an AbortSignal object indicating whether or not request has been aborted, and its abort event handler. */
+  readonly signal: AbortSignal;
   /** Returns the URL of request as a string. */
   readonly url: string;
 
-  // /** Creates a copy of the current Request object. */
+  /** Creates a copy of the current Request object. */
   clone(): Request;
-
-  setCacheKey(key: string): void;
-  setManualFramingHeaders(manual: boolean): void;
 }
 
 /**
@@ -381,7 +384,6 @@ declare interface ResponseInit {
   headers?: HeadersInit;
   status?: number;
   statusText?: string;
-  manualFramingHeaders?: boolean;
 }
 
 /**
@@ -392,16 +394,19 @@ declare interface ResponseInit {
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Response | Response on MDN}
  * @group Fetch API
  */
+/**
+ * @group Fetch API
+ */
+type ResponseType = 'basic' | 'cors' | 'default' | 'error' | 'opaque' | 'opaqueredirect';
+
 interface Response extends Body {
   readonly headers: Headers;
   readonly ok: boolean;
-  // readonly redirected: boolean;
+  readonly redirected: boolean;
   readonly status: number;
   readonly statusText: string;
-  // readonly type: ResponseType;
+  readonly type: ResponseType;
   readonly url: string;
-  // clone(): Response;
-  setManualFramingHeaders(manual: boolean): void;
 }
 
 /**
@@ -815,6 +820,7 @@ interface Headers {
   append(name: string, value: string): void;
   delete(name: string): void;
   get(name: string): string | null;
+  getSetCookie(): string[];
   has(name: string): boolean;
   set(name: string, value: string): void;
   forEach(callbackfn: (value: string, key: string, parent: Headers) => void, thisArg?: any): void;
@@ -1143,16 +1149,143 @@ type KeyUsage =
   | 'wrapKey';
 
 /**
- * EventTarget is a DOM interface implemented by objects that can receive events and may have listeners for them.
+ * @group DOM Events
+ */
+interface EventInit {
+  bubbles?: boolean;
+  cancelable?: boolean;
+  composed?: boolean;
+}
+
+/**
+ * An event which takes place in the DOM.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Event)
+ * @group DOM Events
+ */
+interface Event {
+  readonly bubbles: boolean;
+  readonly cancelable: boolean;
+  readonly composed: boolean;
+  readonly currentTarget: EventTarget | null;
+  readonly defaultPrevented: boolean;
+  readonly eventPhase: number;
+  readonly isTrusted: boolean;
+  readonly srcElement: EventTarget | null;
+  readonly target: EventTarget | null;
+  readonly timeStamp: DOMHighResTimeStamp;
+  readonly type: string;
+  returnValue: boolean;
+  composedPath(): EventTarget[];
+  initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void;
+  preventDefault(): void;
+  stopImmediatePropagation(): void;
+  stopPropagation(): void;
+  readonly NONE: 0;
+  readonly CAPTURING_PHASE: 1;
+  readonly AT_TARGET: 2;
+  readonly BUBBLING_PHASE: 3;
+}
+
+/**
+ * @group DOM Events
+ */
+declare var Event: {
+  prototype: Event;
+  new (type: string, eventInitDict?: EventInit): Event;
+  readonly NONE: 0;
+  readonly CAPTURING_PHASE: 1;
+  readonly AT_TARGET: 2;
+  readonly BUBBLING_PHASE: 3;
+};
+
+/**
+ * @group DOM Events
+ */
+interface CustomEventInit<T = any> extends EventInit {
+  detail?: T;
+}
+
+/**
+ * Events initialised by an application for any purpose.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CustomEvent)
+ * @group DOM Events
+ */
+interface CustomEvent<T = any> extends Event {
+  readonly detail: T;
+}
+
+/**
+ * @group DOM Events
+ */
+declare var CustomEvent: {
+  prototype: CustomEvent;
+  new <T>(type: string, eventInitDict?: CustomEventInit<T>): CustomEvent<T>;
+};
+
+/**
+ * @group DOM Events
+ */
+interface EventListener {
+  (evt: Event): void;
+}
+
+/**
+ * @group DOM Events
+ */
+interface EventListenerObject {
+  handleEvent(object: Event): void;
+}
+
+/**
+ * @group DOM Events
+ */
+type EventListenerOrEventListenerObject = EventListener | EventListenerObject;
+
+/**
+ * @group DOM Events
+ */
+interface EventListenerOptions {
+  capture?: boolean;
+}
+
+/**
+ * @group DOM Events
+ */
+interface AddEventListenerOptions extends EventListenerOptions {
+  once?: boolean;
+  passive?: boolean;
+  signal?: AbortSignal;
+}
+
+/**
+ * EventTarget is an interface implemented by objects that can receive events and may have listeners for them.
  *
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget)
  * @group DOM Events
  */
 interface EventTarget {
-  //addEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: AddEventListenerOptions | boolean): void;
-  //dispatchEvent(event: Event): boolean;
-  //removeEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: EventListenerOptions | boolean): void;
+  addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject | null,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  dispatchEvent(event: Event): boolean;
+  removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject | null,
+    options?: EventListenerOptions | boolean,
+  ): void;
 }
+
+/**
+ * @group DOM Events
+ */
+declare var EventTarget: {
+  prototype: EventTarget;
+  new (): EventTarget;
+};
 
 /**
  * Provides access to performance-related information for the current page. It's part of the High Resolution Time API, but is enhanced by the Performance Timeline API, the Navigation Timing API, the User Timing API, and the Resource Timing API.
@@ -1181,4 +1314,250 @@ declare var Performance: {
 declare var performance: Performance;
 
 type DOMHighResTimeStamp = number;
+
+// ---------------------------------------------------------------------------
+// Abort API
+// ---------------------------------------------------------------------------
+
+/**
+ * @group Abort API
+ */
+interface AbortSignalEventMap {
+  abort: Event;
+}
+
+/**
+ * A signal object that allows you to communicate with a request and abort it
+ * if required via an {@linkcode AbortController}.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/AbortSignal)
+ * @group Abort API
+ */
+interface AbortSignal extends EventTarget {
+  /** Whether the request has been aborted. */
+  readonly aborted: boolean;
+  /** The reason the signal aborted, if any. */
+  readonly reason: any;
+  onabort: ((this: AbortSignal, ev: Event) => any) | null;
+  /** Throws the signal's abort `reason` if the signal has been aborted. */
+  throwIfAborted(): void;
+}
+
+/**
+ * @group Abort API
+ */
+declare var AbortSignal: {
+  prototype: AbortSignal;
+  new (): AbortSignal;
+  /** Returns an `AbortSignal` instance that is already aborted. */
+  abort(reason?: any): AbortSignal;
+  /** Returns an `AbortSignal` that aborts after `milliseconds` have elapsed. */
+  timeout(milliseconds: number): AbortSignal;
+  /** Returns an `AbortSignal` that aborts when any of the supplied signals abort. */
+  any(signals: AbortSignal[]): AbortSignal;
+};
+
+/**
+ * A controller object that allows you to abort one or more requests as
+ * desired through an associated {@linkcode AbortSignal}.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/AbortController)
+ * @group Abort API
+ */
+interface AbortController {
+  /** The {@linkcode AbortSignal} associated with this controller. */
+  readonly signal: AbortSignal;
+  /** Causes the signal to transition to its aborted state. */
+  abort(reason?: any): void;
+}
+
+/**
+ * @group Abort API
+ */
+declare var AbortController: {
+  prototype: AbortController;
+  new (): AbortController;
+};
+
+// ---------------------------------------------------------------------------
+// Encoding API (TextEncoder / TextDecoder)
+// ---------------------------------------------------------------------------
+
+/**
+ * @group Encoding API
+ */
+interface TextDecoderOptions {
+  fatal?: boolean;
+  ignoreBOM?: boolean;
+}
+
+/**
+ * @group Encoding API
+ */
+interface TextDecodeOptions {
+  stream?: boolean;
+}
+
+/**
+ * Decodes a stream of bytes (e.g. {@linkcode ArrayBuffer} or
+ * {@linkcode Uint8Array}) into a string using a given encoding.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/TextDecoder)
+ * @group Encoding API
+ */
+interface TextDecoder {
+  readonly encoding: string;
+  readonly fatal: boolean;
+  readonly ignoreBOM: boolean;
+  decode(input?: BufferSource, options?: TextDecodeOptions): string;
+}
+
+/**
+ * @group Encoding API
+ */
+declare var TextDecoder: {
+  prototype: TextDecoder;
+  new (label?: string, options?: TextDecoderOptions): TextDecoder;
+};
+
+/**
+ * @group Encoding API
+ */
+interface TextEncoderEncodeIntoResult {
+  read: number;
+  written: number;
+}
+
+/**
+ * Encodes a string into a stream of UTF-8 bytes.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/TextEncoder)
+ * @group Encoding API
+ */
+interface TextEncoder {
+  /** Always `"utf-8"`. */
+  readonly encoding: string;
+  encode(input?: string): Uint8Array;
+  encodeInto(source: string, destination: Uint8Array): TextEncoderEncodeIntoResult;
+}
+
+/**
+ * @group Encoding API
+ */
+declare var TextEncoder: {
+  prototype: TextEncoder;
+  new (): TextEncoder;
+};
+
+// ---------------------------------------------------------------------------
+// Blob / File / FormData
+// ---------------------------------------------------------------------------
+
+/**
+ * @group File API
+ */
+type EndingType = 'native' | 'transparent';
+
+/**
+ * @group File API
+ */
+type BlobPart = BufferSource | Blob | string;
+
+/**
+ * @group File API
+ */
+interface BlobPropertyBag {
+  endings?: EndingType;
+  type?: string;
+}
+
+/**
+ * A file-like object of immutable, raw data. Blobs represent data that isn't
+ * necessarily in a JavaScript-native format.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Blob)
+ * @group File API
+ */
+interface Blob {
+  readonly size: number;
+  readonly type: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  bytes(): Promise<Uint8Array>;
+  slice(start?: number, end?: number, contentType?: string): Blob;
+  stream(): ReadableStream<Uint8Array>;
+  text(): Promise<string>;
+}
+
+/**
+ * @group File API
+ */
+declare var Blob: {
+  prototype: Blob;
+  new (blobParts?: BlobPart[], options?: BlobPropertyBag): Blob;
+};
+
+/**
+ * @group File API
+ */
+interface FilePropertyBag extends BlobPropertyBag {
+  lastModified?: number;
+}
+
+/**
+ * Provides information about files and allows JavaScript to access their
+ * content.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/File)
+ * @group File API
+ */
+interface File extends Blob {
+  readonly lastModified: number;
+  readonly name: string;
+}
+
+/**
+ * @group File API
+ */
+declare var File: {
+  prototype: File;
+  new (fileBits: BlobPart[], fileName: string, options?: FilePropertyBag): File;
+};
+
+/**
+ * @group File API
+ */
+type FormDataEntryValue = File | string;
+
+/**
+ * Provides a way to easily construct a set of key/value pairs representing
+ * form fields and their values.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/FormData)
+ * @group File API
+ */
+interface FormData {
+  append(name: string, value: string | Blob, fileName?: string): void;
+  delete(name: string): void;
+  get(name: string): FormDataEntryValue | null;
+  getAll(name: string): FormDataEntryValue[];
+  has(name: string): boolean;
+  set(name: string, value: string | Blob, fileName?: string): void;
+  forEach(
+    callbackfn: (value: FormDataEntryValue, key: string, parent: FormData) => void,
+    thisArg?: any,
+  ): void;
+  entries(): IterableIterator<[string, FormDataEntryValue]>;
+  keys(): IterableIterator<string>;
+  values(): IterableIterator<FormDataEntryValue>;
+  [Symbol.iterator](): IterableIterator<[string, FormDataEntryValue]>;
+}
+
+/**
+ * @group File API
+ */
+declare var FormData: {
+  prototype: FormData;
+  new (): FormData;
+};
+
 0;

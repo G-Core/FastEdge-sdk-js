@@ -1,17 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2023",
     "module": "ESNext",
+    "moduleResolution": "Bundler",
     "strict": true,
-    "esModuleInterop": true,
-    "moduleResolution": "Node",
-    "rootDir": "./",
-    "noEmit": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2020", "DOM"],
+    "noEmit": true,
+    "lib": ["ES2023"],
     "types": ["@gcoredev/fastedge-sdk-js"]
   },
-  "include": ["src/**/*", "./node_modules/@gcoredev/fastedge-sdk-js/types"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }

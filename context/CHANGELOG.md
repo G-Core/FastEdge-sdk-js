@@ -5,6 +5,33 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-05-05] — Customer tsconfig modernisation + globals.d.ts audit
+
+### Overview
+Brought the recommended customer `tsconfig.json` in line with what StarlingMonkey actually supports (ES2023, no DOM lib) and expanded `types/globals.d.ts` to declare every Web API the runtime exposes. Made the customer-bundle esbuild target explicit. Removed dead Fastly-inherited type declarations that had no runtime backing.
+
+### Changes
+- **`types/globals.d.ts`** — verified each addition against `runtime/StarlingMonkey/builtins/web/` C++ sources:
+  - Added: `TextEncoder`, `TextDecoder`, `Event`, `CustomEvent`, full `EventTarget`, `AbortController`, `AbortSignal`, `Blob`, `File`, `FormData` and their init/option dictionaries.
+  - Uncommented (now backed by runtime): `Body.blob()`, `Body.formData()`, `RequestInit.signal`, `Request.signal`, `Response.redirected`, `Response.type`. Added `ResponseType`.
+  - Added: `Headers.getSetCookie()`.
+  - Updated: `BodyInit` to include `Blob | FormData`.
+  - **Removed** (no implementation in either StarlingMonkey or `runtime/fastedge/builtins/`): `Request.setCacheKey`, `Request.setManualFramingHeaders`, `Response.setManualFramingHeaders`, and the corresponding `manualFramingHeaders` flags on `RequestInit`/`ResponseInit`. These were inherited from a Fastly types copy and threw `TypeError` at runtime.
+  - Confirmed staying commented out (not parsed by `request-response.cpp`): `cache`, `credentials`, `redirect`, `mode`, `integrity`, `keepalive`, `referrer`, `referrerPolicy`, `window`, `Response.clone()`, `Response.error()`.
+- **`tsconfig.json`** — bumped SDK root `target` to `ES2023`.
+- **`src/componentize/es-bundle.ts`** — set explicit `format: "esm"` and `target: "es2023"` on the customer-bundle esbuild call so the contract is documented in code rather than implicit-via-default.
+- **`src/cli/fastedge-init/create-config.ts`** — bumped scaffolded `.fastedge/jsconfig.json` `target` from `ES6` to `ES2023`.
+- **Examples** — updated `cache/`, `kv-store/`, `static-assets/`, `mcp-server/`, and `react-with-hono-server/tsconfig.fastedge.json` to the new recommended config: `ES2023` target/lib, `moduleResolution: "Bundler"` (except `mcp-server` which keeps `Node16` because it `tsc`-emits before `fastedge-build`), no `DOM` lib. The Vite-side configs (`tsconfig.app.json`, `tsconfig.node.json`) in `react-with-hono-server` are untouched — they target the browser/Node tooling, not the FastEdge worker.
+- **`context/development/BUILD_SYSTEM.md`** — new "Customer Code Bundling" section documenting that the customer's `tsconfig.json` does **not** influence WASM output (esbuild ignores it), the actual scope of `--tsconfig` (drives `tsc --project` syntax check only), and the recommended customer config.
+
+### Migration / impact
+- **No runtime behaviour change.** ES2023 target on esbuild is now explicit; previously it inherited esbuild's `esnext` default which already preserved modern syntax for SpiderMonkey 140 to execute.
+- **`Request.setCacheKey()` / `setManualFramingHeaders()` removed from types.** Anyone calling these at runtime was already getting a `TypeError`; the type removal stops it compiling silently.
+- **DOM lib no longer needed.** Customer code that relied on `document`/`window`/`localStorage` types was already broken at runtime; this change makes it broken at compile time, which is the right outcome.
+- **Verification:** `pnpm run typecheck`, `pnpm run build:types`, `pnpm run test:unit:dev` (425 tests pass), `pnpm run build` in `examples/cache-basic` all pass. Each updated example tsconfig typechecks cleanly against the new globals.
+
+---
+
 ## [2026-05-04] — KvStoreEntry: entry-style accessors for KV Store
 
 ### Overview
