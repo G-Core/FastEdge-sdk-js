@@ -83,14 +83,14 @@ export { config };
 
 The following fields apply when `type` is `'static'`. All other `BuildConfig` fields are documented in [BUILD_CLI.md](BUILD_CLI.md).
 
-| Field                | Type                           | Required | Description                                                            |
-| -------------------- | ------------------------------ | -------- | ---------------------------------------------------------------------- |
-| `publicDir`          | `string`                       | Yes      | Directory to scan for static files to embed                            |
-| `assetManifestPath`  | `string`                       | Yes      | Output path for the generated asset manifest module                    |
-| `contentTypes`       | `Array<ContentTypeDefinition>` | No       | Custom content-type rules prepended before built-in defaults           |
-| `ignoreDotFiles`     | `boolean`                      | No       | When `true`, excludes files and directories whose names begin with `.` |
-| `ignorePaths`        | `string[]`                     | No       | Additional paths to exclude from the manifest                          |
-| `ignoreWellKnown`    | `boolean`                      | No       | When `true`, excludes the `.well-known/` directory                     |
+| Field               | Type                           | Required | Description                                                            |
+| ------------------- | ------------------------------ | -------- | ---------------------------------------------------------------------- |
+| `publicDir`         | `string`                       | Yes      | Directory to scan for static files to embed                            |
+| `assetManifestPath` | `string`                       | Yes      | Output path for the generated asset manifest module                    |
+| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content-type rules prepended before built-in defaults           |
+| `ignoreDotFiles`    | `boolean`                      | No       | When `true`, excludes files and directories whose names begin with `.` |
+| `ignorePaths`       | `string[]`                     | No       | Additional paths to exclude from the manifest                          |
+| `ignoreWellKnown`   | `boolean`                      | No       | When `true`, excludes the `.well-known/` directory                     |
 
 ## createStaticServer
 

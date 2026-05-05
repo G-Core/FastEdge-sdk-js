@@ -349,16 +349,17 @@ A handle to a cached value. The bytes are already in memory when you receive a `
 
 All methods are static; `Cache` is never constructed. All methods return `Promise`. Operational errors surface as Promise rejections. Argument validation errors (wrong types, conflicting `WriteOptions` fields) throw synchronously; both are caught the same way by `try`/`catch` around an `await`.
 
-| Method                              | Signature                                                                                                         | Returns                       |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| `get(key)`                          | `(key: string) => Promise<CacheEntry \| null>`                                                                    | `Promise<CacheEntry \| null>` |
-| `exists(key)`                       | `(key: string) => Promise<boolean>`                                                                               | `Promise<boolean>`            |
-| `set(key, value, options?)`         | `(key: string, value: CacheValue, options?: WriteOptions) => Promise<void>`                                       | `Promise<void>`               |
-| `delete(key)`                       | `(key: string) => Promise<void>`                                                                                  | `Promise<void>`               |
-| `expire(key, options)`              | `(key: string, options: WriteOptions) => Promise<boolean>`                                                        | `Promise<boolean>`            |
-| `incr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                | `Promise<number>`             |
-| `decr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                | `Promise<number>`             |
-| `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions) => Promise<CacheEntry>` | `Promise<CacheEntry>`         |
+| Method                              | Signature                                                                                                                        | Returns                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `get(key)`                          | `(key: string) => Promise<CacheEntry \| null>`                                                                                   | `Promise<CacheEntry \| null>` |
+| `exists(key)`                       | `(key: string) => Promise<boolean>`                                                                                              | `Promise<boolean>`            |
+| `set(key, value, options?)`         | `(key: string, value: CacheValue, options?: WriteOptions) => Promise<void>`                                                      | `Promise<void>`               |
+| `delete(key)`                       | `(key: string) => Promise<void>`                                                                                                 | `Promise<void>`               |
+| `expire(key, options)`              | `(key: string, options: WriteOptions) => Promise<boolean>`                                                                       | `Promise<boolean>`            |
+| `incr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                               | `Promise<number>`             |
+| `decr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                               | `Promise<number>`             |
+| `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions) => Promise<CacheEntry>`                | `Promise<CacheEntry>`         |
+| `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions) => Promise<CacheEntry \| null>` | `Promise<CacheEntry \| null>` |
 
 ##### `get`
 
@@ -473,6 +474,8 @@ Returns the entry for `key`, or calls `populate` on a cache miss and stores the 
 
 If `populate` throws or its Promise rejects, the rejection propagates to all current waiters. The next call after a failure retries `populate` (no negative caching).
 
+**Skip-cache signal:** if `populate` resolves with `null`, the value is _not_ written to the cache and `getOrSet` resolves with `null`. Use this to wrap fallible work and only pin successes — for example, caching only successful upstream responses so that a transient error response does not get stored for the duration of the TTL window. To also return the error response to the caller, use a manual `Cache.get` + conditional `Cache.set` instead.
+
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
 
@@ -481,12 +484,19 @@ import { Cache } from "fastedge::cache";
 async function app(event) {
   const url = new URL(event.request.url);
 
-  // Coalesce concurrent origin fetches; cache result for 30 seconds
+  // Cache only successful upstream responses; null skips the write.
   const entry = await Cache.getOrSet(
-    url.pathname,
-    () => fetch(`https://origin.example.com${url.pathname}`),
+    `proxy:${url.pathname}`,
+    async () => {
+      const r = await fetch(`https://origin.example.com${url.pathname}`);
+      return r.ok ? r : null;
+    },
     { ttl: 30 },
   );
+
+  if (entry === null) {
+    return Response.json({ error: "upstream unavailable" }, { status: 503 });
+  }
 
   return new Response(await entry.arrayBuffer(), {
     headers: { "content-type": "application/json" },

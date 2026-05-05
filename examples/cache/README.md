@@ -10,7 +10,7 @@ For the absolute basics (`set` / `get` / `exists` / `delete`), see [cache-basic]
 
 ### 1. Rate limiting — `?action=rate-limit`
 
-Per-IP request counter with a 60-second sliding window. Each call increments an atomic counter keyed by `event.client.address`; on the first hit of a window the TTL is attached so the counter resets correctly.
+Per-IP request counter with a 60-second fixed window anchored to the first request. Each call increments an atomic counter keyed by `event.client.address`; on the first hit of a window the TTL is attached, so the counter expires 60 seconds after that first request and the next request opens a new window.
 
 ```sh
 GET /?action=rate-limit
@@ -24,7 +24,7 @@ GET /?action=rate-limit
 
 ### 2. Origin-cache proxy — `?action=proxy&url=...`
 
-Fetches an upstream URL on the first request and caches the response bytes for 30 seconds. Concurrent requests for the same URL inside one worker share a single upstream fetch (in-process coalescing).
+Fetches an upstream URL on the first request and caches the response bytes for 30 seconds. Only successful (`response.ok`) responses are cached; non-2xx and redirects flow through unchanged so callers see the real status code instead of a synthetic 200. The pattern uses manual `Cache.get` + conditional `Cache.set` because `getOrSet`'s populator can't signal "fetched, but don't cache" (see Pattern 3 for `getOrSet` with in-process coalescing).
 
 ```sh
 GET /?action=proxy&url=https://example.com

@@ -52,6 +52,14 @@ void throw_cache_error(JSContext *cx, const host_api::CacheError &err) {
   }
 }
 
+// Upper bound for any computed TTL in milliseconds. Equals
+// Number.MAX_SAFE_INTEGER (2^53 − 1): the largest integer JS Number can
+// represent without loss, and well within uint64_t. ~285,000 years —
+// any legitimate TTL is orders of magnitude below this. Values at or
+// above the cap are rejected so we never wrap on the static_cast<uint64_t>
+// conversion below.
+static constexpr double MAX_TTL_MS = 9007199254740991.0;
+
 // Parse a `WriteOptions` JS value into milliseconds-from-now.
 //
 // undefined / null / {} → out=nullopt (no expiry)
@@ -60,7 +68,7 @@ void throw_cache_error(JSContext *cx, const host_api::CacheError &err) {
 // { expiresAt: N }      → out=(N*1000 - Date.now())
 //
 // Throws and returns false on validation error (multiple fields, non-finite,
-// non-positive, or non-object).
+// non-positive, beyond MAX_TTL_MS, or non-object).
 bool build_ttl_ms(JSContext *cx, JS::HandleValue options_val,
                   std::optional<uint64_t> *out) {
   if (options_val.isNullOrUndefined()) {
@@ -116,6 +124,12 @@ bool build_ttl_ms(JSContext *cx, JS::HandleValue options_val,
 
   if (!std::isfinite(ms) || ms <= 0.0) {
     JS_ReportErrorUTF8(cx, "WriteOptions: TTL must be positive");
+    return false;
+  }
+  if (ms >= MAX_TTL_MS) {
+    JS_ReportErrorUTF8(cx,
+        "WriteOptions: TTL must be less than %.0f ms (Number.MAX_SAFE_INTEGER)",
+        MAX_TTL_MS);
     return false;
   }
 

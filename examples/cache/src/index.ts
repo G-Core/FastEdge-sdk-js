@@ -95,6 +95,11 @@ async function proxy(url: string): Promise<Response> {
     );
   }
 
+  // Strip the fragment: fetch() never sends it to the origin, so
+  // `https://example.com/#a` and `#b` are the same upstream resource
+  // and must share one cache entry.
+  parsed.hash = '';
+
   const key = `proxy:${parsed.toString()}`;
 
   // Cache hit — replay the bytes as 200 OK. Status/headers from the
