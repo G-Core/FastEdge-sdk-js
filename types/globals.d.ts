@@ -301,29 +301,30 @@ declare type RequestInfo = Request | string;
 declare interface RequestInit {
   /** A BodyInit object or null to set request's body. */
   body?: BodyInit | null;
-  // /** A string indicating how the request will interact with the browser's cache to set request's cache. */
-  // cache?: RequestCache;
-  // /** A string indicating whether credentials will be sent with the request always, never, or only when sent to a same-origin URL. Sets request's credentials. */
-  // credentials?: RequestCredentials;
   /** A Headers object, an object literal, or an array of two-item arrays to set request's headers. */
   headers?: HeadersInit;
-  // /** A cryptographic hash of the resource to be fetched by request. Sets request's integrity. */
-  // integrity?: string;
-  // /** A boolean to set request's keepalive. */
-  // keepalive?: boolean;
   /** A string to set request's method. */
   method?: string;
-  // /** A string to indicate whether the request will use CORS, or will be restricted to same-origin URLs. Sets request's mode. */
-  // mode?: RequestMode;
-  // /** A string indicating whether request follows redirects, results in an error upon encountering a redirect, or returns the redirect (in an opaque fashion). Sets request's redirect. */
-  // redirect?: RequestRedirect;
-  // /** A string whose value is a same-origin URL, "about:client", or the empty string, to set request's referrer. */
-  // referrer?: string;
-  // /** A referrer policy to set request's referrerPolicy. */
-  // referrerPolicy?: ReferrerPolicy;
   /** An AbortSignal to set request's signal. */
   signal?: AbortSignal | null;
-  // /** Can only be null. Used to disassociate request from any Window. */
+
+  // ---------------------------------------------------------------------------
+  // Spec fields not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // The Request constructor only parses method/headers/body/signal. The fields
+  // below are part of the WHATWG Fetch spec but are silently dropped at runtime
+  // if passed. They will be uncommented when the runtime adds parsing and a
+  // matching property getter on Request. See:
+  //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
+  //
+  // cache?: RequestCache;
+  // credentials?: RequestCredentials;
+  // integrity?: string;
+  // keepalive?: boolean;
+  // mode?: RequestMode;
+  // redirect?: RequestRedirect;
+  // referrer?: string;
+  // referrerPolicy?: ReferrerPolicy;
   // window?: null;
 }
 
@@ -336,28 +337,10 @@ declare interface RequestInit {
  * @group Fetch API
  */
 interface Request extends Body {
-  // /** Returns the cache mode associated with request, which is a string indicating how the request will interact with the browser's cache when fetching. */
-  // readonly cache: RequestCache;
-  // /** Returns the credentials mode associated with request, which is a string indicating whether credentials will be sent with the request always, never, or only when sent to a same-origin URL. */
-  // readonly credentials: RequestCredentials;
-  // /** Returns the kind of resource requested by request, e.g., "document" or "script". */
-  // readonly destination: RequestDestination;
   /** Returns a Headers object consisting of the headers associated with request. */
   readonly headers: Headers;
-  // /** Returns request's subresource integrity metadata, which is a cryptographic hash of the resource being fetched. Its value consists of multiple hashes separated by whitespace. [SRI] */
-  // readonly integrity: string;
-  // /** Returns a boolean indicating whether or not request can outlive the global in which it was created. */
-  // readonly keepalive: boolean;
   /** Returns request's HTTP method, which is "GET" by default. */
   readonly method: string;
-  // /** Returns the mode associated with request, which is a string indicating whether the request will use CORS, or will be restricted to same-origin URLs. */
-  // readonly mode: RequestMode;
-  // /** Returns the redirect mode associated with request, which is a string indicating how redirects for the request will be handled during fetching. A request will follow redirects by default. */
-  // readonly redirect: RequestRedirect;
-  // /** Returns the referrer of request. Its value can be a same-origin URL if explicitly set in init, the empty string to indicate no referrer, and "about:client" when defaulting to the global's default. This is used during fetching to determine the value of the `Referer` header of the request being made. */
-  // readonly referrer: string;
-  // /** Returns the referrer policy associated with request. This is used during fetching to compute the value of the request's referrer. */
-  // readonly referrerPolicy: ReferrerPolicy;
   /** Returns the signal associated with request, which is an AbortSignal object indicating whether or not request has been aborted, and its abort event handler. */
   readonly signal: AbortSignal;
   /** Returns the URL of request as a string. */
@@ -365,6 +348,24 @@ interface Request extends Body {
 
   /** Creates a copy of the current Request object. */
   clone(): Request;
+
+  // ---------------------------------------------------------------------------
+  // Spec properties not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // No corresponding property getter is registered on the Request class, so
+  // these accessors are unavailable at runtime. They will be uncommented when
+  // the runtime exposes them. See:
+  //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
+  //
+  // readonly cache: RequestCache;
+  // readonly credentials: RequestCredentials;
+  // readonly destination: RequestDestination;
+  // readonly integrity: string;
+  // readonly keepalive: boolean;
+  // readonly mode: RequestMode;
+  // readonly redirect: RequestRedirect;
+  // readonly referrer: string;
+  // readonly referrerPolicy: ReferrerPolicy;
 }
 
 /**
@@ -387,6 +388,11 @@ declare interface ResponseInit {
 }
 
 /**
+ * @group Fetch API
+ */
+type ResponseType = 'basic' | 'cors' | 'default' | 'error' | 'opaque' | 'opaqueredirect';
+
+/**
  * The Response class as [specified by WHATWG](https://fetch.spec.whatwg.org/#ref-for-dom-response%E2%91%A0)
  *
  * **Note**: Can only be used when processing requests, not during build-time initialization.
@@ -394,11 +400,6 @@ declare interface ResponseInit {
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Response | Response on MDN}
  * @group Fetch API
  */
-/**
- * @group Fetch API
- */
-type ResponseType = 'basic' | 'cors' | 'default' | 'error' | 'opaque' | 'opaqueredirect';
-
 interface Response extends Body {
   readonly headers: Headers;
   readonly ok: boolean;
@@ -415,21 +416,29 @@ interface Response extends Body {
 declare var Response: {
   prototype: Response;
   new (body?: BodyInit | null, init?: ResponseInit): Response;
-  // error(): Response;
   redirect(url: string | URL, status?: number): Response;
   json(data: any, init?: ResponseInit): Response;
+
+  // ---------------------------------------------------------------------------
+  // Spec static methods not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // Will be uncommented when the runtime exposes them. See:
+  //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
+  //
+  // error(): Response;
 };
 
 /**
  * @group Streams API
  */
-type ReadableStreamReader<T> = ReadableStreamDefaultReader<T>;
-// type ReadableStreamReader<T> = ReadableStreamDefaultReader<T> | ReadableStreamBYOBReader;
+type ReadableStreamReader<T> = ReadableStreamDefaultReader<T> | ReadableStreamBYOBReader;
+
 /**
  * @group Streams API
  */
-type ReadableStreamController<T> = ReadableStreamDefaultController<T>;
-// type ReadableStreamController<T> = ReadableStreamDefaultController<T> | ReadableByteStreamController;
+type ReadableStreamController<T> =
+  | ReadableStreamDefaultController<T>
+  | ReadableByteStreamController;
 
 /**
  * @group Streams API
@@ -508,30 +517,49 @@ interface UnderlyingSource<R = any> {
 type ReadableStreamType = 'bytes';
 
 /**
+ * Options for {@linkcode ReadableStream.pipeTo} and {@linkcode ReadableStream.pipeThrough}.
+ *
+ * The behaviour of the piping process under various error conditions can be
+ * customised with these options. It returns a promise that fulfills when the
+ * piping process completes successfully, or rejects if any errors were
+ * encountered.
+ *
+ * Piping a stream will lock it for the duration of the pipe, preventing any
+ * other consumer from acquiring a reader.
+ *
+ * Errors and closures of the source and destination streams propagate as
+ * follows:
+ *
+ * - An error in the source readable stream will abort destination, unless
+ *   `preventAbort` is truthy. The returned promise will be rejected with the
+ *   source's error, or with any error that occurs during aborting the
+ *   destination.
+ * - An error in destination will cancel the source readable stream, unless
+ *   `preventCancel` is truthy. The returned promise will be rejected with the
+ *   destination's error, or with any error that occurs during canceling the
+ *   source.
+ * - When the source readable stream closes, destination will be closed,
+ *   unless `preventClose` is truthy. The returned promise will be fulfilled
+ *   once this process completes, unless an error is encountered while
+ *   closing the destination, in which case it will be rejected with that
+ *   error.
+ * - If destination starts out closed or closing, the source readable stream
+ *   will be canceled, unless `preventCancel` is true. The returned promise
+ *   will be rejected with an error indicating piping to a closed stream
+ *   failed, or with any error that occurs during canceling the source.
+ * - The `signal` option can be set to an {@linkcode AbortSignal} to allow
+ *   aborting an ongoing pipe operation via the corresponding
+ *   {@linkcode AbortController}. In this case, the source readable stream
+ *   will be canceled, and destination aborted, unless the respective options
+ *   `preventCancel` or `preventAbort` are set.
+ *
  * @group Streams API
  */
 interface StreamPipeOptions {
   preventAbort?: boolean;
   preventCancel?: boolean;
-  /**
-   * Pipes this readable stream to a given writable stream destination. The way in which the piping process behaves under various error conditions can be customized with a number of passed options. It returns a promise that fulfills when the piping process completes successfully, or rejects if any errors were encountered.
-   *
-   * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
-   *
-   * Errors and closures of the source and destination streams propagate as follows:
-   *
-   * An error in this source readable stream will abort destination, unless preventAbort is truthy. The returned promise will be rejected with the source's error, or with any error that occurs during aborting the destination.
-   *
-   * An error in destination will cancel this source readable stream, unless preventCancel is truthy. The returned promise will be rejected with the destination's error, or with any error that occurs during canceling the source.
-   *
-   * When this source readable stream closes, destination will be closed, unless preventClose is truthy. The returned promise will be fulfilled once this process completes, unless an error is encountered while closing the destination, in which case it will be rejected with that error.
-   *
-   * If destination starts out closed or closing, this source readable stream will be canceled, unless preventCancel is true. The returned promise will be rejected with an error indicating piping to a closed stream failed, or with any error that occurs during canceling the source.
-   *
-   * The signal option can be set to an AbortSignal to allow aborting an ongoing pipe operation via the corresponding AbortController. In this case, this source readable stream will be canceled, and destination aborted, unless the respective options preventCancel or preventAbort are set.
-   */
   preventClose?: boolean;
-  // signal?: AbortSignal;
+  signal?: AbortSignal;
 }
 
 /**
@@ -554,12 +582,52 @@ interface QueuingStrategy<T = any> {
  */
 interface QueuingStrategyInit {
   /**
-   * Creates a new ByteLengthQueuingStrategy with the provided high water mark.
-   *
-   * Note that the provided high water mark will not be validated ahead of time. Instead, if it is negative, NaN, or not a number, the resulting ByteLengthQueuingStrategy will cause the corresponding stream constructor to throw.
+   * The provided high water mark is not validated ahead of time. If it is
+   * negative, `NaN`, or not a number, the resulting strategy will cause the
+   * corresponding stream constructor to throw.
    */
   highWaterMark: number;
 }
+
+/**
+ * A queuing strategy that counts byte length. Used as the
+ * `queuingStrategy` argument when constructing a {@linkcode ReadableStream}
+ * or {@linkcode WritableStream} of byte data.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ByteLengthQueuingStrategy)
+ * @group Streams API
+ */
+interface ByteLengthQueuingStrategy extends QueuingStrategy<ArrayBufferView> {
+  readonly highWaterMark: number;
+  readonly size: QueuingStrategySize<ArrayBufferView>;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ByteLengthQueuingStrategy: {
+  prototype: ByteLengthQueuingStrategy;
+  new (init: QueuingStrategyInit): ByteLengthQueuingStrategy;
+};
+
+/**
+ * A queuing strategy that counts each chunk as a single unit.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CountQueuingStrategy)
+ * @group Streams API
+ */
+interface CountQueuingStrategy extends QueuingStrategy {
+  readonly highWaterMark: number;
+  readonly size: QueuingStrategySize;
+}
+
+/**
+ * @group Streams API
+ */
+declare var CountQueuingStrategy: {
+  prototype: CountQueuingStrategy;
+  new (init: QueuingStrategyInit): CountQueuingStrategy;
+};
 
 /**
  * @group Streams API
@@ -605,6 +673,8 @@ interface ReadableStream<R = any> {
   readonly locked: boolean;
   cancel(reason?: any): Promise<void>;
   getReader(): ReadableStreamDefaultReader<R>;
+  getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
+  getReader(options?: ReadableStreamGetReaderOptions): ReadableStreamReader<R>;
   pipeThrough<T>(
     transform: ReadableWritablePair<T, R>,
     options?: StreamPipeOptions,
@@ -668,6 +738,87 @@ interface ReadableStreamGenericReader {
   readonly closed: Promise<undefined>;
   cancel(reason?: any): Promise<void>;
 }
+
+/**
+ * @group Streams API
+ */
+interface ReadableStreamGetReaderOptions {
+  mode?: 'byob';
+}
+
+/**
+ * @group Streams API
+ */
+interface ReadableStreamBYOBReaderReadOptions {
+  /** Minimum number of elements to read before resolving. Default 1. */
+  min?: number;
+}
+
+/**
+ * Reader for a "byte" {@linkcode ReadableStream}, allowing the consumer to
+ * supply the buffer that the stream writes into (Bring-Your-Own-Buffer).
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ReadableStreamBYOBReader)
+ * @group Streams API
+ */
+interface ReadableStreamBYOBReader extends ReadableStreamGenericReader {
+  read<T extends ArrayBufferView>(
+    view: T,
+    options?: ReadableStreamBYOBReaderReadOptions,
+  ): Promise<ReadableStreamDefaultReadResult<T>>;
+  releaseLock(): void;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ReadableStreamBYOBReader: {
+  prototype: ReadableStreamBYOBReader;
+  new (stream: ReadableStream<Uint8Array>): ReadableStreamBYOBReader;
+};
+
+/**
+ * Represents a "pull-into" descriptor passed to a {@linkcode ReadableByteStreamController}.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ReadableStreamBYOBRequest)
+ * @group Streams API
+ */
+interface ReadableStreamBYOBRequest {
+  readonly view: ArrayBufferView | null;
+  respond(bytesWritten: number): void;
+  respondWithNewView(view: ArrayBufferView): void;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ReadableStreamBYOBRequest: {
+  prototype: ReadableStreamBYOBRequest;
+  new (): ReadableStreamBYOBRequest;
+};
+
+/**
+ * Controller for a "byte" {@linkcode ReadableStream} (i.e. one constructed
+ * with `{ type: 'bytes' }`).
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ReadableByteStreamController)
+ * @group Streams API
+ */
+interface ReadableByteStreamController {
+  readonly byobRequest: ReadableStreamBYOBRequest | null;
+  readonly desiredSize: number | null;
+  close(): void;
+  enqueue(chunk: ArrayBufferView): void;
+  error(e?: any): void;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ReadableByteStreamController: {
+  prototype: ReadableByteStreamController;
+  new (): ReadableByteStreamController;
+};
 
 /**
  * This Streams API interface provides a standard abstraction for writing streaming data to a destination, known as a sink. This object comes with built-in backpressure and queuing.
@@ -804,6 +955,58 @@ interface TransformerStartCallback<O> {
 interface TransformerTransformCallback<I, O> {
   (chunk: I, controller: TransformStreamDefaultController<O>): void | PromiseLike<void>;
 }
+
+/**
+ * Compression formats accepted by {@linkcode CompressionStream} and
+ * {@linkcode DecompressionStream}.
+ *
+ * @group Compression Streams API
+ */
+type CompressionFormat = 'deflate' | 'deflate-raw' | 'gzip';
+
+/**
+ * Compresses a stream of data using the specified format.
+ *
+ * Used as a {@linkcode TransformStream}: write uncompressed bytes to its
+ * `writable` side and read compressed bytes from its `readable` side.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CompressionStream)
+ * @group Compression Streams API
+ */
+interface CompressionStream {
+  readonly readable: ReadableStream<Uint8Array>;
+  readonly writable: WritableStream<BufferSource>;
+}
+
+/**
+ * @group Compression Streams API
+ */
+declare var CompressionStream: {
+  prototype: CompressionStream;
+  new (format: CompressionFormat): CompressionStream;
+};
+
+/**
+ * Decompresses a stream of data compressed in the specified format.
+ *
+ * Used as a {@linkcode TransformStream}: write compressed bytes to its
+ * `writable` side and read uncompressed bytes from its `readable` side.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/DecompressionStream)
+ * @group Compression Streams API
+ */
+interface DecompressionStream {
+  readonly readable: ReadableStream<Uint8Array>;
+  readonly writable: WritableStream<BufferSource>;
+}
+
+/**
+ * @group Compression Streams API
+ */
+declare var DecompressionStream: {
+  prototype: DecompressionStream;
+  new (format: CompressionFormat): DecompressionStream;
+};
 
 /**
  * @group Fetch API
@@ -951,8 +1154,11 @@ interface StructuredSerializeOptions {
 /**
  * @group DOM APIs
  */
+// The full WHATWG type is `ArrayBuffer | MessagePort | ImageBitmap`. The
+// StarlingMonkey runtime exposes neither MessagePort (no Worker API) nor
+// ImageBitmap (no Canvas API), so only ArrayBuffer can be transferred via
+// structuredClone. See runtime/StarlingMonkey/builtins/web/structured-clone.cpp
 type Transferable = ArrayBuffer;
-// type Transferable = ArrayBuffer | MessagePort | ImageBitmap;
 
 /**
  * @group Web APIs
@@ -996,21 +1202,30 @@ type BufferSource = ArrayBufferView | ArrayBuffer;
 
 declare class SubtleCrypto {
   constructor();
-  // decrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  // deriveBits(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, length: number): Promise<ArrayBuffer>;
-  // deriveKey(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: AlgorithmIdentifier | AesDerivedKeyParams | HmacImportParams | HkdfParams | Pbkdf2Params, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
+
+  /**
+   * Computes a digest (hash) of the given data. Supported algorithms:
+   * `SHA-1`, `SHA-256`, `SHA-384`, `SHA-512`.
+   */
   digest(algorithm: AlgorithmIdentifier, data: BufferSource): Promise<ArrayBuffer>;
-  // encrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  // exportKey(format: "jwk", key: CryptoKey): Promise<JsonWebKey>;
-  // exportKey(format: Exclude<KeyFormat, "jwk">, key: CryptoKey): Promise<ArrayBuffer>;
-  // generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKeyPair>;
-  // generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKey>;
-  // generateKey(algorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair | CryptoKey>;
-  // importKey(format: "jwk", keyData: JsonWebKey, algorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | AesKeyAlgorithm, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKey>;
+
+  /**
+   * Imports a key from external key material. Supported algorithms:
+   * `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`.
+   *
+   * Supported (algorithm, format) combinations:
+   * - `HMAC` — `'raw'`, `'jwk'`
+   * - `RSASSA-PKCS1-v1_5` — `'jwk'`, `'spki'`, `'pkcs8'`
+   * - `ECDSA` — `'jwk'`, `'raw'`, `'spki'`, `'pkcs8'`
+   */
   importKey(
     format: 'jwk',
     keyData: JsonWebKey,
-    algorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams,
+    algorithm:
+      | AlgorithmIdentifier
+      | HmacImportParams
+      | RsaHashedImportParams
+      | EcKeyImportParams,
     extractable: boolean,
     keyUsages: ReadonlyArray<KeyUsage>,
   ): Promise<CryptoKey>;
@@ -1019,24 +1234,67 @@ declare class SubtleCrypto {
     keyData: BufferSource,
     algorithm:
       | AlgorithmIdentifier
+      | HmacImportParams
       | RsaHashedImportParams
-      // | EcKeyImportParams
-      | HmacImportParams,
-    // | AesKeyAlgorithm
+      | EcKeyImportParams,
     extractable: boolean,
     keyUsages: KeyUsage[],
   ): Promise<CryptoKey>;
-  // sign(algorithm: AlgorithmIdentifier | RsaPssParams | EcdsaParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  sign(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  // unwrapKey(format: KeyFormat, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, unwrappedKeyAlgorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | AesKeyAlgorithm, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
-  // verify(algorithm: AlgorithmIdentifier | RsaPssParams | EcdsaParams, key: CryptoKey, signature: BufferSource, data: BufferSource): Promise<boolean>;
+
+  /**
+   * Signs data with a private (or symmetric) key. Supported algorithms:
+   * `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`. ECDSA requires {@link EcdsaParams}
+   * (`{ name: 'ECDSA', hash: ... }`) so the hash function can be specified.
+   */
+  sign(
+    algorithm: AlgorithmIdentifier | EcdsaParams,
+    key: CryptoKey,
+    data: BufferSource,
+  ): Promise<ArrayBuffer>;
+
+  /**
+   * Verifies a signature against the original data. Supported algorithms:
+   * `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`. ECDSA requires {@link EcdsaParams}.
+   */
   verify(
-    algorithm: AlgorithmIdentifier,
+    algorithm: AlgorithmIdentifier | EcdsaParams,
     key: CryptoKey,
     signature: BufferSource,
     data: BufferSource,
   ): Promise<boolean>;
+
+  // ---------------------------------------------------------------------------
+  // Spec methods not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // The runtime currently implements only `digest`, `importKey`, `sign`, and
+  // `verify`. The methods below are part of the WebCrypto spec but throw
+  // `TypeError` at runtime if called. See:
+  //   runtime/StarlingMonkey/builtins/web/crypto/subtle-crypto.cpp
+  //
+  // decrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
+  // deriveBits(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, length: number): Promise<ArrayBuffer>;
+  // deriveKey(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: AlgorithmIdentifier | AesDerivedKeyParams | HmacImportParams | HkdfParams | Pbkdf2Params, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
+  // encrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
+  // exportKey(format: 'jwk', key: CryptoKey): Promise<JsonWebKey>;
+  // exportKey(format: Exclude<KeyFormat, 'jwk'>, key: CryptoKey): Promise<ArrayBuffer>;
+  // generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKeyPair>;
+  // generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKey>;
+  // generateKey(algorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair | CryptoKey>;
+  // unwrapKey(format: KeyFormat, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, unwrappedKeyAlgorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | AesKeyAlgorithm, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
   // wrapKey(format: KeyFormat, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams): Promise<ArrayBuffer>;
+  //
+  // The following algorithm-parameter unions are intentionally absent from the
+  // live overloads because the underlying algorithms are not registered in
+  // crypto-algorithm.cpp:
+  //
+  //   `RsaPssParams` (RSA-PSS) — sign/verify
+  //   `RsaOaepParams` (RSA-OAEP) — encrypt/decrypt/wrap/unwrap
+  //   `AesCtrParams`, `AesCbcParams`, `AesGcmParams`, `AesKeyAlgorithm`,
+  //     `AesKeyGenParams`, `AesDerivedKeyParams` (all AES variants)
+  //   `EcdhKeyDeriveParams` (ECDH) — deriveBits/deriveKey
+  //   `HkdfParams`, `Pbkdf2Params` (HKDF, PBKDF2) — deriveBits/deriveKey
+  //   `HmacKeyGenParams`, `RsaHashedKeyGenParams`, `EcKeyGenParams` —
+  //     generateKey
 }
 
 interface HmacImportParams extends Algorithm {
@@ -1049,9 +1307,18 @@ interface RsaHashedImportParams extends Algorithm {
 }
 type HashAlgorithmIdentifier = AlgorithmIdentifier;
 
-interface EcKeyImportParams {
+interface EcKeyImportParams extends Algorithm {
   name: 'ECDSA';
   namedCurve: 'P-256' | 'P-384' | 'P-521';
+}
+
+/**
+ * Parameter dictionary for {@linkcode SubtleCrypto.sign} and
+ * {@linkcode SubtleCrypto.verify} when using ECDSA.
+ */
+interface EcdsaParams extends Algorithm {
+  name: 'ECDSA';
+  hash: HashAlgorithmIdentifier;
 }
 
 interface JsonWebKey {
@@ -1132,11 +1399,7 @@ interface KeyAlgorithm {
   name: string;
 }
 
-type KeyFormat =
-  | 'jwk'
-  // | "pkcs8"
-  | 'raw';
-// | "spki";
+type KeyFormat = 'jwk' | 'pkcs8' | 'raw' | 'spki';
 type KeyType = 'private' | 'public' | 'secret';
 type KeyUsage =
   | 'decrypt'
