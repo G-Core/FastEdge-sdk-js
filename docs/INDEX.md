@@ -1,6 +1,8 @@
 # FastEdge JS SDK Documentation
 
-The FastEdge JS SDK (`@gcoredev/fastedge-sdk-js`) is the JavaScript/TypeScript development toolkit for building serverless edge applications on Gcore's FastEdge platform. It compiles your code into WebAssembly components that run across global edge data centers.
+The FastEdge JS SDK (`@gcoredev/fastedge-sdk-js`) is the JavaScript/TypeScript development toolkit
+for building serverless edge applications on Gcore's FastEdge platform. It compiles your code into
+WebAssembly components that run across global edge data centers.
 
 ## Package
 
@@ -32,7 +34,9 @@ The FastEdge JS SDK (`@gcoredev/fastedge-sdk-js`) is the JavaScript/TypeScript d
 
 ## Application Model
 
-FastEdge apps use the Service Worker API pattern. The `addEventListener('fetch', ...)` call must be at the top level. The callback must synchronously call `event.respondWith()` with a handler that returns a `Response` (or `Promise<Response>`).
+FastEdge apps use the Service Worker API pattern. The `addEventListener('fetch', ...)` call must be
+at the top level. The callback must synchronously call `event.respondWith()` with a handler that
+returns a `Response` (or `Promise<Response>`).
 
 ```js
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -56,7 +60,8 @@ addEventListener('fetch', (event) => {
 
 ## Runtime APIs
 
-Runtime APIs are available via `fastedge::` module specifiers inside your application code. These imports are resolved at compile time by the SDK.
+Runtime APIs are available via `fastedge::` module specifiers inside your application code. These
+imports are resolved at compile time by the SDK.
 
 ### FastEdge APIs
 
@@ -71,20 +76,22 @@ Runtime APIs are available via `fastedge::` module specifiers inside your applic
 
 ### KvStoreInstance Methods
 
-| Method                 | Signature                                                                          | Description                                            |
-| ---------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `get`                  | `(key: string): ArrayBuffer \| null`                                               | Retrieve a value by key                                |
-| `getEntry`             | `(key: string): Promise<KvStoreEntry \| null>`                                     | Retrieve a value as a `KvStoreEntry`                   |
-| `scan`                 | `(pattern: string): Array<string>`                                                 | Retrieve keys matching a prefix pattern (e.g. `foo*`) |
-| `zrangeByScore`        | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`            | Retrieve sorted set entries by score range             |
+| Method                 | Signature                                                                         | Description                                            |
+| ---------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `get`                  | `(key: string): ArrayBuffer \| null`                                              | Retrieve a value by key                                |
+| `getEntry`             | `(key: string): Promise<KvStoreEntry \| null>`                                    | Retrieve a value as a `KvStoreEntry`                   |
+| `scan`                 | `(pattern: string): Array<string>`                                                | Retrieve keys matching a prefix pattern (e.g. `foo*`)  |
+| `zrangeByScore`        | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`           | Retrieve sorted set entries by score range             |
 | `zrangeByScoreEntries` | `(key: string, min: number, max: number): Promise<Array<[KvStoreEntry, number]>>` | `zrangeByScore` returning `KvStoreEntry` wrappers      |
-| `zscan`                | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`                     | Retrieve sorted set entries matching a prefix pattern  |
-| `zscanEntries`         | `(key: string, pattern: string): Promise<Array<[KvStoreEntry, number]>>`           | `zscan` returning `KvStoreEntry` wrappers              |
-| `bfExists`             | `(key: string, value: string): boolean`                                            | Check if a value exists in a Bloom Filter              |
+| `zscan`                | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`                    | Retrieve sorted set entries matching a prefix pattern  |
+| `zscanEntries`         | `(key: string, pattern: string): Promise<Array<[KvStoreEntry, number]>>`          | `zscan` returning `KvStoreEntry` wrappers              |
+| `bfExists`             | `(key: string, value: string): boolean`                                           | Check if a value exists in a Bloom Filter              |
 
 ### KvStoreEntry Methods
 
-The `getEntry`, `zrangeByScoreEntries`, and `zscanEntries` methods return `KvStoreEntry` objects with the following accessors. The bytes are already in memory when the entry is returned; the `Promise`-returning methods resolve immediately.
+The `getEntry`, `zrangeByScoreEntries`, and `zscanEntries` methods return `KvStoreEntry` objects
+with the following accessors. The bytes are already in memory when the entry is returned; the
+`Promise`-returning methods resolve immediately.
 
 | Method        | Signature                  | Description                              |
 | ------------- | -------------------------- | ---------------------------------------- |
@@ -94,46 +101,48 @@ The `getEntry`, `zrangeByScoreEntries`, and `zscanEntries` methods return `KvSto
 
 ### Cache Methods
 
-Import the `Cache` class from `fastedge::cache`. All methods are static; `Cache` is never instantiated. The cache is POP-local: values written in one data center are not visible to another. Use `fastedge::kv` for globally-replicated storage.
+Import the `Cache` class from `fastedge::cache`. All methods are static; `Cache` is never
+instantiated. The cache is POP-local: values written in one data center are not visible to another.
+Use `fastedge::kv` for globally-replicated storage.
 
 ```js
 /// <reference types="@gcoredev/fastedge-sdk-js" />
 
-import { Cache } from "fastedge::cache";
+import { Cache } from 'fastedge::cache';
 
 async function app(event) {
-  const ip = event.request.headers.get("x-forwarded-for") ?? "unknown";
+  const ip = event.client.address || 'unknown';
   const count = await Cache.incr(`rl:${ip}`);
   if (count === 1) await Cache.expire(`rl:${ip}`, { ttl: 60 });
-  if (count > 100) return new Response("Too Many Requests", { status: 429 });
+  if (count > 100) return new Response('Too Many Requests', { status: 429 });
 
-  const entry = await Cache.getOrSet(
-    "result",
-    async () => JSON.stringify(await compute()),
-    { ttl: 300 },
-  );
+  const entry = await Cache.getOrSet('result', async () => JSON.stringify(await compute()), {
+    ttl: 300,
+  });
   return new Response(await entry.text(), {
-    headers: { "content-type": "application/json" },
+    headers: { 'content-type': 'application/json' },
   });
 }
 
-addEventListener("fetch", (event) => event.respondWith(app(event)));
+addEventListener('fetch', (event) => event.respondWith(app(event)));
 ```
 
-| Method      | Signature                                                                                                          | Description                                          |
-| ----------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| `get`       | `(key: string): Promise<CacheEntry \| null>`                                                                       | Get entry or `null` if absent or expired             |
-| `exists`    | `(key: string): Promise<boolean>`                                                                                  | Check key presence without transferring value        |
-| `set`       | `(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`                                          | Store a value, optionally with expiry                |
-| `delete`    | `(key: string): Promise<void>`                                                                                     | Remove a key; no-op if absent                        |
-| `expire`    | `(key: string, options: WriteOptions): Promise<boolean>`                                                           | Update expiry; `true` if key exists, `false` if not  |
-| `incr`      | `(key: string, delta?: number): Promise<number>`                                                                   | Atomically increment an integer; returns new value   |
-| `decr`      | `(key: string, delta?: number): Promise<number>`                                                                   | Atomically decrement an integer; returns new value   |
-| `getOrSet`  | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`   | Get entry or populate, cache, and return the result  |
+| Method     | Signature                                                                                                                                   | Description                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `get`      | `(key: string): Promise<CacheEntry \| null>`                                                                                                | Get entry or `null` if absent or expired                                     |
+| `exists`   | `(key: string): Promise<boolean>`                                                                                                           | Check key presence without transferring value                                |
+| `set`      | `(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`                                                                   | Store a value, optionally with expiry                                        |
+| `delete`   | `(key: string): Promise<void>`                                                                                                              | Remove a key; no-op if absent                                                |
+| `expire`   | `(key: string, options: WriteOptions): Promise<boolean>`                                                                                    | Update expiry; `true` if key exists, `false` if not                          |
+| `incr`     | `(key: string, delta?: number): Promise<number>`                                                                                            | Atomically increment an integer; returns new value                           |
+| `decr`     | `(key: string, delta?: number): Promise<number>`                                                                                            | Atomically decrement an integer; returns new value                           |
+| `getOrSet` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`                             | Get entry or populate, cache, and return the result                          |
+| `getOrSet` | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions): Promise<CacheEntry \| null>`     | As above; a `null` populator result skips the write and resolves with `null` |
 
 ### CacheValue
 
-`CacheValue` is the union of types accepted by `Cache.set`, `Cache.getOrSet`, and the `populate` callback. All forms are coerced to raw bytes before storage.
+`CacheValue` is the union of types accepted by `Cache.set`, `Cache.getOrSet`, and the `populate`
+callback. All forms are coerced to raw bytes before storage.
 
 ```ts
 type CacheValue = string | ArrayBuffer | ArrayBufferView | ReadableStream | Response;
@@ -141,17 +150,19 @@ type CacheValue = string | ArrayBuffer | ArrayBufferView | ReadableStream | Resp
 
 ### WriteOptions
 
-Controls how long a cache entry lives. Pass exactly one field. Omit the options bag entirely to store with no expiry.
+Controls how long a cache entry lives. Pass exactly one field. Omit the options bag entirely to
+store with no expiry.
 
-| Field       | Type     | Description                                                                          |
-| ----------- | -------- | ------------------------------------------------------------------------------------ |
-| `ttl`       | `number` | Relative TTL in seconds from now. Mutually exclusive with `ttlMs` and `expiresAt`.   |
-| `ttlMs`     | `number` | Relative TTL in milliseconds from now. Mutually exclusive with `ttl` and `expiresAt`. |
-| `expiresAt` | `number` | Absolute expiry, Unix epoch seconds. Mutually exclusive with `ttl` and `ttlMs`.      |
+| Field       | Type     | Description                                                                            |
+| ----------- | -------- | -------------------------------------------------------------------------------------- |
+| `ttl`       | `number` | Relative TTL in seconds from now. Mutually exclusive with `ttlMs` and `expiresAt`.     |
+| `ttlMs`     | `number` | Relative TTL in milliseconds from now. Mutually exclusive with `ttl` and `expiresAt`.  |
+| `expiresAt` | `number` | Absolute expiry, Unix epoch seconds. Mutually exclusive with `ttl` and `ttlMs`.        |
 
 ### CacheEntry Methods
 
-`Cache.get` and `Cache.getOrSet` return `CacheEntry` objects. The bytes are already in memory; the `Promise`-returning methods resolve immediately.
+`Cache.get` and `Cache.getOrSet` return `CacheEntry` objects. The bytes are already in memory; the
+`Promise`-returning methods resolve immediately.
 
 | Method        | Signature                  | Description                              |
 | ------------- | -------------------------- | ---------------------------------------- |
@@ -169,7 +180,7 @@ Standard Web APIs available globally:
 - `CompressionStream`, `DecompressionStream`
 - `TextEncoder`, `TextDecoder`
 - `Blob`, `File`, `FormData`
-- `crypto` (SubtleCrypto: `digest`, `importKey`, `sign`, `verify`)
+- `crypto` (SubtleCrypto: `digest`, `importKey`, `sign`, `verify`; also `getRandomValues`, `randomUUID`)
 - `AbortController`, `AbortSignal`
 - `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`
 - `queueMicrotask`, `structuredClone`

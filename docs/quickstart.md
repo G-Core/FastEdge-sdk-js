@@ -177,6 +177,56 @@ addEventListener('fetch', (event) => {
 - `text(): Promise<string>`
 - `json(): Promise<unknown>`
 
+## Using Cache
+
+The `fastedge::cache` module provides a POP-local key/value store with TTL and atomic counter primitives. Unlike `fastedge::kv`, which is globally replicated across all data centers, the cache is strongly consistent within a single point of presence and invisible to other POPs — making it suited for request-time state such as rate limiting, hit counters, and response memoisation where low latency within a POP matters more than global durability.
+
+```js
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+import { Cache } from 'fastedge::cache';
+
+addEventListener('fetch', (event) => {
+  event.respondWith(
+    (async () => {
+      const ip = event.request.headers.get('x-forwarded-for') ?? 'unknown';
+
+      // Atomic per-IP counter; initialised to 0 on first call
+      const count = await Cache.incr(`rl:${ip}`);
+      if (count === 1) await Cache.expire(`rl:${ip}`, { ttl: 60 });
+      if (count > 100) {
+        return new Response('Too Many Requests', { status: 429 });
+      }
+
+      // Cache-aside: serve from cache, populate on miss
+      const entry = await Cache.getOrSet(
+        'upstream-data',
+        async () => {
+          const r = await fetch('https://example.com/data');
+          return r.ok ? r : null;
+        },
+        { ttl: 30 },
+      );
+
+      if (entry === null) {
+        return new Response('Upstream unavailable', { status: 503 });
+      }
+
+      return new Response(await entry.text());
+    })(),
+  );
+});
+```
+
+**Key signatures:**
+
+- `Cache.get(key: string): Promise<CacheEntry | null>`
+- `Cache.set(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`
+- `Cache.getOrSet(key: string, populate: () => CacheValue | Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`
+- `Cache.incr(key: string, delta?: number): Promise<number>`
+- `Cache.expire(key: string, options: WriteOptions): Promise<boolean>`
+
+See [SDK Runtime API](SDK_API.md) for the complete `Cache` method reference, `CacheValue` type, and `WriteOptions` fields.
+
 ## Next Steps
 
 - [fastedge-build CLI](BUILD_CLI.md) — build options and configuration

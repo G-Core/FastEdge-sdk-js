@@ -4,8 +4,8 @@
 // `fastedge::cache` module:
 //
 //   1. Per-IP rate limiting (atomic counters)
-//   2. Origin-cache proxy (getOrSet with a fetch populator)
-//   3. JSON memoisation        (getOrSet with a computed populator)
+//   2. Origin-cache proxy (manual get/set with conditional caching)
+//   3. JSON memoisation   (getOrSet with a computed populator)
 //
 // All three patterns rely on the cache being:
 //   - **Strongly consistent within a POP** — atomic `incr` returns a
@@ -220,7 +220,7 @@ async function eventHandler(event: FetchEvent): Promise<Response> {
           { status: 400 },
         );
     }
-  } catch (error: Error | unknown) {
+  } catch (error: unknown) {
     // Validation errors thrown by Cache.* (e.g. conflicting WriteOptions
     // fields) are synchronous; host errors arrive as Promise rejections.
     // Both are caught by this single handler.

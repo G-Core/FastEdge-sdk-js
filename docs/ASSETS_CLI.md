@@ -160,7 +160,6 @@ const staticAssetManifest = {
       lastModifiedTime: 1768985591,
       assetPath: './styles/index.css',
     },
-    lastModifiedTime: 1768985591,
     type: 'wasm-inline',
   },
 };
@@ -172,38 +171,38 @@ export { staticAssetManifest };
 
 The following MIME types are detected automatically by file extension. Custom `contentTypes` entries are checked first.
 
-| Extension(s)          | Content-Type                    | Text |
-| --------------------- | ------------------------------- | ---- |
-| `.txt`                | `text/plain`                    | yes  |
-| `.html`, `.htm`       | `text/html`                     | yes  |
-| `.xml`                | `application/xml`               | yes  |
-| `.json`               | `application/json`              | yes  |
-| `.map`                | `application/json`              | yes  |
-| `.js`                 | `application/javascript`        | yes  |
-| `.ts`                 | `application/typescript`        | yes  |
-| `.css`                | `text/css`                      | yes  |
-| `.svg`                | `image/svg+xml`                 | yes  |
-| `.bmp`                | `image/bmp`                     | no   |
-| `.png`                | `image/png`                     | no   |
-| `.gif`                | `image/gif`                     | no   |
-| `.jpg`, `.jpeg`       | `image/jpeg`                    | no   |
-| `.ico`                | `image/vnd.microsoft.icon`      | no   |
-| `.tif`, `.tiff`       | `image/png`                     | no   |
-| `.aac`                | `audio/aac`                     | no   |
-| `.mp3`                | `audio/mpeg`                    | no   |
-| `.avi`                | `video/x-msvideo`               | no   |
-| `.mp4`                | `video/mp4`                     | no   |
-| `.mpeg`               | `video/mpeg`                    | no   |
-| `.webm`               | `video/webm`                    | no   |
-| `.pdf`                | `application/pdf`               | no   |
-| `.tar`                | `application/x-tar`             | no   |
-| `.zip`                | `application/zip`               | no   |
-| `.eot`                | `application/vnd.ms-fontobject` | no   |
-| `.otf`                | `font/otf`                      | no   |
-| `.ttf`                | `font/ttf`                      | no   |
-| `.woff`               | `font/woff`                     | no   |
-| `.woff2`              | `font/woff2`                    | no   |
-| (no match)            | `application/octet-stream`      | no   |
+| Extension(s)    | Content-Type                    | Text |
+| --------------- | ------------------------------- | ---- |
+| `.txt`          | `text/plain`                    | yes  |
+| `.html`, `.htm` | `text/html`                     | yes  |
+| `.xml`          | `application/xml`               | yes  |
+| `.json`         | `application/json`              | yes  |
+| `.map`          | `application/json`              | yes  |
+| `.js`           | `application/javascript`        | yes  |
+| `.ts`           | `application/typescript`        | yes  |
+| `.css`          | `text/css`                      | yes  |
+| `.svg`          | `image/svg+xml`                 | yes  |
+| `.bmp`          | `image/bmp`                     | no   |
+| `.png`          | `image/png`                     | no   |
+| `.gif`          | `image/gif`                     | no   |
+| `.jpg`, `.jpeg` | `image/jpeg`                    | no   |
+| `.ico`          | `image/vnd.microsoft.icon`      | no   |
+| `.tif`, `.tiff` | `image/png`                     | no   |
+| `.aac`          | `audio/aac`                     | no   |
+| `.mp3`          | `audio/mpeg`                    | no   |
+| `.avi`          | `video/x-msvideo`               | no   |
+| `.mp4`          | `video/mp4`                     | no   |
+| `.mpeg`         | `video/mpeg`                    | no   |
+| `.webm`         | `video/webm`                    | no   |
+| `.pdf`          | `application/pdf`               | no   |
+| `.tar`          | `application/x-tar`             | no   |
+| `.zip`          | `application/zip`               | no   |
+| `.eot`          | `application/vnd.ms-fontobject` | no   |
+| `.otf`          | `font/otf`                      | no   |
+| `.ttf`          | `font/ttf`                      | no   |
+| `.woff`         | `font/woff`                     | no   |
+| `.woff2`        | `font/woff2`                    | no   |
+| (no match)      | `application/octet-stream`      | no   |
 
 ## When to Use
 

@@ -299,12 +299,12 @@ import { Cache } from "fastedge::cache";
 
 **`Cache` vs `KvStore` at a glance:**
 
-| Concern           | `Cache`                                       | `KvStore`                                 |
-| ----------------- | --------------------------------------------- | ----------------------------------------- |
-| Consistency scope | Strong within a POP; independent across POPs  | Eventual; globally replicated             |
-| Atomic operations | `incr`, `decr`, `getOrSet` coalescing         | Not available                             |
-| Typical use cases | Rate limits, counters, request coalescing     | Configuration, lookup tables, sorted sets |
-| Data persistence  | Evicted; no durability guarantee              | Durable; persists across deployments      |
+| Concern           | `Cache`                                      | `KvStore`                                 |
+| ----------------- | -------------------------------------------- | ----------------------------------------- |
+| Consistency scope | Strong within a POP; independent across POPs | Eventual; globally replicated             |
+| Atomic operations | `incr`, `decr`, `getOrSet` coalescing        | Not available                             |
+| Typical use cases | Rate limits, counters, request coalescing    | Configuration, lookup tables, sorted sets |
+| Data persistence  | Evicted; no durability guarantee             | Durable; persists across deployments      |
 
 Strong per-POP consistency makes `Cache.incr` / `Cache.decr` reliable for per-POP rate limits and `Cache.getOrSet` coalescing reliable for deduplicating concurrent origin fetches within a single POP. For globally-shared data that must be visible across all POPs, use `fastedge::kv`.
 
@@ -349,16 +349,16 @@ A handle to a cached value. The bytes are already in memory when you receive a `
 
 All methods are static; `Cache` is never constructed. All methods return `Promise`. Operational errors surface as Promise rejections. Argument validation errors (wrong types, conflicting `WriteOptions` fields) throw synchronously; both are caught the same way by `try`/`catch` around an `await`.
 
-| Method                              | Signature                                                                                                                        | Returns                       |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| `get(key)`                          | `(key: string) => Promise<CacheEntry \| null>`                                                                                   | `Promise<CacheEntry \| null>` |
-| `exists(key)`                       | `(key: string) => Promise<boolean>`                                                                                              | `Promise<boolean>`            |
-| `set(key, value, options?)`         | `(key: string, value: CacheValue, options?: WriteOptions) => Promise<void>`                                                      | `Promise<void>`               |
-| `delete(key)`                       | `(key: string) => Promise<void>`                                                                                                 | `Promise<void>`               |
-| `expire(key, options)`              | `(key: string, options: WriteOptions) => Promise<boolean>`                                                                       | `Promise<boolean>`            |
-| `incr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                               | `Promise<number>`             |
-| `decr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                               | `Promise<number>`             |
-| `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions) => Promise<CacheEntry>`                | `Promise<CacheEntry>`         |
+| Method                              | Signature                                                                                                                                 | Returns                       |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `get(key)`                          | `(key: string) => Promise<CacheEntry \| null>`                                                                                            | `Promise<CacheEntry \| null>` |
+| `exists(key)`                       | `(key: string) => Promise<boolean>`                                                                                                       | `Promise<boolean>`            |
+| `set(key, value, options?)`         | `(key: string, value: CacheValue, options?: WriteOptions) => Promise<void>`                                                               | `Promise<void>`               |
+| `delete(key)`                       | `(key: string) => Promise<void>`                                                                                                          | `Promise<void>`               |
+| `expire(key, options)`              | `(key: string, options: WriteOptions) => Promise<boolean>`                                                                                | `Promise<boolean>`            |
+| `incr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                                        | `Promise<number>`             |
+| `decr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                                        | `Promise<number>`             |
+| `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions) => Promise<CacheEntry>`                         | `Promise<CacheEntry>`         |
 | `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions) => Promise<CacheEntry \| null>` | `Promise<CacheEntry \| null>` |
 
 ##### `get`
@@ -518,12 +518,13 @@ addEventListener("fetch", (event: FetchEvent) => void);
 
 ### FetchEvent
 
-| Property / Method | Type                                                    | Description                                             |
-| ----------------- | ------------------------------------------------------- | ------------------------------------------------------- |
-| `request`         | `Request`                                               | The incoming HTTP request from the client.              |
-| `client`          | `ClientInfo`                                            | Information about the downstream client.                |
-| `respondWith`     | `(response: Response \| PromiseLike<Response>) => void` | Sends a response back to the client.                    |
-| `waitUntil`       | `(promise: Promise<any>) => void`                       | Extends the service lifetime until the promise settles. |
+| Property / Method | Type                                                    | Description                                              |
+| ----------------- | ------------------------------------------------------- | -------------------------------------------------------- |
+| `request`         | `Request`                                               | The incoming HTTP request from the client.               |
+| `client`          | `ClientInfo`                                            | Information about the downstream client.                 |
+| `server`          | `ServerInfo`                                            | Information about the FastEdge POP handling the request. |
+| `respondWith`     | `(response: Response \| PromiseLike<Response>) => void` | Sends a response back to the client.                     |
+| `waitUntil`       | `(promise: Promise<any>) => void`                       | Extends the service lifetime until the promise settles.  |
 
 `respondWith` must be called synchronously within the event listener, but may be passed a `Promise<Response>`. The service is kept alive until the response is fully sent. Use `waitUntil` to perform work (e.g., logging, telemetry) after the response has been sent.
 
@@ -555,16 +556,73 @@ async function logRequest(url, ip) {
 
 ### ClientInfo
 
-Information about the downstream client that made the request, available as `event.client`.
+Information about the downstream client that made the request, available as `event.client`. All fields are derived from headers the FastEdge edge POP injects into the request. The `geo` namespace is populated lazily on first access.
 
-| Property               | Type          | Description                                          |
-| ---------------------- | ------------- | ---------------------------------------------------- |
-| `address`              | `string`      | IPv4 or IPv6 address of the downstream client.       |
-| `tlsJA3MD5`            | `string`      | JA3 MD5 fingerprint of the TLS client hello.         |
-| `tlsCipherOpensslName` | `string`      | OpenSSL name of the negotiated TLS cipher.           |
-| `tlsProtocol`          | `string`      | Negotiated TLS protocol version string.              |
-| `tlsClientCertificate` | `ArrayBuffer` | Raw bytes of the client TLS certificate, if present. |
-| `tlsClientHello`       | `ArrayBuffer` | Raw bytes of the TLS client hello message.           |
+| Property    | Type      | Description                                                                                                                  |
+| ----------- | --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `address`   | `string`  | IPv4 or IPv6 address of the downstream client. Empty string if unavailable.                                                  |
+| `tlsJA3MD5` | `string`  | JA3 TLS-handshake fingerprint as an MD5 hex string. Empty string for non-TLS requests or when fingerprinting is unavailable. |
+| `protocol`  | `string`  | Protocol family — `"https"` or `"http"`. Not the TLS version string.                                                        |
+| `geo`       | `GeoInfo` | Client geographic information. Populated lazily on first access.                                                             |
+
+### GeoInfo
+
+Geographic information about the downstream client, available as `event.client.geo`. Populated when `client.geo` is first accessed.
+
+| Property      | Type             | Description                                                              |
+| ------------- | ---------------- | ------------------------------------------------------------------------ |
+| `asn`         | `string`         | Autonomous System Number of the client's network. Empty if unavailable.  |
+| `latitude`    | `number \| null` | Latitude in decimal degrees, or `null` if unavailable.                   |
+| `longitude`   | `number \| null` | Longitude in decimal degrees, or `null` if unavailable.                  |
+| `region`      | `string`         | Region or state code (subdivision). Empty string if unavailable.         |
+| `continent`   | `string`         | Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable.      |
+| `countryCode` | `string`         | ISO 3166-1 alpha-2 country code (e.g. `"PT"`). Empty string if unavailable. |
+| `countryName` | `string`         | Country name (e.g. `"Portugal"`). Empty string if unavailable.           |
+| `city`        | `string`         | City name. Empty string when geo lookup did not resolve a city.          |
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+addEventListener("fetch", event => {
+  const { address, geo } = event.client;
+  console.log(`Request from ${address} in ${geo.city}, ${geo.countryCode}`);
+  event.respondWith(new Response("ok", { status: 200 }));
+});
+```
+
+### ServerInfo
+
+Information about the FastEdge POP server handling the request, available as `event.server`. The `pop` namespace is populated lazily on first access.
+
+| Property  | Type      | Description                                                  |
+| --------- | --------- | ------------------------------------------------------------ |
+| `address` | `string`  | Server-side IP address that received the request.            |
+| `name`    | `string`  | Server hostname.                                             |
+| `pop`     | `PopInfo` | POP location information. Populated lazily on first access.  |
+
+### PopInfo
+
+Geographic information about the FastEdge POP serving the request, available as `event.server.pop`.
+
+| Property      | Type             | Description                                                       |
+| ------------- | ---------------- | ----------------------------------------------------------------- |
+| `latitude`    | `number \| null` | POP latitude in decimal degrees, or `null` if unavailable.        |
+| `longitude`   | `number \| null` | POP longitude in decimal degrees, or `null` if unavailable.       |
+| `region`      | `string`         | POP region or state code. Empty string if unavailable.            |
+| `continent`   | `string`         | POP continent code. Empty string if unavailable.                  |
+| `countryCode` | `string`         | ISO 3166-1 alpha-2 POP country code. Empty string if unavailable. |
+| `countryName` | `string`         | POP country name. Empty string if unavailable.                    |
+| `city`        | `string`         | POP city. Empty string when not resolved.                         |
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+addEventListener("fetch", event => {
+  const { name, pop } = event.server;
+  console.log(`Served by ${name} in ${pop.city}, ${pop.countryCode}`);
+  event.respondWith(new Response("ok", { status: 200 }));
+});
+```
 
 ---
 
@@ -670,8 +728,8 @@ new Headers(init?: HeadersInit): Headers
 | `getSetCookie()`      | `() => string[]`                                                            |
 | `forEach(callback)`   | `(callback: (value: string, key: string, parent: Headers) => void) => void` |
 | `entries()`           | `() => IterableIterator<[string, string]>`                                  |
-| `keys()`              | `() => IterableIterator<string>`                                             |
-| `values()`            | `() => IterableIterator<string>`                                             |
+| `keys()`              | `() => IterableIterator<string>`                                            |
+| `values()`            | `() => IterableIterator<string>`                                            |
 
 **Immutability note:** The `headers` object on an incoming `event.request` is read-only. Attempting to mutate it will throw a `TypeError`. To add or change headers, construct a new `Headers` object:
 
@@ -1149,7 +1207,6 @@ new EventTarget(): EventTarget
 
 ## See Also
 
-- [quickstart.md](quickstart.md) — Getting started with your first FastEdge application
 - [BUILD_CLI.md](BUILD_CLI.md) — `fastedge-build` CLI reference
 - [INIT_CLI.md](INIT_CLI.md) — `fastedge-init` CLI reference
 - [STATIC_SITES.md](STATIC_SITES.md) — Serving static assets from WASM
