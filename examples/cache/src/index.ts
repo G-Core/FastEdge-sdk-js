@@ -35,10 +35,11 @@ const RATE_LIMIT_MAX = 10; // Requests per window.
 const RATE_LIMIT_WINDOW_S = 60; // Window length, seconds.
 
 async function rateLimit(event: FetchEvent): Promise<Response> {
-  // `event.client.address` is the platform-native client IP. Prefer it
-  // over parsing `x-forwarded-for`, which can be spoofed if upstream
-  // proxying is misconfigured.
-  const ip = event.client.address;
+  // `event.client.address` is the trusted-edge client IP. Sourced from
+  // `x-real-ip` (with fallback to `x-forwarded-for`); both are set by
+  // the FastEdge POP, not the client, so they're safe to key on.
+  const ip = event.client.address || 'unknown';
+
   const key = `rl:${ip}`;
 
   const count = await Cache.incr(key);
@@ -89,10 +90,7 @@ async function proxy(url: string): Promise<Response> {
   try {
     parsed = new URL(url);
   } catch {
-    return Response.json(
-      { error: `Invalid url: "${url}"` },
-      { status: 400 },
-    );
+    return Response.json({ error: `Invalid url: "${url}"` }, { status: 400 });
   }
 
   // Strip the fragment: fetch() never sends it to the origin, so
@@ -192,7 +190,7 @@ function landing(): Response {
     name: 'FastEdge Cache patterns',
     actions: {
       'rate-limit': '/?action=rate-limit',
-      proxy: '/?action=proxy&url=https://example.com',
+      proxy: '/?action=proxy&url=https://www.example.com',
       memo: '/?action=memo',
     },
   });
@@ -226,10 +224,7 @@ async function eventHandler(event: FetchEvent): Promise<Response> {
     // Validation errors thrown by Cache.* (e.g. conflicting WriteOptions
     // fields) are synchronous; host errors arrive as Promise rejections.
     // Both are caught by this single handler.
-    return Response.json(
-      { error: (error as Error).message },
-      { status: 500 },
-    );
+    return Response.json({ error: (error as Error).message }, { status: 500 });
   }
 }
 

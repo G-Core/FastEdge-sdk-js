@@ -44,9 +44,17 @@ declare function addEventListener<K extends keyof EventMap>(
  */
 declare interface FetchEvent {
   /**
-   * Information about the downstream client that made the request
+   * Information about the downstream client that made the request,
+   * including its IP address, TLS fingerprint and geo (`client.geo`).
+   * Lazy: nothing is parsed until first access.
    */
   readonly client: ClientInfo;
+  /**
+   * Information about the FastEdge POP server handling this request,
+   * including its address, name, and POP location (`server.pop`).
+   * Lazy: nothing is parsed until first access.
+   */
+  readonly server: ServerInfo;
   /**
    * The downstream request that came from the client
    */
@@ -91,17 +99,98 @@ declare interface FetchEvent {
 
 /**
  * Information about the downstream client making the request.
+ *
+ * All fields are derived from headers the FastEdge edge POP injects into
+ * the request. Direct fields are populated when this object is first
+ * accessed; the nested {@link ClientInfo.geo} namespace is populated only
+ * if you read it.
  */
 declare interface ClientInfo {
   /**
-   * A string representation of the IPv4 or IPv6 address of the downstream client.
+   * Downstream client IP (IPv4 or IPv6). Read from the platform-set
+   * `x-real-ip` header, falling back to `x-forwarded-for` if `x-real-ip`
+   * is absent. Empty string if neither header is present.
+   *
+   * Both headers are set by the trusted edge POP and not by the client,
+   * so they're safe to use for rate-limiting, geofencing, and similar
+   * trust decisions on this platform.
    */
   readonly address: string;
+  /**
+   * JA3 TLS-handshake fingerprint as an MD5 hex string, from the
+   * platform-set `x-ja3` header. Empty string for non-TLS requests or
+   * when fingerprinting is unavailable.
+   */
   readonly tlsJA3MD5: string;
-  readonly tlsCipherOpensslName: string;
-  readonly tlsProtocol: string;
-  readonly tlsClientCertificate: ArrayBuffer;
-  readonly tlsClientHello: ArrayBuffer;
+  /**
+   * Protocol family — `"https"` or `"http"`. Sourced from
+   * `x-forwarded-proto`. This is *not* the TLS version (e.g. "TLSv1.3");
+   * the platform doesn't currently expose that.
+   */
+  readonly protocol: string;
+  /**
+   * Client geographic information (lazy; populated on first access).
+   */
+  readonly geo: GeoInfo;
+}
+
+/**
+ * Geographic information about the downstream client, derived from the
+ * platform's `geoip-*` headers. Populated when {@link ClientInfo.geo} is
+ * first accessed.
+ */
+declare interface GeoInfo {
+  /** Autonomous System Number of the client's network as a string. Empty if unavailable. */
+  readonly asn: string;
+  /** Latitude in decimal degrees, or `null` if unavailable. `0` is a real coordinate, not a sentinel. */
+  readonly latitude: number | null;
+  /** Longitude in decimal degrees, or `null` if unavailable. */
+  readonly longitude: number | null;
+  /** Region/state code (subdivision). Empty string if unavailable. */
+  readonly region: string;
+  /** Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable. */
+  readonly continent: string;
+  /** ISO 3166-1 alpha-2 country code (e.g. `"PT"`). Empty string if unavailable. */
+  readonly countryCode: string;
+  /** Country name (e.g. `"Portugal"`). Empty string if unavailable. */
+  readonly countryName: string;
+  /** City name. Empty string when geo lookup didn't resolve a city. */
+  readonly city: string;
+}
+
+/**
+ * Information about the FastEdge POP server handling this request,
+ * including its network identity and POP location (`server.pop`).
+ */
+declare interface ServerInfo {
+  /** Server-side IP that received the request (`server_addr` header). */
+  readonly address: string;
+  /** Server hostname (`server_name` header). */
+  readonly name: string;
+  /** POP location (lazy; populated on first access). */
+  readonly pop: PopInfo;
+}
+
+/**
+ * Geographic information about the FastEdge POP serving the request,
+ * derived from the platform's `pop-*` headers. Populated when
+ * {@link ServerInfo.pop} is first accessed.
+ */
+declare interface PopInfo {
+  /** POP latitude in decimal degrees, or `null` if unavailable. */
+  readonly latitude: number | null;
+  /** POP longitude in decimal degrees, or `null` if unavailable. */
+  readonly longitude: number | null;
+  /** POP region/state code. Empty string if unavailable. */
+  readonly region: string;
+  /** POP continent code. Empty string if unavailable. */
+  readonly continent: string;
+  /** ISO 3166-1 alpha-2 POP country code. Empty string if unavailable. */
+  readonly countryCode: string;
+  /** POP country name. Empty string if unavailable. */
+  readonly countryName: string;
+  /** POP city. Empty string when not resolved. */
+  readonly city: string;
 }
 
 /**

@@ -41,9 +41,7 @@ void builtin_impl_console_log(Console::LogType log_ty, const char *msg) {
   }
 
   fprintf(stdout, "%s %s\n", prefix, msg);
-  if (log_ty == Console::LogType::Warn || log_ty == Console::LogType::Error) {
-    fflush(stdout);
-  }
+  fflush(stdout);
 }
 
 } // namespace builtins::web::console
