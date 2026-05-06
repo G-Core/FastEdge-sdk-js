@@ -135,6 +135,18 @@
 
 Items that need attention. Surface these when asked "what's next" or "what needs work".
 
+### Cache API — implemented, awaiting verification
+- **Branch:** `feature/cache-api`
+- **State:** All C++ + JS API surface implemented and building cleanly. `Cache` global + `CacheEntry` Body-like wrapper + in-process `getOrSet` coalescing all in place. All methods Promise-returning for forward-compat with future async WIT.
+- **What's left:** manual testing against a real host, integration tests, example app, PR review.
+- **Read first:** `context/CACHE_API_HANDOFF.md` — full implementation map, design decisions (including the all-async pivot), open questions, and verification steps.
+- **Sibling branch:** `feature/cache-api-async` is exploration-only (preview-3 async ABI investigation) — do not merge.
+
+### `gcore:fastedge/utils` interface — not yet exposed to JS
+- **What:** The WIT bump for the cache work also added a `utils` interface with one function: `set-user-diag(name: string)` — sets a user diagnostic context string associated with the current request, surfaced in call statistics.
+- **State:** The C binding is generated and visible as `gcore_fastedge_utils_set_user_diag(...)` in `runtime/fastedge/host-api/bindings/bindings.h`. The cache-api branch adds a host-api C++ wrapper for it. **No JS-facing surface exists yet.**
+- **What's needed:** Decide where it belongs (a new `fastedge::utils` module, or hung off `fastedge::env` as a sibling to `getEnv`), then add the builtin method and TypeScript declarations. Likely a small follow-up after the cache work ships.
+
 ### `moduleResolution: node` deprecation in syntax checker (HIGH PRIORITY)
 - **File:** `src/utils/syntax-checker.ts` (lines 71-80)
 - **Problem:** The `fastedge-build` CLI passes `--moduleResolution node` to `tsc` when validating user TypeScript files. `node` resolves to `node10`, which is deprecated since TS 5.0 and will be **removed in TypeScript 7.0**.

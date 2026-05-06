@@ -10,7 +10,8 @@ const dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../'
 const witDir = path.join(dirname, 'host-api/wit');
 const starlingHostApisDir = path.resolve(dirname, '../StarlingMonkey/host-apis');
 const fastedgeWitDir = path.resolve(dirname, '../FastEdge-wit');
-const fastedgeDepsToRemove = ['http-client', 'http-handler', 'http']; // These are Rust specific. we use wasi-http
+// http* interfaces are Rust-specific (we use wasi-http).
+const fastedgeDepsToRemove = ['http-client', 'http-handler', 'http'];
 
 function clearExistingWitFiles() {
   // Remove all files from the ./wit directory

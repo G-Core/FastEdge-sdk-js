@@ -219,5 +219,118 @@ KvStoreResult<bool> kv_store_bf_exists(int32_t store_handle, std::string_view ke
   }
 }
 
+// Cache implementations
+
+namespace {
+  CacheError convert_cache_error(const gcore_fastedge_cache_sync_error_t& err) {
+    CacheError error;
+    error.tag = static_cast<CacheErrorTag>(err.tag);
+    if (err.tag == GCORE_FASTEDGE_CACHE_TYPES_ERROR_OTHER) {
+      error.val.other.ptr = (char*)err.val.other.ptr;
+      error.val.other.len = err.val.other.len;
+    }
+    return error;
+  }
+} // namespace
+
+CacheResult<CacheOption<CacheBytes>> cache_get(std::string_view key) {
+  auto key_str = string_view_to_world_string(key);
+  bindings_option_payload_t ret{};
+  gcore_fastedge_cache_sync_error_t err{};
+
+  bool success = gcore_fastedge_cache_sync_get(&key_str, &ret, &err);
+
+  if (success) {
+    if (ret.is_some) {
+      CacheBytes bytes;
+      bytes.ptr = ret.val.ptr;
+      bytes.len = ret.val.len;
+      return CacheResult<CacheOption<CacheBytes>>::ok(CacheOption<CacheBytes>::some(bytes));
+    } else {
+      return CacheResult<CacheOption<CacheBytes>>::ok(CacheOption<CacheBytes>::none());
+    }
+  } else {
+    return CacheResult<CacheOption<CacheBytes>>::err(convert_cache_error(err));
+  }
+}
+
+std::optional<CacheError> cache_set(std::string_view key, CacheBytesView value, std::optional<uint64_t> ttl_ms) {
+  auto key_str = string_view_to_world_string(key);
+
+  gcore_fastedge_cache_sync_payload_t payload{};
+  // wit-bindgen takes the payload pointer as non-const; we don't mutate.
+  payload.ptr = const_cast<uint8_t*>(value.ptr);
+  payload.len = value.len;
+
+  uint64_t ttl_value = ttl_ms.value_or(0);
+  uint64_t* ttl_ptr = ttl_ms.has_value() ? &ttl_value : nullptr;
+
+  gcore_fastedge_cache_sync_error_t err{};
+  bool success = gcore_fastedge_cache_sync_set(&key_str, &payload, ttl_ptr, &err);
+
+  if (success) {
+    return std::nullopt;
+  }
+  return convert_cache_error(err);
+}
+
+std::optional<CacheError> cache_delete(std::string_view key) {
+  auto key_str = string_view_to_world_string(key);
+  gcore_fastedge_cache_sync_error_t err{};
+
+  bool success = gcore_fastedge_cache_sync_delete(&key_str, &err);
+
+  if (success) {
+    return std::nullopt;
+  }
+  return convert_cache_error(err);
+}
+
+CacheResult<bool> cache_exists(std::string_view key) {
+  auto key_str = string_view_to_world_string(key);
+  bool ret = false;
+  gcore_fastedge_cache_sync_error_t err{};
+
+  bool success = gcore_fastedge_cache_sync_exists(&key_str, &ret, &err);
+
+  if (success) {
+    return CacheResult<bool>::ok(ret);
+  }
+  return CacheResult<bool>::err(convert_cache_error(err));
+}
+
+CacheResult<int64_t> cache_incr(std::string_view key, int64_t delta) {
+  auto key_str = string_view_to_world_string(key);
+  int64_t ret = 0;
+  gcore_fastedge_cache_sync_error_t err{};
+
+  bool success = gcore_fastedge_cache_sync_incr(&key_str, delta, &ret, &err);
+
+  if (success) {
+    return CacheResult<int64_t>::ok(ret);
+  }
+  return CacheResult<int64_t>::err(convert_cache_error(err));
+}
+
+CacheResult<bool> cache_expire(std::string_view key, uint64_t ttl_ms) {
+  auto key_str = string_view_to_world_string(key);
+  bool ret = false;
+  gcore_fastedge_cache_sync_error_t err{};
+
+  bool success = gcore_fastedge_cache_sync_expire(&key_str, ttl_ms, &ret, &err);
+
+  if (success) {
+    return CacheResult<bool>::ok(ret);
+  }
+  return CacheResult<bool>::err(convert_cache_error(err));
+}
+
+// Utils
+
+void utils_set_user_diag(std::string_view name) {
+  auto name_str = string_view_to_world_string(name);
+  gcore_fastedge_utils_set_user_diag(&name_str);
+}
+
 
 } // namespace host_api
