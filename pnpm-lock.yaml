@@ -142,13 +142,43 @@ importers:
         specifier: link:../..
         version: link:../..
 
-  examples/downstream-fetch:
+  examples/outbound-fetch:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
         specifier: link:../..
         version: link:../..
 
-  examples/downstream-modify-response:
+  examples/outbound-modify-response:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.2.2
+        version: 2.2.2
+
+  examples/bloom-filter-denylist:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.2.2
+        version: 2.2.2
+
+  examples/crypto-hmac-jwt:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.2.2
+        version: 2.2.2
+
+  examples/request-inspection:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.2.2
+        version: 2.2.2
+
+  examples/secret-rotation:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.2.2
+        version: 2.2.2
+
+  examples/tls-client-info:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
         specifier: link:../..
@@ -269,6 +299,12 @@ importers:
       vite:
         specifier: ^7.1.7
         version: 7.3.2(@types/node@24.12.2)(terser@5.46.1)(tsx@4.21.0)
+
+  examples/streaming:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: ^2.2.2
+        version: 2.2.2
 
   examples/static-assets:
     dependencies:

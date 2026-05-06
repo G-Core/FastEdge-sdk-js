@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-outbound-fetch",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: outbound HTTP fetch",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/outbound-fetch.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "appType": "http-wasm",
+  "description": "Adds my-custom-header from MY_CUSTOM_ENV_VAR and returns the request headers",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "x-forwarded-for": "203.0.113.10"
+    }
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

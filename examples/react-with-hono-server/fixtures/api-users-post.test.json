@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "POST /api/users — create a user via the Hono API",
+  "request": {
+    "method": "POST",
+    "path": "/api/users",
+    "headers": {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    "body": "{\"name\":\"alice\",\"email\":\"alice@example.com\"}"
+  }
+}

@@ -123,7 +123,7 @@ addEventListener('fetch', (event) => {
   event.respondWith(
     (async () => {
       const token = getSecret('SECRET_TOKEN');
-      // Use token to authenticate downstream requests
+      // Use token to authenticate outbound requests
       return new Response('OK');
     })(),
   );

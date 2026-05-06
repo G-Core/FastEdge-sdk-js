@@ -1,0 +1,11 @@
+{
+  "appType": "http-wasm",
+  "description": "GET / — Hono renders the home page (HTML with embedded JSX)",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "accept": "text/html"
+    }
+  }
+}

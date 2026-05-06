@@ -1,0 +1,12 @@
+{
+  "appType": "http-wasm",
+  "description": "ab-test-logo=hops and ab-test-font=exo2 — pair with the ab-testing edge handler",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "ab-test-logo": "hops",
+      "ab-test-font": "exo2"
+    }
+  }
+}

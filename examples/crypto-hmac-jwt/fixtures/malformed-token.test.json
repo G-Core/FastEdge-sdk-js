@@ -1,0 +1,15 @@
+{
+  "appType": "http-wasm",
+  "description": "Bearer token that is not a JWT — returns 401 with 'malformed token'",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "authorization": "Bearer not-a-real-jwt"
+    }
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

@@ -24,3 +24,7 @@ package-lock.json
 
 # FastEdge debugger artifacts
 **/.fastedge-debug/
+
+# example project lock files
+examples/**/pnpm-lock.yaml
+examples/**/package-lock.json

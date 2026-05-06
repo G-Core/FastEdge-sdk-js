@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "KV scan — list keys matching a pattern",
+  "request": {
+    "method": "GET",
+    "path": "/?store=my-store&action=scan&match=user:*",
+    "headers": {}
+  }
+}

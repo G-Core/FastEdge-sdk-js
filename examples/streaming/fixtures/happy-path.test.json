@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Generates a streaming response body — 5 chunks at 200ms intervals",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  }
+}

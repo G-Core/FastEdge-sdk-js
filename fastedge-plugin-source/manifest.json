@@ -4,47 +4,39 @@
   "version": "1.2.0",
   "sources": {
     "sdk-api": {
-      "files": [
-        "docs/SDK_API.md"
-      ],
+      "files": ["docs/SDK_API.md"],
       "required": true,
       "description": "Runtime APIs — environment variables, secrets, KV store, Cache, Web APIs available in WASM"
     },
     "build-cli": {
-      "files": [
-        "docs/BUILD_CLI.md"
-      ],
+      "files": ["docs/BUILD_CLI.md"],
       "required": true,
       "description": "fastedge-build CLI — compilation flags, config-driven builds, build types"
     },
     "init-cli": {
-      "files": [
-        "docs/INIT_CLI.md"
-      ],
+      "files": ["docs/INIT_CLI.md"],
       "required": false,
       "description": "fastedge-init CLI — interactive project scaffolding wizard"
     },
     "static-sites": {
-      "files": [
-        "docs/STATIC_SITES.md",
-        "docs/ASSETS_CLI.md"
-      ],
+      "files": ["docs/STATIC_SITES.md", "docs/ASSETS_CLI.md"],
       "required": false,
       "description": "Static site support — createStaticServer API, asset manifests, server config"
     },
     "quickstart": {
-      "files": [
-        "docs/quickstart.md"
-      ],
+      "files": ["docs/quickstart.md"],
       "required": true,
       "description": "Installation, first build, basic usage patterns with code examples"
     },
 
+    "runtime-constraints": {
+      "files": ["docs/RUNTIME_CONSTRAINTS.md"],
+      "required": true,
+      "description": "JS runtime constraints — StarlingMonkey, WinterCG capabilities, crypto.subtle support matrix, Node.js polyfill impossibility, SAML library compatibility. Hand-curated research"
+    },
+
     "hello-world-blueprint": {
-      "files": [
-        "examples/hello-world/src/index.js",
-        "examples/hello-world/package.json"
-      ],
+      "files": ["examples/hello-world/src/index.js", "examples/hello-world/package.json"],
       "required": true,
       "description": "Hello World example — base skeleton blueprint extraction (HTTP JS/TS)"
     },
@@ -71,69 +63,45 @@
     },
 
     "ab-testing-blueprint": {
-      "files": [
-        "examples/ab-testing/src/index.js",
-        "examples/ab-testing/package.json"
-      ],
+      "files": ["examples/ab-testing/src/index.js", "examples/ab-testing/package.json"],
       "required": true,
       "description": "A/B Testing example — scaffold blueprint extraction"
     },
     "ab-testing-pattern": {
-      "files": [
-        "examples/ab-testing/src/index.js",
-        "examples/ab-testing/package.json"
-      ],
+      "files": ["examples/ab-testing/src/index.js", "examples/ab-testing/package.json"],
       "required": true,
       "description": "A/B Testing example — docs pattern extraction"
     },
 
     "fetch-blueprint": {
-      "files": [
-        "examples/downstream-fetch/src/index.js",
-        "examples/downstream-fetch/package.json"
-      ],
+      "files": ["examples/outbound-fetch/src/index.js", "examples/outbound-fetch/package.json"],
       "required": true,
-      "description": "Downstream Fetch example — scaffold blueprint extraction"
+      "description": "Outbound Fetch example — scaffold blueprint extraction"
     },
     "fetch-pattern": {
-      "files": [
-        "examples/downstream-fetch/src/index.js",
-        "examples/downstream-fetch/package.json"
-      ],
+      "files": ["examples/outbound-fetch/src/index.js", "examples/outbound-fetch/package.json"],
       "required": true,
-      "description": "Downstream Fetch example — docs pattern extraction"
+      "description": "Outbound Fetch example — docs pattern extraction"
     },
 
     "headers-blueprint": {
-      "files": [
-        "examples/headers/src/index.js",
-        "examples/headers/package.json"
-      ],
+      "files": ["examples/headers/src/index.js", "examples/headers/package.json"],
       "required": true,
       "description": "Headers manipulation example — scaffold blueprint extraction"
     },
     "headers-pattern": {
-      "files": [
-        "examples/headers/src/index.js",
-        "examples/headers/package.json"
-      ],
+      "files": ["examples/headers/src/index.js", "examples/headers/package.json"],
       "required": true,
       "description": "Headers manipulation example — docs pattern extraction"
     },
 
     "geo-redirect-blueprint": {
-      "files": [
-        "examples/geo-redirect/src/index.js",
-        "examples/geo-redirect/package.json"
-      ],
+      "files": ["examples/geo-redirect/src/index.js", "examples/geo-redirect/package.json"],
       "required": true,
       "description": "Geo Redirect example — scaffold blueprint extraction"
     },
     "geo-redirect-pattern": {
-      "files": [
-        "examples/geo-redirect/src/index.js",
-        "examples/geo-redirect/package.json"
-      ],
+      "files": ["examples/geo-redirect/src/index.js", "examples/geo-redirect/package.json"],
       "required": true,
       "description": "Geo Redirect example — docs pattern extraction"
     },
@@ -155,6 +123,23 @@
       ],
       "required": true,
       "description": "Cache example — docs pattern extraction"
+    },
+    "hono-pattern": {
+      "files": ["docs/HONO_PATTERNS.md"],
+      "required": true,
+      "description": "Hono framework patterns — routing, middleware, error handling, FastEdge Service Worker integration. Source-of-truth: examples/react-with-hono-server/ + hand-curated guidance"
+    },
+
+    "auth-pattern": {
+      "files": ["docs/AUTH_PATTERNS.md"],
+      "required": true,
+      "description": "Auth patterns — bearer token middleware, HMAC-SHA256 JWT verification with crypto.subtle, getSecret usage. Source-of-truth: examples/crypto-hmac-jwt/ + hand-curated guidance"
+    },
+
+    "proxy-pattern": {
+      "files": ["docs/PROXY_PATTERNS.md"],
+      "required": true,
+      "description": "Proxy and response transform patterns — outbound fetch forwarding, JSON transform, header manipulation, KV-backed caching. Source-of-truth: examples/outbound-modify-response/ + hand-curated guidance"
     }
   },
   "target_mapping": {
@@ -175,7 +160,12 @@
       "section": null
     },
     "quickstart": {
-      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/quickstart.md",
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/quickstart-js.md",
+      "section": null
+    },
+
+    "runtime-constraints": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/js-runtime.md",
       "section": null
     },
 
@@ -235,6 +225,20 @@
     },
     "cache-pattern": {
       "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-cache-js.md",
+      "section": null
+    },
+    "hono-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-hono-js.md",
+      "section": null
+    },
+
+    "auth-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-auth-js.md",
+      "section": null
+    },
+
+    "proxy-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-proxy-js.md",
       "section": null
     }
   },

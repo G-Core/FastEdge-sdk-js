@@ -22,7 +22,7 @@ new Headers(init);
 :::note[INFO]
 
 Request and Response Headers are immutable. This means, if you need to modify Request headers for
-downstream fetch requests, or modify Response headers prior to returning a Response. You will need
+outbound fetch requests, or modify Response headers prior to returning a Response. You will need
 to create a `new Headers()` object.
 
 :::

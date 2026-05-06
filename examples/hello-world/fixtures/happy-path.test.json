@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Basic request — returns the request URL",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-bloom-filter-denylist",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: IP denylist using a KV Store bloom filter",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/bloom-filter-denylist.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+  }
+}

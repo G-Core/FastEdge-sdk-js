@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Returns ClientInfo JSON — TLS metadata is only populated on real HTTPS requests",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "No Authorization header — returns 401",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}
