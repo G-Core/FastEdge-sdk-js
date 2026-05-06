@@ -44,3 +44,6 @@ A `KV Instance` that lets you interact with the store. It provides:
 - zrangeByScore
 - zscan
 - bfExists
+
+For an explanation of how KV is replicated across edges and when to use it versus
+`fastedge::cache`, see the [Overview](/FastEdge-sdk-js/reference/fastedge/kv/).

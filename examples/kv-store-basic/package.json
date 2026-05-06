@@ -7,6 +7,6 @@
     "build": "fastedge-build src/index.js dist/kv-store-basic.wasm"
   },
   "dependencies": {
-    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+    "@gcoredev/fastedge-sdk-js": "^2.3.0"
   }
 }
