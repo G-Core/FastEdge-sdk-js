@@ -11,9 +11,12 @@ public:
 
   static bool open(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool get(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool get_entry(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool scan(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool zrange_by_score(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool zrange_by_score_entries(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool zscan(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool zscan_entries(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool bf_exists(JSContext *cx, unsigned argc, JS::Value *vp);
 
   static void finalize(JS::GCContext *gcx, JSObject *obj);

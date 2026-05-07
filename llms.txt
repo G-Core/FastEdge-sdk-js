@@ -1,6 +1,6 @@
 # @gcoredev/fastedge-sdk-js
 
-> The FastEdge JS SDK (`@gcoredev/fastedge-sdk-js`) is the JavaScript/TypeScript development toolkit for building serverless edge applications on Gcore's FastEdge platform. It compiles your code into WebAssembly components that run across global edge data centers.
+> The FastEdge JS SDK (`@gcoredev/fastedge-sdk-js`) is the JavaScript/TypeScript development toolkit
 
 ## Documentation
 

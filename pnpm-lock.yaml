@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@gcoredev/fastedge-sdk-js': link:.
+
 importers:
 
   .:
@@ -124,14 +127,26 @@ importers:
   examples/ab-testing:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
+
+  examples/cache:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
+
+  examples/cache-basic:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
 
   examples/outbound-fetch:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   examples/outbound-modify-response:
     dependencies:
@@ -166,44 +181,44 @@ importers:
   examples/tls-client-info:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   examples/geo-redirect:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   examples/headers:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   examples/hello-world:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   examples/kv-store:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   examples/kv-store-basic:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   examples/mcp-server:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
       '@hono/mcp':
         specifier: ^0.2.5
         version: 0.2.5(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6))(hono-rate-limiter@0.4.2(hono@4.12.12))(hono@4.12.12)(zod@4.3.6)
@@ -224,8 +239,8 @@ importers:
   examples/react-with-hono-server:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
       hono:
         specifier: ^4.9.8
         version: 4.12.5
@@ -294,8 +309,8 @@ importers:
   examples/static-assets:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
       hono:
         specifier: ^4.11.9
         version: 4.12.5
@@ -307,8 +322,8 @@ importers:
   examples/template-invoice:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
       handlebars:
         specifier: ^4.7.9
         version: 4.7.9
@@ -316,8 +331,8 @@ importers:
   examples/template-invoice-ab-testing:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
       handlebars:
         specifier: ^4.7.9
         version: 4.7.9
@@ -325,8 +340,8 @@ importers:
   examples/variables-and-secrets:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
 
   github-pages:
     dependencies:
@@ -1597,11 +1612,6 @@ packages:
 
   '@expressive-code/plugin-text-markers@0.41.7':
     resolution: {integrity: sha512-Ewpwuc5t6eFdZmWlFyeuy3e1PTQC0jFvw2Q+2bpcWXbOZhPLsT7+h8lsSIJxb5mS7wZko7cKyQ2RLYDyK6Fpmw==}
-
-  '@gcoredev/fastedge-sdk-js@2.2.2':
-    resolution: {integrity: sha512-x6cdO7yAXDS5Jp95B83C34xNMIHBq25Qq3L9mbWQkPjYHOhPjTjlySfwrXi8gFhyEBGrRaynk809RC3v8mq21Q==}
-    engines: {node: '>=22', pnpm: '>=10'}
-    hasBin: true
 
   '@gmrchk/cli-testing-library@0.1.2':
     resolution: {integrity: sha512-/oALX+4Zti+92hJaR7trZlDPzI2EekIHEYoDXH3oGTdCdgq5lDT3vHAMDzTjbIfUA0X/XC8sVA2tbtSoUPB5xw==}
@@ -7588,21 +7598,6 @@ snapshots:
   '@expressive-code/plugin-text-markers@0.41.7':
     dependencies:
       '@expressive-code/core': 0.41.7
-
-  '@gcoredev/fastedge-sdk-js@2.2.2':
-    dependencies:
-      '@bytecodealliance/jco': 1.17.6
-      '@bytecodealliance/wizer': 10.0.0
-      acorn: 8.16.0
-      acorn-walk: 8.3.5
-      arg: 5.0.2
-      enquirer: 2.4.1
-      esbuild: 0.28.0
-      event-target-polyfill: 0.0.4
-      magic-string: 0.30.21
-      npm-run-all2: 8.0.4
-      prompts: 2.4.2
-      regexpu-core: 5.3.2
 
   '@gmrchk/cli-testing-library@0.1.2':
     dependencies:

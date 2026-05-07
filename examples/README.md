@@ -14,6 +14,7 @@ network using
 | [outbound-modify-response](./outbound-modify-response/)     | Fetch outbound and transform the response          |
 | [headers](./headers/)                                       | Header manipulation using environment variables    |
 | [kv-store-basic](./kv-store-basic/)                         | Simple KV Store get operation                      |
+| [cache-basic](./cache-basic/)                               | Simple POP-local cache set/get/exists/delete       |
 | [variables-and-secrets](./variables-and-secrets/)           | Read environment variables and secrets             |
 | [secret-rotation](./secret-rotation/)                       | Slot-based secret retrieval for rotation           |
 
@@ -26,6 +27,7 @@ network using
 | [crypto-hmac-jwt](./crypto-hmac-jwt/)                         | Verify HS256 JWTs with the Web Crypto API (importKey + verify)                        |
 | [geo-redirect](./geo-redirect/)                               | Redirect requests by country code using env vars                                      |
 | [kv-store](./kv-store/)                                       | Query a KV Store via URL params — get/scan/zrange/zscan/bfExists                      |
+| [cache](./cache/)                                             | POP-local cache patterns — per-IP rate limiting, origin-cache proxy, JSON memoisation |
 | [template-invoice](./template-invoice/)                       | HTML invoice rendered server-side using Handlebars templates                          |
 | [template-invoice-ab-testing](./template-invoice-ab-testing/) | Template invoice with logo and font variants driven by A/B test headers               |
 | [tls-client-info](./tls-client-info/)                         | Inspect TLS metadata from `event.client` — JA3 fingerprint, protocol, cert bytes      |

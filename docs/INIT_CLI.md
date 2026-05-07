@@ -1,6 +1,7 @@
 # fastedge-init CLI
 
-Interactive scaffolding tool that generates build configuration and starter files for a new FastEdge application.
+Interactive scaffolding tool that generates build configuration and starter files for a new FastEdge
+application.
 
 ## Usage
 
@@ -8,9 +9,11 @@ Interactive scaffolding tool that generates build configuration and starter file
 npx fastedge-init
 ```
 
-`fastedge-init` has no flags. All configuration is collected interactively. Run it from the root of your project directory.
+`fastedge-init` has no flags. All configuration is collected interactively. Run it from the root of
+your project directory.
 
-If `.fastedge/build-config.js` already exists, the tool warns you and asks whether to overwrite it before proceeding. Answering `N` or pressing Enter exits without making changes.
+If `.fastedge/build-config.js` already exists, the tool warns you and asks whether to overwrite it
+before proceeding. Answering `N` or pressing Enter exits without making changes.
 
 ## Application Types
 
@@ -42,14 +45,14 @@ The first prompt asks what you are building:
 
 ```js
 const config = {
-  "type": "http",
-  "tsConfigPath": "./tsconfig.json",
-  "entryPoint": "src/index.js",
-  "wasmOutput": ".fastedge/dist/main.wasm"
+  type: 'http',
+  tsConfigPath: './tsconfig.json',
+  entryPoint: 'src/index.js',
+  wasmOutput: '.fastedge/dist/main.wasm',
 };
 
 const serverConfig = {
-  "type": "http"
+  type: 'http',
 };
 
 export { config, serverConfig };
@@ -61,12 +64,12 @@ Your entry file must register a `fetch` event listener at the top level:
 
 ```js
 async function handleRequest(event) {
-  return new Response("Hello from FastEdge!", {
-    headers: { "Content-Type": "text/plain" },
+  return new Response('Hello from FastEdge!', {
+    headers: { 'Content-Type': 'text/plain' },
   });
 }
 
-addEventListener("fetch", (event) => {
+addEventListener('fetch', (event) => {
   event.respondWith(handleRequest(event));
 });
 ```
@@ -83,21 +86,21 @@ npx fastedge-build --config .fastedge/build-config.js
 
 ### Prompts
 
-| Prompt                                   | Default                        | Validation                                  |
-| ---------------------------------------- | ------------------------------ | ------------------------------------------- |
-| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                       |
-| Path to your public directory            | `./build`                      | Directory must exist                        |
-| Is your site a single page application?  | `No`                           | —                                           |
-| Path to your SPA entrypoint *(SPA only)* | `./index.html`                 | File must exist inside the public directory |
+| Prompt                                   | Default                        | Validation                                                 |
+| ---------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                      |
+| Path to your public directory            | `./build`                      | Directory must exist                                       |
+| Is your site a single page application?  | `No`                           | —                                                          |
+| Path to your SPA entrypoint _(SPA only)_ | `./index.html`                 | Warns if `index.html` is not found in the public directory |
 
 ### Files Created
 
-| File                        | Description                                                |
-| --------------------------- | ---------------------------------------------------------- |
-| `.fastedge/static-index.js` | Generated entry file that wires the static server together |
-| `.fastedge/build-config.js` | Build and server configuration module                      |
-| `.fastedge/package.json`    | Marks `.fastedge/` as an ES module project                 |
-| `.fastedge/jsconfig.json`   | Sets the compiler target to ES6 for the project directory  |
+| File                        | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| `.fastedge/static-index.js` | Generated entry file that wires the static server together   |
+| `.fastedge/build-config.js` | Build and server configuration module                        |
+| `.fastedge/package.json`    | Marks `.fastedge/` as an ES module project                   |
+| `.fastedge/jsconfig.json`   | Sets the compiler target to ES2023 for the project directory |
 
 ### Generated Entry File
 
@@ -132,31 +135,32 @@ addEventListener("fetch", (event) => event.respondWith(handleRequest(event)));
 
 ```js
 const config = {
-  "type": "static",
-  "entryPoint": ".fastedge/static-index.js",
-  "ignoreDotFiles": true,
-  "ignoreDirs": ["./node_modules"],
-  "ignoreWellKnown": false,
-  "tsConfigPath": "./tsconfig.json",
-  "wasmOutput": ".fastedge/dist/fastedge.wasm",
-  "publicDir": "./build"
+  type: 'static',
+  entryPoint: '.fastedge/static-index.js',
+  ignoreDotFiles: true,
+  ignoreDirs: ['./node_modules'],
+  ignoreWellKnown: false,
+  tsConfigPath: './tsconfig.json',
+  wasmOutput: '.fastedge/dist/fastedge.wasm',
+  publicDir: './build',
 };
 
 const serverConfig = {
-  "type": "static",
-  "extendedCache": [],
-  "publicDirPrefix": "",
-  "compression": [],
-  "notFoundPage": "/404.html",
-  "autoExt": [],
-  "autoIndex": ["index.html", "index.htm"],
-  "spaEntrypoint": null
+  type: 'static',
+  extendedCache: [],
+  publicDirPrefix: '',
+  compression: [],
+  notFoundPage: '/404.html',
+  autoExt: [],
+  autoIndex: ['index.html', 'index.htm'],
+  spaEntrypoint: null,
 };
 
 export { config, serverConfig };
 ```
 
-For a SPA, `spaEntrypoint` is set to the normalized path entered at the prompt (e.g., `"/index.html"`).
+For a SPA, `spaEntrypoint` is set to the normalized path entered at the prompt (e.g.,
+`"/index.html"`).
 
 ### Config Fields
 

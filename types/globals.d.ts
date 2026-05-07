@@ -44,9 +44,17 @@ declare function addEventListener<K extends keyof EventMap>(
  */
 declare interface FetchEvent {
   /**
-   * Information about the downstream client that made the request
+   * Information about the downstream client that made the request,
+   * including its IP address, TLS fingerprint and geo (`client.geo`).
+   * Lazy: nothing is parsed until first access.
    */
   readonly client: ClientInfo;
+  /**
+   * Information about the FastEdge POP server handling this request,
+   * including its address, name, and POP location (`server.pop`).
+   * Lazy: nothing is parsed until first access.
+   */
+  readonly server: ServerInfo;
   /**
    * The downstream request that came from the client
    */
@@ -91,17 +99,98 @@ declare interface FetchEvent {
 
 /**
  * Information about the downstream client making the request.
+ *
+ * All fields are derived from headers the FastEdge edge POP injects into
+ * the request. Direct fields are populated when this object is first
+ * accessed; the nested {@link ClientInfo.geo} namespace is populated only
+ * if you read it.
  */
 declare interface ClientInfo {
   /**
-   * A string representation of the IPv4 or IPv6 address of the downstream client.
+   * Downstream client IP (IPv4 or IPv6). Read from the platform-set
+   * `x-real-ip` header, falling back to `x-forwarded-for` if `x-real-ip`
+   * is absent. Empty string if neither header is present.
+   *
+   * Both headers are set by the trusted edge POP and not by the client,
+   * so they're safe to use for rate-limiting, geofencing, and similar
+   * trust decisions on this platform.
    */
   readonly address: string;
+  /**
+   * JA3 TLS-handshake fingerprint as an MD5 hex string, from the
+   * platform-set `x-ja3` header. Empty string for non-TLS requests or
+   * when fingerprinting is unavailable.
+   */
   readonly tlsJA3MD5: string;
-  readonly tlsCipherOpensslName: string;
-  readonly tlsProtocol: string;
-  readonly tlsClientCertificate: ArrayBuffer;
-  readonly tlsClientHello: ArrayBuffer;
+  /**
+   * Protocol family — `"https"` or `"http"`. Sourced from
+   * `x-forwarded-proto`. This is *not* the TLS version (e.g. "TLSv1.3");
+   * the platform doesn't currently expose that.
+   */
+  readonly protocol: string;
+  /**
+   * Client geographic information (lazy; populated on first access).
+   */
+  readonly geo: GeoInfo;
+}
+
+/**
+ * Geographic information about the downstream client, derived from the
+ * platform's `geoip-*` headers. Populated when {@link ClientInfo.geo} is
+ * first accessed.
+ */
+declare interface GeoInfo {
+  /** Autonomous System Number of the client's network as a string. Empty if unavailable. */
+  readonly asn: string;
+  /** Latitude in decimal degrees, or `null` if unavailable. `0` is a real coordinate, not a sentinel. */
+  readonly latitude: number | null;
+  /** Longitude in decimal degrees, or `null` if unavailable. */
+  readonly longitude: number | null;
+  /** Region/state code (subdivision). Empty string if unavailable. */
+  readonly region: string;
+  /** Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable. */
+  readonly continent: string;
+  /** ISO 3166-1 alpha-2 country code (e.g. `"PT"`). Empty string if unavailable. */
+  readonly countryCode: string;
+  /** Country name (e.g. `"Portugal"`). Empty string if unavailable. */
+  readonly countryName: string;
+  /** City name. Empty string when geo lookup didn't resolve a city. */
+  readonly city: string;
+}
+
+/**
+ * Information about the FastEdge POP server handling this request,
+ * including its network identity and POP location (`server.pop`).
+ */
+declare interface ServerInfo {
+  /** Server-side IP that received the request (`server_addr` header). */
+  readonly address: string;
+  /** Server hostname (`server_name` header). */
+  readonly name: string;
+  /** POP location (lazy; populated on first access). */
+  readonly pop: PopInfo;
+}
+
+/**
+ * Geographic information about the FastEdge POP serving the request,
+ * derived from the platform's `pop-*` headers. Populated when
+ * {@link ServerInfo.pop} is first accessed.
+ */
+declare interface PopInfo {
+  /** POP latitude in decimal degrees, or `null` if unavailable. */
+  readonly latitude: number | null;
+  /** POP longitude in decimal degrees, or `null` if unavailable. */
+  readonly longitude: number | null;
+  /** POP region/state code. Empty string if unavailable. */
+  readonly region: string;
+  /** POP continent code. Empty string if unavailable. */
+  readonly continent: string;
+  /** ISO 3166-1 alpha-2 POP country code. Empty string if unavailable. */
+  readonly countryCode: string;
+  /** POP country name. Empty string if unavailable. */
+  readonly countryName: string;
+  /** POP city. Empty string when not resolved. */
+  readonly city: string;
 }
 
 /**
@@ -257,7 +346,14 @@ and limitations under the License.
  * ({@linkcode Request}, and {@linkcode Response})
  * @group Fetch API
  */
-declare type BodyInit = ReadableStream | ArrayBufferView | ArrayBuffer | URLSearchParams | string;
+declare type BodyInit =
+  | ReadableStream
+  | ArrayBufferView
+  | ArrayBuffer
+  | Blob
+  | FormData
+  | URLSearchParams
+  | string;
 
 /**
  * Body for Fetch HTTP Requests and Responses
@@ -269,8 +365,8 @@ declare interface Body {
   readonly body: ReadableStream<Uint8Array> | null;
   readonly bodyUsed: boolean;
   arrayBuffer(): Promise<ArrayBuffer>;
-  // blob(): Promise<Blob>;
-  // formData(): Promise<FormData>;
+  blob(): Promise<Blob>;
+  formData(): Promise<FormData>;
   json(): Promise<any>;
   text(): Promise<string>;
 }
@@ -294,31 +390,31 @@ declare type RequestInfo = Request | string;
 declare interface RequestInit {
   /** A BodyInit object or null to set request's body. */
   body?: BodyInit | null;
-  // /** A string indicating how the request will interact with the browser's cache to set request's cache. */
-  // cache?: RequestCache;
-  // /** A string indicating whether credentials will be sent with the request always, never, or only when sent to a same-origin URL. Sets request's credentials. */
-  // credentials?: RequestCredentials;
   /** A Headers object, an object literal, or an array of two-item arrays to set request's headers. */
   headers?: HeadersInit;
-  // /** A cryptographic hash of the resource to be fetched by request. Sets request's integrity. */
-  // integrity?: string;
-  // /** A boolean to set request's keepalive. */
-  // keepalive?: boolean;
   /** A string to set request's method. */
   method?: string;
-  // /** A string to indicate whether the request will use CORS, or will be restricted to same-origin URLs. Sets request's mode. */
+  /** An AbortSignal to set request's signal. */
+  signal?: AbortSignal | null;
+
+  // ---------------------------------------------------------------------------
+  // Spec fields not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // The Request constructor only parses method/headers/body/signal. The fields
+  // below are part of the WHATWG Fetch spec but are silently dropped at runtime
+  // if passed. They will be uncommented when the runtime adds parsing and a
+  // matching property getter on Request. See:
+  //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
+  //
+  // cache?: RequestCache;
+  // credentials?: RequestCredentials;
+  // integrity?: string;
+  // keepalive?: boolean;
   // mode?: RequestMode;
-  // /** A string indicating whether request follows redirects, results in an error upon encountering a redirect, or returns the redirect (in an opaque fashion). Sets request's redirect. */
   // redirect?: RequestRedirect;
-  // /** A string whose value is a same-origin URL, "about:client", or the empty string, to set request's referrer. */
   // referrer?: string;
-  // /** A referrer policy to set request's referrerPolicy. */
   // referrerPolicy?: ReferrerPolicy;
-  // /** An AbortSignal to set request's signal. */
-  // signal?: AbortSignal | null;
-  // /** Can only be null. Used to disassociate request from any Window. */
   // window?: null;
-  manualFramingHeaders?: boolean;
 }
 
 /**
@@ -330,38 +426,35 @@ declare interface RequestInit {
  * @group Fetch API
  */
 interface Request extends Body {
-  // /** Returns the cache mode associated with request, which is a string indicating how the request will interact with the browser's cache when fetching. */
-  // readonly cache: RequestCache;
-  // /** Returns the credentials mode associated with request, which is a string indicating whether credentials will be sent with the request always, never, or only when sent to a same-origin URL. */
-  // readonly credentials: RequestCredentials;
-  // /** Returns the kind of resource requested by request, e.g., "document" or "script". */
-  // readonly destination: RequestDestination;
   /** Returns a Headers object consisting of the headers associated with request. */
   readonly headers: Headers;
-  // /** Returns request's subresource integrity metadata, which is a cryptographic hash of the resource being fetched. Its value consists of multiple hashes separated by whitespace. [SRI] */
-  // readonly integrity: string;
-  // /** Returns a boolean indicating whether or not request can outlive the global in which it was created. */
-  // readonly keepalive: boolean;
   /** Returns request's HTTP method, which is "GET" by default. */
   readonly method: string;
-  // /** Returns the mode associated with request, which is a string indicating whether the request will use CORS, or will be restricted to same-origin URLs. */
-  // readonly mode: RequestMode;
-  // /** Returns the redirect mode associated with request, which is a string indicating how redirects for the request will be handled during fetching. A request will follow redirects by default. */
-  // readonly redirect: RequestRedirect;
-  // /** Returns the referrer of request. Its value can be a same-origin URL if explicitly set in init, the empty string to indicate no referrer, and "about:client" when defaulting to the global's default. This is used during fetching to determine the value of the `Referer` header of the request being made. */
-  // readonly referrer: string;
-  // /** Returns the referrer policy associated with request. This is used during fetching to compute the value of the request's referrer. */
-  // readonly referrerPolicy: ReferrerPolicy;
-  // /** Returns the signal associated with request, which is an AbortSignal object indicating whether or not request has been aborted, and its abort event handler. */
-  // readonly signal: AbortSignal;
+  /** Returns the signal associated with request, which is an AbortSignal object indicating whether or not request has been aborted, and its abort event handler. */
+  readonly signal: AbortSignal;
   /** Returns the URL of request as a string. */
   readonly url: string;
 
-  // /** Creates a copy of the current Request object. */
+  /** Creates a copy of the current Request object. */
   clone(): Request;
 
-  setCacheKey(key: string): void;
-  setManualFramingHeaders(manual: boolean): void;
+  // ---------------------------------------------------------------------------
+  // Spec properties not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // No corresponding property getter is registered on the Request class, so
+  // these accessors are unavailable at runtime. They will be uncommented when
+  // the runtime exposes them. See:
+  //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
+  //
+  // readonly cache: RequestCache;
+  // readonly credentials: RequestCredentials;
+  // readonly destination: RequestDestination;
+  // readonly integrity: string;
+  // readonly keepalive: boolean;
+  // readonly mode: RequestMode;
+  // readonly redirect: RequestRedirect;
+  // readonly referrer: string;
+  // readonly referrerPolicy: ReferrerPolicy;
 }
 
 /**
@@ -381,8 +474,12 @@ declare interface ResponseInit {
   headers?: HeadersInit;
   status?: number;
   statusText?: string;
-  manualFramingHeaders?: boolean;
 }
+
+/**
+ * @group Fetch API
+ */
+type ResponseType = 'basic' | 'cors' | 'default' | 'error' | 'opaque' | 'opaqueredirect';
 
 /**
  * The Response class as [specified by WHATWG](https://fetch.spec.whatwg.org/#ref-for-dom-response%E2%91%A0)
@@ -395,13 +492,11 @@ declare interface ResponseInit {
 interface Response extends Body {
   readonly headers: Headers;
   readonly ok: boolean;
-  // readonly redirected: boolean;
+  readonly redirected: boolean;
   readonly status: number;
   readonly statusText: string;
-  // readonly type: ResponseType;
+  readonly type: ResponseType;
   readonly url: string;
-  // clone(): Response;
-  setManualFramingHeaders(manual: boolean): void;
 }
 
 /**
@@ -410,21 +505,29 @@ interface Response extends Body {
 declare var Response: {
   prototype: Response;
   new (body?: BodyInit | null, init?: ResponseInit): Response;
-  // error(): Response;
   redirect(url: string | URL, status?: number): Response;
   json(data: any, init?: ResponseInit): Response;
+
+  // ---------------------------------------------------------------------------
+  // Spec static methods not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // Will be uncommented when the runtime exposes them. See:
+  //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
+  //
+  // error(): Response;
 };
 
 /**
  * @group Streams API
  */
-type ReadableStreamReader<T> = ReadableStreamDefaultReader<T>;
-// type ReadableStreamReader<T> = ReadableStreamDefaultReader<T> | ReadableStreamBYOBReader;
+type ReadableStreamReader<T> = ReadableStreamDefaultReader<T> | ReadableStreamBYOBReader;
+
 /**
  * @group Streams API
  */
-type ReadableStreamController<T> = ReadableStreamDefaultController<T>;
-// type ReadableStreamController<T> = ReadableStreamDefaultController<T> | ReadableByteStreamController;
+type ReadableStreamController<T> =
+  | ReadableStreamDefaultController<T>
+  | ReadableByteStreamController;
 
 /**
  * @group Streams API
@@ -503,30 +606,49 @@ interface UnderlyingSource<R = any> {
 type ReadableStreamType = 'bytes';
 
 /**
+ * Options for {@linkcode ReadableStream.pipeTo} and {@linkcode ReadableStream.pipeThrough}.
+ *
+ * The behaviour of the piping process under various error conditions can be
+ * customised with these options. It returns a promise that fulfills when the
+ * piping process completes successfully, or rejects if any errors were
+ * encountered.
+ *
+ * Piping a stream will lock it for the duration of the pipe, preventing any
+ * other consumer from acquiring a reader.
+ *
+ * Errors and closures of the source and destination streams propagate as
+ * follows:
+ *
+ * - An error in the source readable stream will abort destination, unless
+ *   `preventAbort` is truthy. The returned promise will be rejected with the
+ *   source's error, or with any error that occurs during aborting the
+ *   destination.
+ * - An error in destination will cancel the source readable stream, unless
+ *   `preventCancel` is truthy. The returned promise will be rejected with the
+ *   destination's error, or with any error that occurs during canceling the
+ *   source.
+ * - When the source readable stream closes, destination will be closed,
+ *   unless `preventClose` is truthy. The returned promise will be fulfilled
+ *   once this process completes, unless an error is encountered while
+ *   closing the destination, in which case it will be rejected with that
+ *   error.
+ * - If destination starts out closed or closing, the source readable stream
+ *   will be canceled, unless `preventCancel` is true. The returned promise
+ *   will be rejected with an error indicating piping to a closed stream
+ *   failed, or with any error that occurs during canceling the source.
+ * - The `signal` option can be set to an {@linkcode AbortSignal} to allow
+ *   aborting an ongoing pipe operation via the corresponding
+ *   {@linkcode AbortController}. In this case, the source readable stream
+ *   will be canceled, and destination aborted, unless the respective options
+ *   `preventCancel` or `preventAbort` are set.
+ *
  * @group Streams API
  */
 interface StreamPipeOptions {
   preventAbort?: boolean;
   preventCancel?: boolean;
-  /**
-   * Pipes this readable stream to a given writable stream destination. The way in which the piping process behaves under various error conditions can be customized with a number of passed options. It returns a promise that fulfills when the piping process completes successfully, or rejects if any errors were encountered.
-   *
-   * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
-   *
-   * Errors and closures of the source and destination streams propagate as follows:
-   *
-   * An error in this source readable stream will abort destination, unless preventAbort is truthy. The returned promise will be rejected with the source's error, or with any error that occurs during aborting the destination.
-   *
-   * An error in destination will cancel this source readable stream, unless preventCancel is truthy. The returned promise will be rejected with the destination's error, or with any error that occurs during canceling the source.
-   *
-   * When this source readable stream closes, destination will be closed, unless preventClose is truthy. The returned promise will be fulfilled once this process completes, unless an error is encountered while closing the destination, in which case it will be rejected with that error.
-   *
-   * If destination starts out closed or closing, this source readable stream will be canceled, unless preventCancel is true. The returned promise will be rejected with an error indicating piping to a closed stream failed, or with any error that occurs during canceling the source.
-   *
-   * The signal option can be set to an AbortSignal to allow aborting an ongoing pipe operation via the corresponding AbortController. In this case, this source readable stream will be canceled, and destination aborted, unless the respective options preventCancel or preventAbort are set.
-   */
   preventClose?: boolean;
-  // signal?: AbortSignal;
+  signal?: AbortSignal;
 }
 
 /**
@@ -549,12 +671,52 @@ interface QueuingStrategy<T = any> {
  */
 interface QueuingStrategyInit {
   /**
-   * Creates a new ByteLengthQueuingStrategy with the provided high water mark.
-   *
-   * Note that the provided high water mark will not be validated ahead of time. Instead, if it is negative, NaN, or not a number, the resulting ByteLengthQueuingStrategy will cause the corresponding stream constructor to throw.
+   * The provided high water mark is not validated ahead of time. If it is
+   * negative, `NaN`, or not a number, the resulting strategy will cause the
+   * corresponding stream constructor to throw.
    */
   highWaterMark: number;
 }
+
+/**
+ * A queuing strategy that counts byte length. Used as the
+ * `queuingStrategy` argument when constructing a {@linkcode ReadableStream}
+ * or {@linkcode WritableStream} of byte data.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ByteLengthQueuingStrategy)
+ * @group Streams API
+ */
+interface ByteLengthQueuingStrategy extends QueuingStrategy<ArrayBufferView> {
+  readonly highWaterMark: number;
+  readonly size: QueuingStrategySize<ArrayBufferView>;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ByteLengthQueuingStrategy: {
+  prototype: ByteLengthQueuingStrategy;
+  new (init: QueuingStrategyInit): ByteLengthQueuingStrategy;
+};
+
+/**
+ * A queuing strategy that counts each chunk as a single unit.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CountQueuingStrategy)
+ * @group Streams API
+ */
+interface CountQueuingStrategy extends QueuingStrategy {
+  readonly highWaterMark: number;
+  readonly size: QueuingStrategySize;
+}
+
+/**
+ * @group Streams API
+ */
+declare var CountQueuingStrategy: {
+  prototype: CountQueuingStrategy;
+  new (init: QueuingStrategyInit): CountQueuingStrategy;
+};
 
 /**
  * @group Streams API
@@ -600,6 +762,8 @@ interface ReadableStream<R = any> {
   readonly locked: boolean;
   cancel(reason?: any): Promise<void>;
   getReader(): ReadableStreamDefaultReader<R>;
+  getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
+  getReader(options?: ReadableStreamGetReaderOptions): ReadableStreamReader<R>;
   pipeThrough<T>(
     transform: ReadableWritablePair<T, R>,
     options?: StreamPipeOptions,
@@ -663,6 +827,87 @@ interface ReadableStreamGenericReader {
   readonly closed: Promise<undefined>;
   cancel(reason?: any): Promise<void>;
 }
+
+/**
+ * @group Streams API
+ */
+interface ReadableStreamGetReaderOptions {
+  mode?: 'byob';
+}
+
+/**
+ * @group Streams API
+ */
+interface ReadableStreamBYOBReaderReadOptions {
+  /** Minimum number of elements to read before resolving. Default 1. */
+  min?: number;
+}
+
+/**
+ * Reader for a "byte" {@linkcode ReadableStream}, allowing the consumer to
+ * supply the buffer that the stream writes into (Bring-Your-Own-Buffer).
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ReadableStreamBYOBReader)
+ * @group Streams API
+ */
+interface ReadableStreamBYOBReader extends ReadableStreamGenericReader {
+  read<T extends ArrayBufferView>(
+    view: T,
+    options?: ReadableStreamBYOBReaderReadOptions,
+  ): Promise<ReadableStreamDefaultReadResult<T>>;
+  releaseLock(): void;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ReadableStreamBYOBReader: {
+  prototype: ReadableStreamBYOBReader;
+  new (stream: ReadableStream<Uint8Array>): ReadableStreamBYOBReader;
+};
+
+/**
+ * Represents a "pull-into" descriptor passed to a {@linkcode ReadableByteStreamController}.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ReadableStreamBYOBRequest)
+ * @group Streams API
+ */
+interface ReadableStreamBYOBRequest {
+  readonly view: ArrayBufferView | null;
+  respond(bytesWritten: number): void;
+  respondWithNewView(view: ArrayBufferView): void;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ReadableStreamBYOBRequest: {
+  prototype: ReadableStreamBYOBRequest;
+  new (): ReadableStreamBYOBRequest;
+};
+
+/**
+ * Controller for a "byte" {@linkcode ReadableStream} (i.e. one constructed
+ * with `{ type: 'bytes' }`).
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/ReadableByteStreamController)
+ * @group Streams API
+ */
+interface ReadableByteStreamController {
+  readonly byobRequest: ReadableStreamBYOBRequest | null;
+  readonly desiredSize: number | null;
+  close(): void;
+  enqueue(chunk: ArrayBufferView): void;
+  error(e?: any): void;
+}
+
+/**
+ * @group Streams API
+ */
+declare var ReadableByteStreamController: {
+  prototype: ReadableByteStreamController;
+  new (): ReadableByteStreamController;
+};
 
 /**
  * This Streams API interface provides a standard abstraction for writing streaming data to a destination, known as a sink. This object comes with built-in backpressure and queuing.
@@ -801,6 +1046,58 @@ interface TransformerTransformCallback<I, O> {
 }
 
 /**
+ * Compression formats accepted by {@linkcode CompressionStream} and
+ * {@linkcode DecompressionStream}.
+ *
+ * @group Compression Streams API
+ */
+type CompressionFormat = 'deflate' | 'deflate-raw' | 'gzip';
+
+/**
+ * Compresses a stream of data using the specified format.
+ *
+ * Used as a {@linkcode TransformStream}: write uncompressed bytes to its
+ * `writable` side and read compressed bytes from its `readable` side.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CompressionStream)
+ * @group Compression Streams API
+ */
+interface CompressionStream {
+  readonly readable: ReadableStream<Uint8Array>;
+  readonly writable: WritableStream<BufferSource>;
+}
+
+/**
+ * @group Compression Streams API
+ */
+declare var CompressionStream: {
+  prototype: CompressionStream;
+  new (format: CompressionFormat): CompressionStream;
+};
+
+/**
+ * Decompresses a stream of data compressed in the specified format.
+ *
+ * Used as a {@linkcode TransformStream}: write compressed bytes to its
+ * `writable` side and read uncompressed bytes from its `readable` side.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/DecompressionStream)
+ * @group Compression Streams API
+ */
+interface DecompressionStream {
+  readonly readable: ReadableStream<Uint8Array>;
+  readonly writable: WritableStream<BufferSource>;
+}
+
+/**
+ * @group Compression Streams API
+ */
+declare var DecompressionStream: {
+  prototype: DecompressionStream;
+  new (format: CompressionFormat): DecompressionStream;
+};
+
+/**
  * @group Fetch API
  */
 type HeadersInit = Headers | string[][] | Record<string, string>;
@@ -815,6 +1112,7 @@ interface Headers {
   append(name: string, value: string): void;
   delete(name: string): void;
   get(name: string): string | null;
+  getSetCookie(): string[];
   has(name: string): boolean;
   set(name: string, value: string): void;
   forEach(callbackfn: (value: string, key: string, parent: Headers) => void, thisArg?: any): void;
@@ -945,8 +1243,11 @@ interface StructuredSerializeOptions {
 /**
  * @group DOM APIs
  */
+// The full WHATWG type is `ArrayBuffer | MessagePort | ImageBitmap`. The
+// StarlingMonkey runtime exposes neither MessagePort (no Worker API) nor
+// ImageBitmap (no Canvas API), so only ArrayBuffer can be transferred via
+// structuredClone. See runtime/StarlingMonkey/builtins/web/structured-clone.cpp
 type Transferable = ArrayBuffer;
-// type Transferable = ArrayBuffer | MessagePort | ImageBitmap;
 
 /**
  * @group Web APIs
@@ -990,21 +1291,30 @@ type BufferSource = ArrayBufferView | ArrayBuffer;
 
 declare class SubtleCrypto {
   constructor();
-  // decrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  // deriveBits(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, length: number): Promise<ArrayBuffer>;
-  // deriveKey(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: AlgorithmIdentifier | AesDerivedKeyParams | HmacImportParams | HkdfParams | Pbkdf2Params, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
+
+  /**
+   * Computes a digest (hash) of the given data. Supported algorithms:
+   * `SHA-1`, `SHA-256`, `SHA-384`, `SHA-512`.
+   */
   digest(algorithm: AlgorithmIdentifier, data: BufferSource): Promise<ArrayBuffer>;
-  // encrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  // exportKey(format: "jwk", key: CryptoKey): Promise<JsonWebKey>;
-  // exportKey(format: Exclude<KeyFormat, "jwk">, key: CryptoKey): Promise<ArrayBuffer>;
-  // generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKeyPair>;
-  // generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKey>;
-  // generateKey(algorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair | CryptoKey>;
-  // importKey(format: "jwk", keyData: JsonWebKey, algorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | AesKeyAlgorithm, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKey>;
+
+  /**
+   * Imports a key from external key material. Supported algorithms:
+   * `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`.
+   *
+   * Supported (algorithm, format) combinations:
+   * - `HMAC` — `'raw'`, `'jwk'`
+   * - `RSASSA-PKCS1-v1_5` — `'jwk'`, `'spki'`, `'pkcs8'`
+   * - `ECDSA` — `'jwk'`, `'raw'`, `'spki'`, `'pkcs8'`
+   */
   importKey(
     format: 'jwk',
     keyData: JsonWebKey,
-    algorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams,
+    algorithm:
+      | AlgorithmIdentifier
+      | HmacImportParams
+      | RsaHashedImportParams
+      | EcKeyImportParams,
     extractable: boolean,
     keyUsages: ReadonlyArray<KeyUsage>,
   ): Promise<CryptoKey>;
@@ -1013,24 +1323,67 @@ declare class SubtleCrypto {
     keyData: BufferSource,
     algorithm:
       | AlgorithmIdentifier
+      | HmacImportParams
       | RsaHashedImportParams
-      // | EcKeyImportParams
-      | HmacImportParams,
-    // | AesKeyAlgorithm
+      | EcKeyImportParams,
     extractable: boolean,
     keyUsages: KeyUsage[],
   ): Promise<CryptoKey>;
-  // sign(algorithm: AlgorithmIdentifier | RsaPssParams | EcdsaParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  sign(algorithm: AlgorithmIdentifier, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
-  // unwrapKey(format: KeyFormat, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, unwrappedKeyAlgorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | AesKeyAlgorithm, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
-  // verify(algorithm: AlgorithmIdentifier | RsaPssParams | EcdsaParams, key: CryptoKey, signature: BufferSource, data: BufferSource): Promise<boolean>;
+
+  /**
+   * Signs data with a private (or symmetric) key. Supported algorithms:
+   * `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`. ECDSA requires {@link EcdsaParams}
+   * (`{ name: 'ECDSA', hash: ... }`) so the hash function can be specified.
+   */
+  sign(
+    algorithm: AlgorithmIdentifier | EcdsaParams,
+    key: CryptoKey,
+    data: BufferSource,
+  ): Promise<ArrayBuffer>;
+
+  /**
+   * Verifies a signature against the original data. Supported algorithms:
+   * `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`. ECDSA requires {@link EcdsaParams}.
+   */
   verify(
-    algorithm: AlgorithmIdentifier,
+    algorithm: AlgorithmIdentifier | EcdsaParams,
     key: CryptoKey,
     signature: BufferSource,
     data: BufferSource,
   ): Promise<boolean>;
+
+  // ---------------------------------------------------------------------------
+  // Spec methods not implemented by the StarlingMonkey runtime
+  // ---------------------------------------------------------------------------
+  // The runtime currently implements only `digest`, `importKey`, `sign`, and
+  // `verify`. The methods below are part of the WebCrypto spec but throw
+  // `TypeError` at runtime if called. See:
+  //   runtime/StarlingMonkey/builtins/web/crypto/subtle-crypto.cpp
+  //
+  // decrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
+  // deriveBits(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, length: number): Promise<ArrayBuffer>;
+  // deriveKey(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: AlgorithmIdentifier | AesDerivedKeyParams | HmacImportParams | HkdfParams | Pbkdf2Params, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
+  // encrypt(algorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, key: CryptoKey, data: BufferSource): Promise<ArrayBuffer>;
+  // exportKey(format: 'jwk', key: CryptoKey): Promise<JsonWebKey>;
+  // exportKey(format: Exclude<KeyFormat, 'jwk'>, key: CryptoKey): Promise<ArrayBuffer>;
+  // generateKey(algorithm: RsaHashedKeyGenParams | EcKeyGenParams, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKeyPair>;
+  // generateKey(algorithm: AesKeyGenParams | HmacKeyGenParams | Pbkdf2Params, extractable: boolean, keyUsages: ReadonlyArray<KeyUsage>): Promise<CryptoKey>;
+  // generateKey(algorithm: AlgorithmIdentifier, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair | CryptoKey>;
+  // unwrapKey(format: KeyFormat, wrappedKey: BufferSource, unwrappingKey: CryptoKey, unwrapAlgorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams, unwrappedKeyAlgorithm: AlgorithmIdentifier | RsaHashedImportParams | EcKeyImportParams | HmacImportParams | AesKeyAlgorithm, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey>;
   // wrapKey(format: KeyFormat, key: CryptoKey, wrappingKey: CryptoKey, wrapAlgorithm: AlgorithmIdentifier | RsaOaepParams | AesCtrParams | AesCbcParams | AesGcmParams): Promise<ArrayBuffer>;
+  //
+  // The following algorithm-parameter unions are intentionally absent from the
+  // live overloads because the underlying algorithms are not registered in
+  // crypto-algorithm.cpp:
+  //
+  //   `RsaPssParams` (RSA-PSS) — sign/verify
+  //   `RsaOaepParams` (RSA-OAEP) — encrypt/decrypt/wrap/unwrap
+  //   `AesCtrParams`, `AesCbcParams`, `AesGcmParams`, `AesKeyAlgorithm`,
+  //     `AesKeyGenParams`, `AesDerivedKeyParams` (all AES variants)
+  //   `EcdhKeyDeriveParams` (ECDH) — deriveBits/deriveKey
+  //   `HkdfParams`, `Pbkdf2Params` (HKDF, PBKDF2) — deriveBits/deriveKey
+  //   `HmacKeyGenParams`, `RsaHashedKeyGenParams`, `EcKeyGenParams` —
+  //     generateKey
 }
 
 interface HmacImportParams extends Algorithm {
@@ -1043,9 +1396,18 @@ interface RsaHashedImportParams extends Algorithm {
 }
 type HashAlgorithmIdentifier = AlgorithmIdentifier;
 
-interface EcKeyImportParams {
+interface EcKeyImportParams extends Algorithm {
   name: 'ECDSA';
   namedCurve: 'P-256' | 'P-384' | 'P-521';
+}
+
+/**
+ * Parameter dictionary for {@linkcode SubtleCrypto.sign} and
+ * {@linkcode SubtleCrypto.verify} when using ECDSA.
+ */
+interface EcdsaParams extends Algorithm {
+  name: 'ECDSA';
+  hash: HashAlgorithmIdentifier;
 }
 
 interface JsonWebKey {
@@ -1126,11 +1488,7 @@ interface KeyAlgorithm {
   name: string;
 }
 
-type KeyFormat =
-  | 'jwk'
-  // | "pkcs8"
-  | 'raw';
-// | "spki";
+type KeyFormat = 'jwk' | 'pkcs8' | 'raw' | 'spki';
 type KeyType = 'private' | 'public' | 'secret';
 type KeyUsage =
   | 'decrypt'
@@ -1143,16 +1501,143 @@ type KeyUsage =
   | 'wrapKey';
 
 /**
- * EventTarget is a DOM interface implemented by objects that can receive events and may have listeners for them.
+ * @group DOM Events
+ */
+interface EventInit {
+  bubbles?: boolean;
+  cancelable?: boolean;
+  composed?: boolean;
+}
+
+/**
+ * An event which takes place in the DOM.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Event)
+ * @group DOM Events
+ */
+interface Event {
+  readonly bubbles: boolean;
+  readonly cancelable: boolean;
+  readonly composed: boolean;
+  readonly currentTarget: EventTarget | null;
+  readonly defaultPrevented: boolean;
+  readonly eventPhase: number;
+  readonly isTrusted: boolean;
+  readonly srcElement: EventTarget | null;
+  readonly target: EventTarget | null;
+  readonly timeStamp: DOMHighResTimeStamp;
+  readonly type: string;
+  returnValue: boolean;
+  composedPath(): EventTarget[];
+  initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void;
+  preventDefault(): void;
+  stopImmediatePropagation(): void;
+  stopPropagation(): void;
+  readonly NONE: 0;
+  readonly CAPTURING_PHASE: 1;
+  readonly AT_TARGET: 2;
+  readonly BUBBLING_PHASE: 3;
+}
+
+/**
+ * @group DOM Events
+ */
+declare var Event: {
+  prototype: Event;
+  new (type: string, eventInitDict?: EventInit): Event;
+  readonly NONE: 0;
+  readonly CAPTURING_PHASE: 1;
+  readonly AT_TARGET: 2;
+  readonly BUBBLING_PHASE: 3;
+};
+
+/**
+ * @group DOM Events
+ */
+interface CustomEventInit<T = any> extends EventInit {
+  detail?: T;
+}
+
+/**
+ * Events initialised by an application for any purpose.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/CustomEvent)
+ * @group DOM Events
+ */
+interface CustomEvent<T = any> extends Event {
+  readonly detail: T;
+}
+
+/**
+ * @group DOM Events
+ */
+declare var CustomEvent: {
+  prototype: CustomEvent;
+  new <T>(type: string, eventInitDict?: CustomEventInit<T>): CustomEvent<T>;
+};
+
+/**
+ * @group DOM Events
+ */
+interface EventListener {
+  (evt: Event): void;
+}
+
+/**
+ * @group DOM Events
+ */
+interface EventListenerObject {
+  handleEvent(object: Event): void;
+}
+
+/**
+ * @group DOM Events
+ */
+type EventListenerOrEventListenerObject = EventListener | EventListenerObject;
+
+/**
+ * @group DOM Events
+ */
+interface EventListenerOptions {
+  capture?: boolean;
+}
+
+/**
+ * @group DOM Events
+ */
+interface AddEventListenerOptions extends EventListenerOptions {
+  once?: boolean;
+  passive?: boolean;
+  signal?: AbortSignal;
+}
+
+/**
+ * EventTarget is an interface implemented by objects that can receive events and may have listeners for them.
  *
  * [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget)
  * @group DOM Events
  */
 interface EventTarget {
-  //addEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: AddEventListenerOptions | boolean): void;
-  //dispatchEvent(event: Event): boolean;
-  //removeEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: EventListenerOptions | boolean): void;
+  addEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject | null,
+    options?: AddEventListenerOptions | boolean,
+  ): void;
+  dispatchEvent(event: Event): boolean;
+  removeEventListener(
+    type: string,
+    callback: EventListenerOrEventListenerObject | null,
+    options?: EventListenerOptions | boolean,
+  ): void;
 }
+
+/**
+ * @group DOM Events
+ */
+declare var EventTarget: {
+  prototype: EventTarget;
+  new (): EventTarget;
+};
 
 /**
  * Provides access to performance-related information for the current page. It's part of the High Resolution Time API, but is enhanced by the Performance Timeline API, the Navigation Timing API, the User Timing API, and the Resource Timing API.
@@ -1181,4 +1666,250 @@ declare var Performance: {
 declare var performance: Performance;
 
 type DOMHighResTimeStamp = number;
+
+// ---------------------------------------------------------------------------
+// Abort API
+// ---------------------------------------------------------------------------
+
+/**
+ * @group Abort API
+ */
+interface AbortSignalEventMap {
+  abort: Event;
+}
+
+/**
+ * A signal object that allows you to communicate with a request and abort it
+ * if required via an {@linkcode AbortController}.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/AbortSignal)
+ * @group Abort API
+ */
+interface AbortSignal extends EventTarget {
+  /** Whether the request has been aborted. */
+  readonly aborted: boolean;
+  /** The reason the signal aborted, if any. */
+  readonly reason: any;
+  onabort: ((this: AbortSignal, ev: Event) => any) | null;
+  /** Throws the signal's abort `reason` if the signal has been aborted. */
+  throwIfAborted(): void;
+}
+
+/**
+ * @group Abort API
+ */
+declare var AbortSignal: {
+  prototype: AbortSignal;
+  new (): AbortSignal;
+  /** Returns an `AbortSignal` instance that is already aborted. */
+  abort(reason?: any): AbortSignal;
+  /** Returns an `AbortSignal` that aborts after `milliseconds` have elapsed. */
+  timeout(milliseconds: number): AbortSignal;
+  /** Returns an `AbortSignal` that aborts when any of the supplied signals abort. */
+  any(signals: AbortSignal[]): AbortSignal;
+};
+
+/**
+ * A controller object that allows you to abort one or more requests as
+ * desired through an associated {@linkcode AbortSignal}.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/AbortController)
+ * @group Abort API
+ */
+interface AbortController {
+  /** The {@linkcode AbortSignal} associated with this controller. */
+  readonly signal: AbortSignal;
+  /** Causes the signal to transition to its aborted state. */
+  abort(reason?: any): void;
+}
+
+/**
+ * @group Abort API
+ */
+declare var AbortController: {
+  prototype: AbortController;
+  new (): AbortController;
+};
+
+// ---------------------------------------------------------------------------
+// Encoding API (TextEncoder / TextDecoder)
+// ---------------------------------------------------------------------------
+
+/**
+ * @group Encoding API
+ */
+interface TextDecoderOptions {
+  fatal?: boolean;
+  ignoreBOM?: boolean;
+}
+
+/**
+ * @group Encoding API
+ */
+interface TextDecodeOptions {
+  stream?: boolean;
+}
+
+/**
+ * Decodes a stream of bytes (e.g. {@linkcode ArrayBuffer} or
+ * {@linkcode Uint8Array}) into a string using a given encoding.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/TextDecoder)
+ * @group Encoding API
+ */
+interface TextDecoder {
+  readonly encoding: string;
+  readonly fatal: boolean;
+  readonly ignoreBOM: boolean;
+  decode(input?: BufferSource, options?: TextDecodeOptions): string;
+}
+
+/**
+ * @group Encoding API
+ */
+declare var TextDecoder: {
+  prototype: TextDecoder;
+  new (label?: string, options?: TextDecoderOptions): TextDecoder;
+};
+
+/**
+ * @group Encoding API
+ */
+interface TextEncoderEncodeIntoResult {
+  read: number;
+  written: number;
+}
+
+/**
+ * Encodes a string into a stream of UTF-8 bytes.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/TextEncoder)
+ * @group Encoding API
+ */
+interface TextEncoder {
+  /** Always `"utf-8"`. */
+  readonly encoding: string;
+  encode(input?: string): Uint8Array;
+  encodeInto(source: string, destination: Uint8Array): TextEncoderEncodeIntoResult;
+}
+
+/**
+ * @group Encoding API
+ */
+declare var TextEncoder: {
+  prototype: TextEncoder;
+  new (): TextEncoder;
+};
+
+// ---------------------------------------------------------------------------
+// Blob / File / FormData
+// ---------------------------------------------------------------------------
+
+/**
+ * @group File API
+ */
+type EndingType = 'native' | 'transparent';
+
+/**
+ * @group File API
+ */
+type BlobPart = BufferSource | Blob | string;
+
+/**
+ * @group File API
+ */
+interface BlobPropertyBag {
+  endings?: EndingType;
+  type?: string;
+}
+
+/**
+ * A file-like object of immutable, raw data. Blobs represent data that isn't
+ * necessarily in a JavaScript-native format.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/Blob)
+ * @group File API
+ */
+interface Blob {
+  readonly size: number;
+  readonly type: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  bytes(): Promise<Uint8Array>;
+  slice(start?: number, end?: number, contentType?: string): Blob;
+  stream(): ReadableStream<Uint8Array>;
+  text(): Promise<string>;
+}
+
+/**
+ * @group File API
+ */
+declare var Blob: {
+  prototype: Blob;
+  new (blobParts?: BlobPart[], options?: BlobPropertyBag): Blob;
+};
+
+/**
+ * @group File API
+ */
+interface FilePropertyBag extends BlobPropertyBag {
+  lastModified?: number;
+}
+
+/**
+ * Provides information about files and allows JavaScript to access their
+ * content.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/File)
+ * @group File API
+ */
+interface File extends Blob {
+  readonly lastModified: number;
+  readonly name: string;
+}
+
+/**
+ * @group File API
+ */
+declare var File: {
+  prototype: File;
+  new (fileBits: BlobPart[], fileName: string, options?: FilePropertyBag): File;
+};
+
+/**
+ * @group File API
+ */
+type FormDataEntryValue = File | string;
+
+/**
+ * Provides a way to easily construct a set of key/value pairs representing
+ * form fields and their values.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/FormData)
+ * @group File API
+ */
+interface FormData {
+  append(name: string, value: string | Blob, fileName?: string): void;
+  delete(name: string): void;
+  get(name: string): FormDataEntryValue | null;
+  getAll(name: string): FormDataEntryValue[];
+  has(name: string): boolean;
+  set(name: string, value: string | Blob, fileName?: string): void;
+  forEach(
+    callbackfn: (value: FormDataEntryValue, key: string, parent: FormData) => void,
+    thisArg?: any,
+  ): void;
+  entries(): IterableIterator<[string, FormDataEntryValue]>;
+  keys(): IterableIterator<string>;
+  values(): IterableIterator<FormDataEntryValue>;
+  [Symbol.iterator](): IterableIterator<[string, FormDataEntryValue]>;
+}
+
+/**
+ * @group File API
+ */
+declare var FormData: {
+  prototype: FormData;
+  new (): FormData;
+};
+
 0;
