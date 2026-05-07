@@ -1,5 +1,14 @@
 #include "kv-store.h"
+#include "encode.h"
+
 #include <cstdlib>
+#include <cstring>
+#include <vector>
+
+#include <js/ArrayBuffer.h>
+#include <js/CharacterEncoding.h>
+#include <js/JSON.h>
+#include <js/Promise.h>
 
 using fastedge::kv_store::KvStore;
 
@@ -30,9 +39,12 @@ const JSFunctionSpec KvStore::static_methods[] = {
 // Instance methods for KvStore objects
 const JSFunctionSpec KvStore::methods[] = {
     JS_FN("get", KvStore::get, 1, JSPROP_ENUMERATE),
+    JS_FN("getEntry", KvStore::get_entry, 1, JSPROP_ENUMERATE),
     JS_FN("scan", KvStore::scan, 1, JSPROP_ENUMERATE),
     JS_FN("zrangeByScore", KvStore::zrange_by_score, 3, JSPROP_ENUMERATE),
+    JS_FN("zrangeByScoreEntries", KvStore::zrange_by_score_entries, 3, JSPROP_ENUMERATE),
     JS_FN("zscan", KvStore::zscan, 2, JSPROP_ENUMERATE),
+    JS_FN("zscanEntries", KvStore::zscan_entries, 2, JSPROP_ENUMERATE),
     JS_FN("bfExists", KvStore::bf_exists, 2, JSPROP_ENUMERATE),
     JS_FS_END
 };
@@ -61,13 +73,13 @@ bool KvStore::open(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars store_name = JS_EncodeStringToUTF8(cx, store_name_str);
+    auto store_name = core::encode(cx, store_name_str);
     if (!store_name) {
         return false;
     }
 
     // Call the host API to open the store
-    auto result = host_api::kv_store_open(store_name.get());
+    auto result = host_api::kv_store_open(std::string_view(store_name.ptr.get(), store_name.len));
 
     // THROW ERRORS...
     if (!result.is_ok()) {
@@ -75,16 +87,16 @@ bool KvStore::open(JSContext *cx, unsigned argc, JS::Value *vp) {
         auto error = result.unwrap_err();
         switch (error.tag) {
             case host_api::KvStoreErrorTag::NO_SUCH_STORE:
-                JS_ReportErrorUTF8(cx, "No such store: %s", store_name.get());
+                JS_ReportErrorUTF8(cx, "No such store: %s", store_name.ptr.get());
                 break;
             case host_api::KvStoreErrorTag::ACCESS_DENIED:
-                JS_ReportErrorUTF8(cx, "Access denied to store: %s", store_name.get());
+                JS_ReportErrorUTF8(cx, "Access denied to store: %s", store_name.ptr.get());
                 break;
             case host_api::KvStoreErrorTag::INTERNAL_ERROR:
-                JS_ReportErrorUTF8(cx, "Internal error opening store: %s", store_name.get());
+                JS_ReportErrorUTF8(cx, "Internal error opening store: %s", store_name.ptr.get());
                 break;
             case host_api::KvStoreErrorTag::OTHER:
-                JS_ReportErrorUTF8(cx, "Error opening store %s: %s", store_name.get(), error.val.other.ptr);
+                JS_ReportErrorUTF8(cx, "Error opening store %s: %s", store_name.ptr.get(), error.val.other.ptr);
                 break;
         }
         return false;
@@ -133,17 +145,17 @@ bool KvStore::get(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
 
     // Call the host API
-    auto result = host_api::kv_store_get(store->store_handle_, key.get());
+    auto result = host_api::kv_store_get(store->store_handle_, std::string_view(key.ptr.get(), key.len));
 
     if (!result.is_ok()) {
         // Handle error
-        JS_ReportErrorUTF8(cx, "Error getting key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error getting key: %s", key.ptr.get());
         return false;
     }
 
@@ -191,15 +203,15 @@ bool KvStore::scan(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars pattern = JS_EncodeStringToUTF8(cx, pattern_str);
+    auto pattern = core::encode(cx, pattern_str);
     if (!pattern) {
         return false;
     }
 
-    auto result = host_api::kv_store_scan(store->store_handle_, pattern.get());
+    auto result = host_api::kv_store_scan(store->store_handle_, std::string_view(pattern.ptr.get(), pattern.len));
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error scanning with pattern: %s (Only prefix matching is supported. e.g. 'foo*')", pattern.get());
+        JS_ReportErrorUTF8(cx, "Error scanning with pattern: %s (Only prefix matching is supported. e.g. 'foo*')", pattern.ptr.get());
         return false;
     }
 
@@ -248,7 +260,7 @@ bool KvStore::zrange_by_score(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
@@ -258,10 +270,10 @@ bool KvStore::zrange_by_score(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, key.get(), min, max);
+    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, std::string_view(key.ptr.get(), key.len), min, max);
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error in zrangeByScore for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error in zrangeByScore for key: %s", key.ptr.get());
         return false;
     }
 
@@ -330,7 +342,7 @@ bool KvStore::zscan(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
@@ -340,15 +352,15 @@ bool KvStore::zscan(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars pattern = JS_EncodeStringToUTF8(cx, pattern_str);
+    auto pattern = core::encode(cx, pattern_str);
     if (!pattern) {
         return false;
     }
 
-    auto result = host_api::kv_store_zscan(store->store_handle_, key.get(), pattern.get());
+    auto result = host_api::kv_store_zscan(store->store_handle_, std::string_view(key.ptr.get(), key.len), std::string_view(pattern.ptr.get(), pattern.len));
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error in zscan for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error in zscan for key: %s", key.ptr.get());
         return false;
     }
 
@@ -417,7 +429,7 @@ bool KvStore::bf_exists(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars key = JS_EncodeStringToUTF8(cx, key_str);
+    auto key = core::encode(cx, key_str);
     if (!key) {
         return false;
     }
@@ -427,20 +439,356 @@ bool KvStore::bf_exists(JSContext *cx, unsigned argc, JS::Value *vp) {
         return false;
     }
 
-    JS::UniqueChars item = JS_EncodeStringToUTF8(cx, item_str);
+    auto item = core::encode(cx, item_str);
     if (!item) {
         return false;
     }
 
-    auto result = host_api::kv_store_bf_exists(store->store_handle_, key.get(), item.get());
+    auto result = host_api::kv_store_bf_exists(store->store_handle_, std::string_view(key.ptr.get(), key.len), std::string_view(item.ptr.get(), item.len));
 
     if (!result.is_ok()) {
-        JS_ReportErrorUTF8(cx, "Error checking bloom filter for key: %s", key.get());
+        JS_ReportErrorUTF8(cx, "Error checking bloom filter for key: %s", key.ptr.get());
         return false;
     }
 
     args.rval().setBoolean(result.unwrap());
     return true;
+}
+
+namespace {
+
+// Resolve `args.rval()` with a fresh Promise resolved to `value`.
+bool resolve_with(JSContext *cx, JS::HandleValue value, JS::CallArgs &args) {
+  JS::RootedObject promise(cx, JS::CallOriginalPromiseResolve(cx, value));
+  if (!promise) return false;
+  args.rval().setObject(*promise);
+  return true;
+}
+
+// Decode the bytes of a Uint8Array as UTF-8 into a fresh JS string.
+JSString *decode_utf8_string(JSContext *cx, JS::HandleObject bytes_array) {
+  size_t len = JS_GetTypedArrayLength(bytes_array);
+  std::vector<char> buf(len);
+  if (len > 0) {
+    JS::AutoCheckCannotGC noGC(cx);
+    bool is_shared;
+    void *data = JS_GetArrayBufferViewData(bytes_array, &is_shared, noGC);
+    memcpy(buf.data(), data, len);
+  }
+  return JS_NewStringCopyUTF8N(cx, JS::UTF8Chars(buf.data(), buf.size()));
+}
+
+class KvStoreEntry {
+public:
+  enum class Slot : uint32_t {
+    Bytes = 0,
+    Count
+  };
+
+  static const JSClass class_;
+  static const JSFunctionSpec methods[];
+
+  static bool arrayBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool text(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool json(JSContext *cx, unsigned argc, JS::Value *vp);
+
+  // Allocates a Uint8Array, copies `bytes` into it, and wraps it in a
+  // freshly-created KvStoreEntry. Returns nullptr on allocation failure
+  // (with a pending JS exception).
+  static JSObject *create(JSContext *cx, const uint8_t *bytes, size_t len);
+};
+
+const JSClass KvStoreEntry::class_ = {
+    "KvStoreEntry",
+    JSCLASS_HAS_RESERVED_SLOTS(static_cast<uint32_t>(KvStoreEntry::Slot::Count))
+};
+
+// Get the Uint8Array stored in a KvStoreEntry's reserved slot.
+JSObject *kv_store_entry_bytes(JSContext *cx, JS::HandleObject self) {
+  JS::Value v = JS::GetReservedSlot(
+      self, static_cast<uint32_t>(KvStoreEntry::Slot::Bytes));
+  if (!v.isObject()) {
+    JS_ReportErrorUTF8(cx, "Invalid KvStoreEntry");
+    return nullptr;
+  }
+  return &v.toObject();
+}
+
+JSObject *KvStoreEntry::create(JSContext *cx, const uint8_t *bytes, size_t len) {
+  JS::RootedObject byte_array(cx, JS_NewUint8Array(cx, len));
+  if (!byte_array) return nullptr;
+
+  if (len > 0) {
+    JS::AutoCheckCannotGC noGC(cx);
+    bool is_shared;
+    void *dst = JS_GetArrayBufferViewData(byte_array, &is_shared, noGC);
+    memcpy(dst, bytes, len);
+  }
+
+  JS::RootedObject entry(cx,
+      JS_NewObjectWithGivenProto(cx, &KvStoreEntry::class_, nullptr));
+  if (!entry) return nullptr;
+
+  JS::SetReservedSlot(entry, static_cast<uint32_t>(Slot::Bytes),
+                      JS::ObjectValue(*byte_array));
+
+  if (!JS_DefineFunctions(cx, entry, KvStoreEntry::methods)) return nullptr;
+
+  return entry;
+}
+
+bool KvStoreEntry::arrayBuffer(JSContext *cx, unsigned argc, JS::Value *vp) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+  if (!args.thisv().isObject()) {
+    JS_ReportErrorUTF8(cx, "Invalid KvStoreEntry");
+    return false;
+  }
+  JS::RootedObject self(cx, &args.thisv().toObject());
+  JS::RootedObject bytes_array(cx, kv_store_entry_bytes(cx, self));
+  if (!bytes_array) return false;
+
+  size_t len = JS_GetTypedArrayLength(bytes_array);
+
+  // Allocate a fresh ArrayBuffer and copy bytes in. Don't share the entry's
+  // underlying buffer because callers could otherwise mutate it and corrupt
+  // subsequent reads from this same entry.
+  JS::RootedObject ab(cx, JS::NewArrayBuffer(cx, len));
+  if (!ab) return false;
+
+  if (len > 0) {
+    JS::AutoCheckCannotGC noGC(cx);
+    bool is_shared;
+    void *src = JS_GetArrayBufferViewData(bytes_array, &is_shared, noGC);
+    void *dst = JS::GetArrayBufferData(ab, &is_shared, noGC);
+    memcpy(dst, src, len);
+  }
+
+  JS::RootedValue ab_val(cx, JS::ObjectValue(*ab));
+  JS::RootedObject promise(cx, JS::CallOriginalPromiseResolve(cx, ab_val));
+  if (!promise) return false;
+  args.rval().setObject(*promise);
+  return true;
+}
+
+bool KvStoreEntry::text(JSContext *cx, unsigned argc, JS::Value *vp) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+  if (!args.thisv().isObject()) {
+    JS_ReportErrorUTF8(cx, "Invalid KvStoreEntry");
+    return false;
+  }
+  JS::RootedObject self(cx, &args.thisv().toObject());
+  JS::RootedObject bytes_array(cx, kv_store_entry_bytes(cx, self));
+  if (!bytes_array) return false;
+
+  JS::RootedString str(cx, decode_utf8_string(cx, bytes_array));
+  if (!str) return false;
+
+  JS::RootedValue str_val(cx, JS::StringValue(str));
+  JS::RootedObject promise(cx, JS::CallOriginalPromiseResolve(cx, str_val));
+  if (!promise) return false;
+  args.rval().setObject(*promise);
+  return true;
+}
+
+bool KvStoreEntry::json(JSContext *cx, unsigned argc, JS::Value *vp) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+  if (!args.thisv().isObject()) {
+    JS_ReportErrorUTF8(cx, "Invalid KvStoreEntry");
+    return false;
+  }
+  JS::RootedObject self(cx, &args.thisv().toObject());
+  JS::RootedObject bytes_array(cx, kv_store_entry_bytes(cx, self));
+  if (!bytes_array) return false;
+
+  JS::RootedString str(cx, decode_utf8_string(cx, bytes_array));
+  if (!str) return false;
+
+  // On success → resolved Promise; on failure → rejected Promise (matching
+  // the standard Body.json() contract; SyntaxError is async, not a sync throw).
+  JS::RootedValue parsed(cx);
+  JS::RootedObject promise(cx);
+  if (JS_ParseJSON(cx, str, &parsed)) {
+    promise = JS::CallOriginalPromiseResolve(cx, parsed);
+  } else {
+    JS::RootedValue exc(cx);
+    if (!JS_GetPendingException(cx, &exc)) return false;
+    JS_ClearPendingException(cx);
+    promise = JS::CallOriginalPromiseReject(cx, exc);
+  }
+
+  if (!promise) return false;
+  args.rval().setObject(*promise);
+  return true;
+}
+
+const JSFunctionSpec KvStoreEntry::methods[] = {
+    JS_FN("arrayBuffer", KvStoreEntry::arrayBuffer, 0, JSPROP_ENUMERATE),
+    JS_FN("text",        KvStoreEntry::text,        0, JSPROP_ENUMERATE),
+    JS_FN("json",        KvStoreEntry::json,        0, JSPROP_ENUMERATE),
+    JS_FS_END,
+};
+
+}  // anonymous namespace
+
+bool KvStore::get_entry(JSContext *cx, unsigned argc, JS::Value *vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!args.requireAtLeast(cx, "getEntry", 1)) {
+        return false;
+    }
+
+    JS::RootedObject this_obj(cx, &args.thisv().toObject());
+    KvStore* store = get_instance(cx, this_obj);
+    if (!store) {
+        JS_ReportErrorUTF8(cx, "Invalid KvStore instance");
+        return false;
+    }
+
+    JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
+    if (!key_str) return false;
+
+    auto key = core::encode(cx, key_str);
+    if (!key) return false;
+
+    auto result = host_api::kv_store_get(store->store_handle_, std::string_view(key.ptr.get(), key.len));
+    if (!result.is_ok()) {
+        JS_ReportErrorUTF8(cx, "Error getting key: %s", key.ptr.get());
+        return ReturnPromiseRejectedWithPendingError(cx, args);
+    }
+
+    auto value_option = result.unwrap();
+    if (!value_option.is_some()) {
+        JS::RootedValue null_val(cx, JS::NullValue());
+        return resolve_with(cx, null_val, args);
+    }
+
+    auto value = value_option.unwrap();
+    JS::RootedObject entry(cx, KvStoreEntry::create(cx, value.ptr, value.len));
+    if (!entry) return false;
+
+    JS::RootedValue entry_val(cx, JS::ObjectValue(*entry));
+    return resolve_with(cx, entry_val, args);
+}
+
+bool KvStore::zrange_by_score_entries(JSContext *cx, unsigned argc, JS::Value *vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!args.requireAtLeast(cx, "zrangeByScoreEntries", 3)) {
+        return false;
+    }
+
+    JS::RootedObject this_obj(cx, &args.thisv().toObject());
+    KvStore* store = get_instance(cx, this_obj);
+    if (!store) {
+        JS_ReportErrorUTF8(cx, "Invalid KvStore instance");
+        return false;
+    }
+
+    JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
+    if (!key_str) return false;
+
+    auto key = core::encode(cx, key_str);
+    if (!key) return false;
+
+    double min, max;
+    if (!JS::ToNumber(cx, args[1], &min) || !JS::ToNumber(cx, args[2], &max)) {
+        return false;
+    }
+
+    auto result = host_api::kv_store_zrange_by_score(store->store_handle_, std::string_view(key.ptr.get(), key.len), min, max);
+    if (!result.is_ok()) {
+        JS_ReportErrorUTF8(cx, "Error in zrangeByScoreEntries for key: %s", key.ptr.get());
+        return ReturnPromiseRejectedWithPendingError(cx, args);
+    }
+
+    auto tuples = result.unwrap();
+
+    JS::RootedObject tuples_array(cx, JS::NewArrayObject(cx, tuples.len));
+    if (!tuples_array) return false;
+
+    for (size_t i = 0; i < tuples.len; i++) {
+        JS::RootedObject entry(cx,
+            KvStoreEntry::create(cx, tuples.ptr[i].f0.ptr, tuples.ptr[i].f0.len));
+        if (!entry) return false;
+
+        JS::RootedObject tuple(cx, JS::NewArrayObject(cx, 2));
+        if (!tuple) return false;
+
+        JS::RootedValue entry_val(cx, JS::ObjectValue(*entry));
+        JS::RootedValue score_val(cx, JS::DoubleValue(tuples.ptr[i].f1));
+
+        if (!JS_SetElement(cx, tuple, 0, entry_val) ||
+            !JS_SetElement(cx, tuple, 1, score_val)) {
+            return false;
+        }
+
+        JS::RootedValue tuple_val(cx, JS::ObjectValue(*tuple));
+        if (!JS_SetElement(cx, tuples_array, i, tuple_val)) return false;
+    }
+
+    JS::RootedValue arr_val(cx, JS::ObjectValue(*tuples_array));
+    return resolve_with(cx, arr_val, args);
+}
+
+bool KvStore::zscan_entries(JSContext *cx, unsigned argc, JS::Value *vp) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!args.requireAtLeast(cx, "zscanEntries", 2)) {
+        return false;
+    }
+
+    JS::RootedObject this_obj(cx, &args.thisv().toObject());
+    KvStore* store = get_instance(cx, this_obj);
+    if (!store) {
+        JS_ReportErrorUTF8(cx, "Invalid KvStore instance");
+        return false;
+    }
+
+    JS::RootedString key_str(cx, JS::ToString(cx, args[0]));
+    if (!key_str) return false;
+
+    auto key = core::encode(cx, key_str);
+    if (!key) return false;
+
+    JS::RootedString pattern_str(cx, JS::ToString(cx, args[1]));
+    if (!pattern_str) return false;
+
+    auto pattern = core::encode(cx, pattern_str);
+    if (!pattern) return false;
+
+    auto result = host_api::kv_store_zscan(store->store_handle_, std::string_view(key.ptr.get(), key.len), std::string_view(pattern.ptr.get(), pattern.len));
+    if (!result.is_ok()) {
+        JS_ReportErrorUTF8(cx, "Error in zscanEntries for key: %s", key.ptr.get());
+        return ReturnPromiseRejectedWithPendingError(cx, args);
+    }
+
+    auto tuples = result.unwrap();
+
+    JS::RootedObject tuples_array(cx, JS::NewArrayObject(cx, tuples.len));
+    if (!tuples_array) return false;
+
+    for (size_t i = 0; i < tuples.len; i++) {
+        JS::RootedObject entry(cx,
+            KvStoreEntry::create(cx, tuples.ptr[i].f0.ptr, tuples.ptr[i].f0.len));
+        if (!entry) return false;
+
+        JS::RootedObject tuple(cx, JS::NewArrayObject(cx, 2));
+        if (!tuple) return false;
+
+        JS::RootedValue entry_val(cx, JS::ObjectValue(*entry));
+        JS::RootedValue score_val(cx, JS::DoubleValue(tuples.ptr[i].f1));
+
+        if (!JS_SetElement(cx, tuple, 0, entry_val) ||
+            !JS_SetElement(cx, tuple, 1, score_val)) {
+            return false;
+        }
+
+        JS::RootedValue tuple_val(cx, JS::ObjectValue(*tuple));
+        if (!JS_SetElement(cx, tuples_array, i, tuple_val)) return false;
+    }
+
+    JS::RootedValue arr_val(cx, JS::ObjectValue(*tuples_array));
+    return resolve_with(cx, arr_val, args);
 }
 
 bool install(api::Engine *engine) {

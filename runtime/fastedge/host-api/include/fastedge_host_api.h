@@ -3,6 +3,8 @@
 
 #include "host_api.h"
 
+#include <optional>
+
 typedef uint32_t FastEdgeHandle;
 struct JSErrorFormatString;
 
@@ -114,6 +116,102 @@ KvStoreResult<KvStoreStringList> kv_store_scan(int32_t store_handle, std::string
 KvStoreResult<KvStoreZList> kv_store_zrange_by_score(int32_t store_handle, std::string_view key, double min, double max);
 KvStoreResult<KvStoreZList> kv_store_zscan(int32_t store_handle, std::string_view key, std::string_view pattern);
 KvStoreResult<bool> kv_store_bf_exists(int32_t store_handle, std::string_view key, std::string_view item);
+
+// Cache types and enums
+//
+// NOTE: CacheResult / CacheOption / CacheError parallel the KvStore* templates
+// above. They are scheduled to be unified into HostResult / HostOption /
+// HostError in a follow-up cleanup — see context/CACHE_API_HANDOFF.md.
+
+enum class CacheErrorTag : uint8_t {
+    ACCESS_DENIED = 0,
+    INTERNAL_ERROR = 1,
+    OTHER = 2
+};
+
+struct CacheError {
+    CacheErrorTag tag;
+    union {
+        struct {
+            char* ptr;
+            size_t len;
+        } other;
+    } val;
+};
+
+template<typename T>
+class CacheResult {
+public:
+    bool is_ok() const { return ok_; }
+    const T& unwrap() const { return value_; }
+    const CacheError& unwrap_err() const { return error_; }
+
+    static CacheResult ok(T value) {
+        CacheResult result;
+        result.ok_ = true;
+        result.value_ = std::move(value);
+        return result;
+    }
+
+    static CacheResult err(CacheError error) {
+        CacheResult result;
+        result.ok_ = false;
+        result.error_ = error;
+        return result;
+    }
+
+private:
+    bool ok_;
+    T value_;
+    CacheError error_;
+};
+
+template<typename T>
+class CacheOption {
+public:
+    bool is_some() const { return has_value_; }
+    const T& unwrap() const { return value_; }
+
+    static CacheOption some(T value) {
+        CacheOption option;
+        option.has_value_ = true;
+        option.value_ = std::move(value);
+        return option;
+    }
+
+    static CacheOption none() {
+        CacheOption option;
+        option.has_value_ = false;
+        return option;
+    }
+
+private:
+    bool has_value_ = false;
+    T value_;
+};
+
+// Bytes returned by the host (host-allocated, mutable).
+struct CacheBytes {
+    uint8_t* ptr;
+    size_t len;
+};
+
+// View into caller-owned bytes; used as cache_set input.
+struct CacheBytesView {
+    const uint8_t* ptr;
+    size_t len;
+};
+
+// Cache functions
+CacheResult<CacheOption<CacheBytes>> cache_get(std::string_view key);
+std::optional<CacheError> cache_set(std::string_view key, CacheBytesView value, std::optional<uint64_t> ttl_ms);
+std::optional<CacheError> cache_delete(std::string_view key);
+CacheResult<bool> cache_exists(std::string_view key);
+CacheResult<int64_t> cache_incr(std::string_view key, int64_t delta);
+CacheResult<bool> cache_expire(std::string_view key, uint64_t ttl_ms);
+
+// Utils
+void utils_set_user_diag(std::string_view name);
 
 } // namespace host_api
 

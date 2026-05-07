@@ -35,6 +35,13 @@ const fastedgePackagePlugin: Plugin = {
             `,
           };
         }
+        case 'cache': {
+          return {
+            contents: `
+            export const Cache = globalThis.Cache;
+            `,
+          };
+        }
         default: {
           return { contents: '' };
         }
@@ -54,6 +61,8 @@ async function esBundle(input: string): Promise<string> {
     entryPoints: [input],
     bundle: true,
     write: false,
+    format: 'esm',
+    target: 'es2023',
     tsconfig: undefined,
     plugins: [fastedgePackagePlugin],
   });

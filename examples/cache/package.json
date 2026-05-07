@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-cache",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: Cache patterns — rate limiting, origin-cache proxy, memoisation",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build -c"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.3.0"
+  }
+}

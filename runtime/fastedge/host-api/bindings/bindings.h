@@ -133,6 +133,72 @@ typedef struct {
   } val;
 } gcore_fastedge_key_value_result_bool_error_t;
 
+typedef struct gcore_fastedge_cache_types_payload_t {
+  uint8_t   *ptr;
+  size_t len;
+} gcore_fastedge_cache_types_payload_t;
+
+// The set of errors that may be returned by cache operations.
+typedef struct gcore_fastedge_cache_types_error_t {
+  uint8_t tag;
+  union {
+    bindings_string_t     other;
+  } val;
+} gcore_fastedge_cache_types_error_t;
+
+// The requesting component does not have access to the specified cache
+// (which may or may not exist).
+#define GCORE_FASTEDGE_CACHE_TYPES_ERROR_ACCESS_DENIED 0
+// An unexpected internal error occurred.
+#define GCORE_FASTEDGE_CACHE_TYPES_ERROR_INTERNAL_ERROR 1
+// An implementation-specific error occurred (for example, I/O).
+#define GCORE_FASTEDGE_CACHE_TYPES_ERROR_OTHER 2
+
+typedef gcore_fastedge_cache_types_payload_t gcore_fastedge_cache_sync_payload_t;
+
+typedef gcore_fastedge_cache_types_error_t gcore_fastedge_cache_sync_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_fastedge_cache_sync_payload_t val;
+} bindings_option_payload_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bindings_option_payload_t ok;
+    gcore_fastedge_cache_sync_error_t err;
+  } val;
+} gcore_fastedge_cache_sync_result_option_payload_error_t;
+
+typedef struct {
+  bool is_some;
+  uint64_t val;
+} bindings_option_u64_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_fastedge_cache_sync_error_t err;
+  } val;
+} gcore_fastedge_cache_sync_result_void_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bool ok;
+    gcore_fastedge_cache_sync_error_t err;
+  } val;
+} gcore_fastedge_cache_sync_result_bool_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    int64_t ok;
+    gcore_fastedge_cache_sync_error_t err;
+  } val;
+} gcore_fastedge_cache_sync_result_s64_error_t;
+
 typedef struct {
   bindings_string_t f0;
   bindings_string_t f1;
@@ -1010,11 +1076,6 @@ typedef struct wasi_http_types_field_size_payload_t {
 
 typedef struct {
   bool is_some;
-  uint64_t val;
-} bindings_option_u64_t;
-
-typedef struct {
-  bool is_some;
   wasi_http_types_field_size_payload_t val;
 } wasi_http_types_option_field_size_payload_t;
 
@@ -1440,6 +1501,55 @@ extern bool gcore_fastedge_key_value_method_store_zscan(gcore_fastedge_key_value
 // Returns one of these replies: 'true' means that, with high probability, item was already added to the filter,
 // and 'false' means that key does not exist or that item had not been added to the filter.
 extern bool gcore_fastedge_key_value_method_store_bf_exists(gcore_fastedge_key_value_borrow_store_t self, bindings_string_t *key, bindings_string_t *item, bool *ret, gcore_fastedge_key_value_error_t *err);
+
+// Imported Functions from `gcore:fastedge/utils`
+// Set and save into call statistic specified user diagnostic context to be associated with the current request.
+extern void gcore_fastedge_utils_set_user_diag(bindings_string_t *name);
+
+// Imported Functions from `gcore:fastedge/cache-sync`
+// Get the value associated with `key`.
+// 
+// Returns:
+// - `ok(some(value))` if the key exists.
+// - `ok(none)` if the key does not exist.
+// - `err(error)` if the operation fails.
+extern bool gcore_fastedge_cache_sync_get(bindings_string_t *key, bindings_option_payload_t *ret, gcore_fastedge_cache_sync_error_t *err);
+// Set the value for `key` with an optional expiry.
+// 
+// If the key already exists, its current value is overwritten.
+// If the key does not exist, a new key-value pair is created.
+// 
+// `ttl-ms` is the time-to-live in milliseconds. Pass `none` for no expiry.
+// 
+// Returns `err(error)` if the operation fails.
+extern bool gcore_fastedge_cache_sync_set(bindings_string_t *key, gcore_fastedge_cache_sync_payload_t *value, uint64_t *maybe_ttl_ms, gcore_fastedge_cache_sync_error_t *err);
+// Delete the key-value pair associated with `key`.
+// 
+// If the key does not exist, this operation is a no-op.
+// 
+// Returns `err(error)` if the operation fails.
+extern bool gcore_fastedge_cache_sync_delete(bindings_string_t *key, gcore_fastedge_cache_sync_error_t *err);
+// Check whether `key` exists in the cache.
+// 
+// Returns:
+// - `ok(true)` if the key exists.
+// - `ok(false)` if the key does not exist.
+// - `err(error)` if the operation fails.
+extern bool gcore_fastedge_cache_sync_exists(bindings_string_t *key, bool *ret, gcore_fastedge_cache_sync_error_t *err);
+// Increment the integer value stored at `key` by `delta`.
+// 
+// If the key does not exist, it is initialised to `0` before incrementing.
+// The operation is atomic. `delta` may be negative to decrement.
+// 
+// Returns the new value after the increment, or `err(error)` if the
+// operation fails (for example, if the stored value is not an integer).
+extern bool gcore_fastedge_cache_sync_incr(bindings_string_t *key, int64_t delta, int64_t *ret, gcore_fastedge_cache_sync_error_t *err);
+// Set or update the expiry of `key` to `ttl-ms` milliseconds from now.
+// 
+// If the key does not exist, returns `ok(false)`.
+// If the expiry was updated successfully, returns `ok(true)`.
+// Returns `err(error)` if the operation fails.
+extern bool gcore_fastedge_cache_sync_expire(bindings_string_t *key, uint64_t ttl_ms, bool *ret, gcore_fastedge_cache_sync_error_t *err);
 
 // Imported Functions from `wasi:cli/environment@0.2.3`
 // Get the POSIX-style environment variables.
@@ -1985,6 +2095,26 @@ void gcore_fastedge_key_value_result_list_tuple2_value_f64_error_free(gcore_fast
 
 void gcore_fastedge_key_value_result_bool_error_free(gcore_fastedge_key_value_result_bool_error_t *ptr);
 
+void gcore_fastedge_cache_types_payload_free(gcore_fastedge_cache_types_payload_t *ptr);
+
+void gcore_fastedge_cache_types_error_free(gcore_fastedge_cache_types_error_t *ptr);
+
+void gcore_fastedge_cache_sync_payload_free(gcore_fastedge_cache_sync_payload_t *ptr);
+
+void gcore_fastedge_cache_sync_error_free(gcore_fastedge_cache_sync_error_t *ptr);
+
+void bindings_option_payload_free(bindings_option_payload_t *ptr);
+
+void gcore_fastedge_cache_sync_result_option_payload_error_free(gcore_fastedge_cache_sync_result_option_payload_error_t *ptr);
+
+void bindings_option_u64_free(bindings_option_u64_t *ptr);
+
+void gcore_fastedge_cache_sync_result_void_error_free(gcore_fastedge_cache_sync_result_void_error_t *ptr);
+
+void gcore_fastedge_cache_sync_result_bool_error_free(gcore_fastedge_cache_sync_result_bool_error_t *ptr);
+
+void gcore_fastedge_cache_sync_result_s64_error_free(gcore_fastedge_cache_sync_result_s64_error_t *ptr);
+
 void bindings_tuple2_string_string_free(bindings_tuple2_string_string_t *ptr);
 
 void bindings_list_tuple2_string_string_free(bindings_list_tuple2_string_string_t *ptr);
@@ -2184,8 +2314,6 @@ void wasi_http_types_tls_alert_received_payload_free(wasi_http_types_tls_alert_r
 void bindings_option_u32_free(bindings_option_u32_t *ptr);
 
 void wasi_http_types_field_size_payload_free(wasi_http_types_field_size_payload_t *ptr);
-
-void bindings_option_u64_free(bindings_option_u64_t *ptr);
 
 void wasi_http_types_option_field_size_payload_free(wasi_http_types_option_field_size_payload_t *ptr);
 

@@ -68,8 +68,20 @@ export default defineConfig({
           collapsed: true,
           items: [
             {
-              label: 'Overview',
-              link: `${import.meta.env.BASE_URL}reference/overview/`,
+              label: 'FetchEvent',
+              link: `${import.meta.env.BASE_URL}reference/fetch-event/`,
+            },
+            {
+              label: 'Headers',
+              link: `${import.meta.env.BASE_URL}reference/headers/`,
+            },
+            {
+              label: 'Request',
+              link: `${import.meta.env.BASE_URL}reference/request/`,
+            },
+            {
+              label: 'Response',
+              link: `${import.meta.env.BASE_URL}reference/response/`,
             },
             {
               label: 'FastEdge::env',
@@ -96,6 +108,10 @@ export default defineConfig({
               collapsed: true,
               items: [
                 {
+                  label: 'Overview',
+                  link: `${import.meta.env.BASE_URL}reference/fastedge/kv/`,
+                },
+                {
                   label: 'KvStore.open()',
                   link: `${import.meta.env.BASE_URL}reference/fastedge/kv/open/`,
                 },
@@ -120,16 +136,26 @@ export default defineConfig({
               ],
             },
             {
-              label: 'Headers',
-              link: `${import.meta.env.BASE_URL}reference/headers/`,
-            },
-            {
-              label: 'Request',
-              link: `${import.meta.env.BASE_URL}reference/request/`,
-            },
-            {
-              label: 'Response',
-              link: `${import.meta.env.BASE_URL}reference/response/`,
+              label: 'FastEdge::cache',
+              collapsed: true,
+              items: [
+                {
+                  label: 'Overview',
+                  link: `${import.meta.env.BASE_URL}reference/fastedge/cache/`,
+                },
+                {
+                  label: 'get / set / delete / exists',
+                  link: `${import.meta.env.BASE_URL}reference/fastedge/cache/read-write/`,
+                },
+                {
+                  label: 'incr / decr / expire',
+                  link: `${import.meta.env.BASE_URL}reference/fastedge/cache/atomic/`,
+                },
+                {
+                  label: 'getOrSet',
+                  link: `${import.meta.env.BASE_URL}reference/fastedge/cache/get-or-set/`,
+                },
+              ],
             },
           ],
         },

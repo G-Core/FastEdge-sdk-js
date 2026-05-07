@@ -118,7 +118,7 @@ async function createConfigFile(
 
 /**
  * Creates basic `package.json` and `jsconfig.json` files for the FastEdge project directory.
- * Ensures the project uses ES6 modules.
+ * Targets ES2023 to match the StarlingMonkey runtime.
  */
 async function createProjectFiles(): Promise<void> {
   await createOutputDirectory(PROJECT_DIRECTORY);
@@ -127,16 +127,20 @@ async function createProjectFiles(): Promise<void> {
     '{',
     '  "name": "fastedge-build",',
     '  "version": "1.0.0",',
-    '  "description": "fastedge-build project folder uses ES6",',
+    '  "description": "fastedge-build project folder (ES2023)",',
     '  "type": "module"',
     '}',
   ].join('\n');
 
   await writeFile(`${PROJECT_DIRECTORY}/package.json`, packageJsonContents, 'utf-8');
 
-  const jsConfigContents = ['{', '  "compilerOptions": {', '    "target": "ES6"', '  }', '}'].join(
-    '\n',
-  );
+  const jsConfigContents = [
+    '{',
+    '  "compilerOptions": {',
+    '    "target": "ES2023"',
+    '  }',
+    '}',
+  ].join('\n');
 
   await writeFile(`${PROJECT_DIRECTORY}/jsconfig.json`, jsConfigContents, 'utf-8');
 }

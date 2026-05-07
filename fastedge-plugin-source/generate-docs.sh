@@ -93,7 +93,7 @@ SOURCE_FILES[BUILD_CLI.md]="src/cli/fastedge-build/build.ts src/cli/fastedge-bui
 SOURCE_FILES[INIT_CLI.md]="src/cli/fastedge-init/init.ts src/cli/fastedge-init/http-handler.ts src/cli/fastedge-init/static-site.ts src/cli/fastedge-init/create-config.ts"
 SOURCE_FILES[ASSETS_CLI.md]="src/cli/fastedge-assets/asset-cli.ts src/server/static-assets/asset-manifest/create-manifest.ts"
 SOURCE_FILES[STATIC_SITES.md]="src/server/static-assets/static-server/create-static-server.ts"
-SOURCE_FILES[SDK_API.md]="types/fastedge-env.d.ts types/fastedge-secret.d.ts types/fastedge-kv.d.ts types/globals.d.ts"
+SOURCE_FILES[SDK_API.md]="types/fastedge-env.d.ts types/fastedge-secret.d.ts types/fastedge-kv.d.ts types/fastedge-cache.d.ts types/globals.d.ts"
 
 # =============================================================================
 # === CUSTOMIZE: Package name for the generation prompt ===
@@ -251,7 +251,10 @@ PROMPT
       return 130
     fi
 
-    claude -p --model "$MODEL" "$prompt" > "$tmpfile"
+    # Pipe prompt via stdin to avoid Linux's MAX_ARG_STRLEN (~128KB per argv string).
+    # Large prompts (source files + existing doc for incremental updates) exceed
+    # this limit as an SDK grows; stdin has no such cap.
+    claude -p --model "$MODEL" > "$tmpfile" <<<"$prompt"
 
     # Validate: first non-empty line must start with #
     local first_line

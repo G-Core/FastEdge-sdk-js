@@ -5,8 +5,11 @@ description: How to access Sorted Set values from a FastEdge Kv Instance.
 
 To access Sorted Set values in a KV Store. First create a `KV Instance` using `KvStore.open()`
 
-This instance will then provide the `zrangeByScore` and `zscan` methods you can use to access Sorted
-Set values.
+This instance provides `zrangeByScore` / `zrangeByScoreEntries` to
+retrieve values within a score range, and `zscan` / `zscanEntries` to
+match values by prefix. The `*Entries` variants return `KvStoreEntry`
+wrappers with `text()` / `json()` / `arrayBuffer()` decode helpers; the
+non-entry variants return raw `ArrayBuffer` values.
 
 ## zrangeByScore
 
@@ -51,6 +54,44 @@ storeInstance.zrangeByScore(key, min, max);
 An `Array<[ArrayBuffer, number]>`. It returns a list of tuples, containing the value in an
 ArrayBuffer and the score as a number.
 
+## zrangeByScoreEntries
+
+```js
+import { KvStore } from 'fastedge::kv';
+
+async function eventHandler(event) {
+  try {
+    const myStore = KvStore.open('kv-store-name-as-defined-on-app');
+    const results = await myStore.zrangeByScoreEntries('key', 0, 10);
+    const decoded = await Promise.all(
+      results.map(async ([entry, score]) => [await entry.text(), score]),
+    );
+    return new Response(`The KV Store responded with: ${JSON.stringify(decoded)}`);
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}
+
+addEventListener('fetch', (event) => {
+  event.respondWith(eventHandler(event));
+});
+```
+
+```js title="SYNTAX"
+storeInstance.zrangeByScoreEntries(key, min, max);
+```
+
+##### Parameters
+
+Same as `zrangeByScore`.
+
+##### Return Value
+
+A `Promise<Array<[KvStoreEntry, number]>>`. Each tuple contains a
+`KvStoreEntry` (with `text()` / `json()` / `arrayBuffer()` accessors)
+and the score as a number. Resolves to an empty array if no values
+match.
+
 ## zscan
 
 ```js
@@ -92,3 +133,41 @@ all values that start with `pre`
 
 An `Array<[ArrayBuffer, number]>`. It returns a list of tuples, containing the value in an
 ArrayBuffer and the score as a number.
+
+## zscanEntries
+
+```js
+import { KvStore } from 'fastedge::kv';
+
+async function eventHandler(event) {
+  try {
+    const myStore = KvStore.open('kv-store-name-as-defined-on-app');
+    const results = await myStore.zscanEntries('key', 'pre*');
+    const decoded = await Promise.all(
+      results.map(async ([entry, score]) => [await entry.text(), score]),
+    );
+    return new Response(`The KV Store responded with: ${JSON.stringify(decoded)}`);
+  } catch (error) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}
+
+addEventListener('fetch', (event) => {
+  event.respondWith(eventHandler(event));
+});
+```
+
+```js title="SYNTAX"
+storeInstance.zscanEntries(key, pattern);
+```
+
+##### Parameters
+
+Same as `zscan`.
+
+##### Return Value
+
+A `Promise<Array<[KvStoreEntry, number]>>`. Each tuple contains a
+`KvStoreEntry` (with `text()` / `json()` / `arrayBuffer()` accessors)
+and the score as a number. Resolves to an empty array if no values
+match.

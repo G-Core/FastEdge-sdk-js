@@ -35,3 +35,22 @@ new Request(input, options);
 
     Any body that you want to add to your request: this can be an `ArrayBuffer`, a `TypedArray`, a
     `DataView`, a `URLSearchParams`, string object or literal, or a `ReadableStream` object.
+
+:::note[INFO]
+
+The `Request` you receive from `event.request` is **immutable**, including its `headers`. Calls to
+`headers.set`, `headers.append`, or `headers.delete` on the incoming request will throw a
+`TypeError`. To modify headers before forwarding, construct a new `Request` from the original:
+
+```js
+const newHeaders = new Headers(event.request.headers);
+newHeaders.set('x-custom', 'value');
+
+const proxied = new Request(event.request.url, {
+  method: event.request.method,
+  headers: newHeaders,
+  body: event.request.body,
+});
+```
+
+:::
