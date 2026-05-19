@@ -127,6 +127,9 @@ export default [
       'no-console': 'off',
       'prefer-destructuring': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      // JSON output keys (e.g. secret_name, is_same) use snake_case to align with
+      // Rust SDK equivalents — they are response fields, not JS identifiers.
+      camelcase: ['error', { properties: 'never' }],
     },
   },
 

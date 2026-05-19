@@ -21,8 +21,8 @@ function app(event) {
   try {
     const store = KvStore.open(storeName);
     blocked = store.bfExists(BLOOM_KEY, ip);
-  } catch (err) {
-    return Response.json({ error: `KV lookup failed: ${err.message}` }, { status: 500 });
+  } catch (error) {
+    return Response.json({ error: `KV lookup failed: ${error.message}` }, { status: 500 });
   }
 
   if (blocked) {

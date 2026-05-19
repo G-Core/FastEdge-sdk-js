@@ -4,11 +4,11 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 function base64urlToBytes(str) {
-  const padded = str.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (str.length % 4)) % 4);
+  const padded = str.replace(/-/gu, '+').replace(/_/gu, '/') + '='.repeat((4 - (str.length % 4)) % 4);
   const binary = atob(padded);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+    bytes[i] = binary.codePointAt(i);
   }
   return bytes;
 }
@@ -63,8 +63,8 @@ async function app(event) {
   try {
     const claims = await verifyJwtHs256(match[1], secret);
     return Response.json({ ok: true, claims });
-  } catch (err) {
-    return Response.json({ ok: false, error: err.message }, { status: 401 });
+  } catch (error) {
+    return Response.json({ ok: false, error: error.message }, { status: 401 });
   }
 }
 

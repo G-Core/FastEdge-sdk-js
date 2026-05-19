@@ -4,7 +4,8 @@ function app(event) {
   const stream = new ReadableStream({
     async start(controller) {
       for (let i = 0; i < 5; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise((resolve) => { setTimeout(resolve, 200); });
         controller.enqueue(encoder.encode(`chunk ${i}\n`));
       }
       controller.close();

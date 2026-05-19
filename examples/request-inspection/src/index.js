@@ -11,7 +11,7 @@ function app(event) {
     lines.push(`    ${name}: ${value}`);
   }
 
-  return new Response(lines.join('\n') + '\n', {
+  return new Response(`${lines.join('\n')}\n`, {
     headers: { 'content-type': 'text/plain; charset=utf-8' },
   });
 }
