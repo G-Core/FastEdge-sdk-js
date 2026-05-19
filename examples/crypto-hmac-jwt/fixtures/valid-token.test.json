@@ -5,7 +5,7 @@
     "method": "GET",
     "path": "/",
     "headers": {
-      "authorization": "Bearer REPLACE_WITH_HS256_JWT_SIGNED_BY_JWT_SECRET"
+      "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJuYW1lIjoiVGVzdCBVc2VyIiwiZXhwIjo5OTk5OTk5OTk5fQ.VOPl0Bp4ABHVVMxbIcMa0uDuXrIVcRLNB0n83nTdWHI"
     }
   },
   "dotenv": {

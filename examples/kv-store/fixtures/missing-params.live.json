@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 500,
+    "json": { "error": "Query parameters must provide 'store' for a 'get' action." }
+  }
+}

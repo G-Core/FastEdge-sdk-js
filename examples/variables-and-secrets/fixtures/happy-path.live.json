@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 200,
+    "body": "Username: alice, Password: test-password-12345"
+  }
+}

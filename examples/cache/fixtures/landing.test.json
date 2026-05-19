@@ -1,6 +1,6 @@
 {
   "appType": "http-wasm",
-  "description": "Returns ClientInfo JSON — TLS metadata is only populated on real HTTPS requests",
+  "description": "No action param — usage menu listing all three patterns",
   "request": {
     "method": "GET",
     "path": "/",

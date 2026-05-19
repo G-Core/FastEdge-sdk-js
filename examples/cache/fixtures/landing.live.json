@@ -1,0 +1,13 @@
+{
+  "expected": {
+    "status": 200,
+    "json": {
+      "name": "FastEdge Cache patterns",
+      "actions": {
+        "rate-limit": "/?action=rate-limit",
+        "proxy": "/?action=proxy&url=https://www.example.com",
+        "memo": "/?action=memo"
+      }
+    }
+  }
+}

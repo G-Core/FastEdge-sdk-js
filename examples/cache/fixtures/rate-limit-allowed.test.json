@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Rate-limit pattern — first request in window, count under limit",
+  "request": {
+    "method": "GET",
+    "path": "/?action=rate-limit",
+    "headers": {}
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 400,
+    "json": { "error": "Unknown action: \"bogus\". Use one of: rate-limit, proxy, memo." }
+  }
+}

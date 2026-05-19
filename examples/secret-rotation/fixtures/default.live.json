@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "status": 200,
+    "bodyContains": [
+      "\"current\":\"rotating-test-secret-abc123\"",
+      "\"is_same\":true"
+    ]
+  }
+}

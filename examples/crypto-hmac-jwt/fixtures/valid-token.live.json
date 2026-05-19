@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "status": 200,
+    "json": {
+      "ok": true,
+      "claims": { "sub": "test-user", "name": "Test User", "exp": 9999999999 }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 401,
+    "json": { "ok": false, "error": "missing or malformed Authorization header" }
+  }
+}

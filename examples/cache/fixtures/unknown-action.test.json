@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Error path — unknown action returns 400 with usage hint",
+  "request": {
+    "method": "GET",
+    "path": "/?action=bogus",
+    "headers": {}
+  }
+}

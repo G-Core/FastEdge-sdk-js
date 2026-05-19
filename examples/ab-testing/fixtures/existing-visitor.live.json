@@ -1,0 +1,10 @@
+{
+  "expected": {
+    "status": 200,
+    "headers": {
+      "content-type": { "contains": "text/html" },
+      "set-cookie": { "contains": "x-fastedge-abid=0.5000" }
+    },
+    "bodyContains": ["Homer Simpson", "1729"]
+  }
+}

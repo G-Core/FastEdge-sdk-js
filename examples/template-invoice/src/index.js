@@ -54,5 +54,5 @@ async function eventHandler() {
 }
 
 addEventListener('fetch', (event) => {
-  event.respondWith(eventHandler(event));
+  event.respondWith(eventHandler());
 });

@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 400,
+    "bodyContains": "\"error\":\"Invalid url:"
+  }
+}

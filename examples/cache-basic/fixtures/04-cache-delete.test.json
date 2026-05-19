@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Cache.delete — remove a key (no-op if absent)",
+  "request": {
+    "method": "GET",
+    "path": "/?action=delete&key=demo-key",
+    "headers": {}
+  }
+}

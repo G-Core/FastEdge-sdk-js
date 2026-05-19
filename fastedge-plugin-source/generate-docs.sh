@@ -276,12 +276,14 @@ PROMPT
     # the doc. The original is still saved to .failures/ so the prompt can
     # be tuned later.
     local stripped
-    stripped=$(awk '/^# / { found=1 } found' "$tmpfile")
+    stripped=$(awk '/^#/ { found=1 } found' "$tmpfile")
 
     if [ -n "$stripped" ]; then
-      # Detect preamble: anything before the first '# ' line is preamble.
+      # Detect preamble: anything before the first line starting with '#' is preamble.
+      # Matches the prompt's constraint ("first character is #") rather than requiring
+      # '# ' (hash + space), so a model that emits '#Title' still salvages.
       local first_heading_line
-      first_heading_line=$(grep -n -m1 '^# ' "$tmpfile" | cut -d: -f1)
+      first_heading_line=$(grep -n -m1 '^#' "$tmpfile" | cut -d: -f1)
       if [ "${first_heading_line:-1}" -gt 1 ]; then
         local preamble_copy="$failure_dir/${target}.preamble.attempt-${attempt}.$(date +%s).md"
         cp "$tmpfile" "$preamble_copy"

@@ -1,0 +1,7 @@
+{
+  "expected": {
+    "status": 429,
+    "headers": { "retry-after": "60" },
+    "bodyContains": "\"error\":\"Too Many Requests\""
+  }
+}

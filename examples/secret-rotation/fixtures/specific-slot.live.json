@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "status": 200,
+    "bodyContains": [
+      "\"slot\":0",
+      "\"secret_name\":\"TOKEN_SECRET\""
+    ]
+  }
+}

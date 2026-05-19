@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Error path — missing required 'key' query parameter",
+  "request": {
+    "method": "GET",
+    "path": "/?action=get",
+    "headers": {}
+  }
+}

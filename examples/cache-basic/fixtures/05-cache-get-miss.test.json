@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Cache.get — miss on a key that has never been set",
+  "request": {
+    "method": "GET",
+    "path": "/?action=get&key=never-set-key",
+    "headers": {}
+  }
+}
