@@ -280,16 +280,40 @@
     },
     "react-with-hono-server-blueprint": {
       "files": [
-        "examples/react-with-hono-server/fastedge-server/server.ts",
+        "examples/react-with-hono-server/index.html",
+        "examples/react-with-hono-server/vite.config.ts",
+        "examples/react-with-hono-server/tsconfig.json",
+        "examples/react-with-hono-server/tsconfig.app.json",
+        "examples/react-with-hono-server/tsconfig.node.json",
+        "examples/react-with-hono-server/tsconfig.fastedge.json",
         "examples/react-with-hono-server/package.json",
-        "examples/react-with-hono-server/tsconfig.fastedge.json"
+        "examples/react-with-hono-server/public/vite.svg",
+        "examples/react-with-hono-server/src/main.tsx",
+        "examples/react-with-hono-server/src/App.tsx",
+        "examples/react-with-hono-server/src/App.css",
+        "examples/react-with-hono-server/src/index.css",
+        "examples/react-with-hono-server/src/vite-env.d.ts",
+        "examples/react-with-hono-server/src/utils/api.ts",
+        "examples/react-with-hono-server/src/assets/react.svg",
+        "examples/react-with-hono-server/fastedge-server/server.ts",
+        "examples/react-with-hono-server/fastedge-server/config/server.config.ts",
+        "examples/react-with-hono-server/fastedge-server/config/build-config.ts",
+        "examples/react-with-hono-server/fastedge-server/config/asset-manifest.ts",
+        "examples/react-with-hono-server/fastedge-server/api/routes.ts",
+        "examples/react-with-hono-server/fastedge-server/dev-server.ts"
       ],
       "required": false,
-      "description": "React with Hono Server example — scaffold blueprint (Hono routing + React SSR on FastEdge)"
+      "description": "React with Hono Server example — scaffold blueprint (working React+Vite+Hono starter with FastEdge edge handler)"
     },
     "static-assets-blueprint": {
       "files": [
         "examples/static-assets/src/index.tsx",
+        "examples/static-assets/src/jsx-page.tsx",
+        "examples/static-assets/src/styles-static-assets.ts",
+        "examples/static-assets/src/images-static-assets.ts",
+        "examples/static-assets/src/templates-static-assets.ts",
+        "examples/static-assets/styles/index.css",
+        "examples/static-assets/templates/index.html",
         "examples/static-assets/package.json",
         "examples/static-assets/tsconfig.json"
       ],
