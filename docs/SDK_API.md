@@ -569,16 +569,16 @@ Information about the downstream client that made the request, available as `eve
 
 Geographic information about the downstream client, available as `event.client.geo`. Populated when `client.geo` is first accessed.
 
-| Property      | Type             | Description                                                              |
-| ------------- | ---------------- | ------------------------------------------------------------------------ |
-| `asn`         | `string`         | Autonomous System Number of the client's network. Empty if unavailable.  |
-| `latitude`    | `number \| null` | Latitude in decimal degrees, or `null` if unavailable.                   |
-| `longitude`   | `number \| null` | Longitude in decimal degrees, or `null` if unavailable.                  |
-| `region`      | `string`         | Region or state code (subdivision). Empty string if unavailable.         |
-| `continent`   | `string`         | Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable.      |
+| Property      | Type             | Description                                                                  |
+| ------------- | ---------------- | ---------------------------------------------------------------------------- |
+| `asn`         | `string`         | Autonomous System Number of the client's network. Empty if unavailable.      |
+| `latitude`    | `number \| null` | Latitude in decimal degrees, or `null` if unavailable.                       |
+| `longitude`   | `number \| null` | Longitude in decimal degrees, or `null` if unavailable.                      |
+| `region`      | `string`         | Region or state code (subdivision). Empty string if unavailable.             |
+| `continent`   | `string`         | Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable.          |
 | `countryCode` | `string`         | ISO 3166-1 alpha-2 country code (e.g. `"PT"`). Empty string if unavailable. |
-| `countryName` | `string`         | Country name (e.g. `"Portugal"`). Empty string if unavailable.           |
-| `city`        | `string`         | City name. Empty string when geo lookup did not resolve a city.          |
+| `countryName` | `string`         | Country name (e.g. `"Portugal"`). Empty string if unavailable.               |
+| `city`        | `string`         | City name. Empty string when geo lookup did not resolve a city.              |
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -594,11 +594,11 @@ addEventListener("fetch", event => {
 
 Information about the FastEdge POP server handling the request, available as `event.server`. The `pop` namespace is populated lazily on first access.
 
-| Property  | Type      | Description                                                  |
-| --------- | --------- | ------------------------------------------------------------ |
-| `address` | `string`  | Server-side IP address that received the request.            |
-| `name`    | `string`  | Server hostname.                                             |
-| `pop`     | `PopInfo` | POP location information. Populated lazily on first access.  |
+| Property  | Type      | Description                                                 |
+| --------- | --------- | ----------------------------------------------------------- |
+| `address` | `string`  | Server-side IP address that received the request.           |
+| `name`    | `string`  | Server hostname.                                            |
+| `pop`     | `PopInfo` | POP location information. Populated lazily on first access. |
 
 ### PopInfo
 
@@ -1064,14 +1064,19 @@ Available as `crypto.subtle`. Supported operations:
 | `sign`      | `(algorithm: AlgorithmIdentifier \| EcdsaParams, key: CryptoKey, data: BufferSource) => Promise<ArrayBuffer>`                      |
 | `verify`    | `(algorithm: AlgorithmIdentifier \| EcdsaParams, key: CryptoKey, signature: BufferSource, data: BufferSource) => Promise<boolean>` |
 
-Supported algorithms:
+##### `crypto.subtle` — Supported Operations
 
-| Operation   | Algorithms                               |
-| ----------- | ---------------------------------------- |
-| `digest`    | `SHA-1`, `SHA-256`, `SHA-384`, `SHA-512` |
-| `sign`      | `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`    |
-| `verify`    | `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`    |
-| `importKey` | `HMAC`, `RSASSA-PKCS1-v1_5`, `ECDSA`    |
+| Operation                                      | Supported Algorithms                  |
+| ---------------------------------------------- | ------------------------------------- |
+| `digest()`                                     | SHA-1, SHA-256, SHA-384, SHA-512, MD5 |
+| `sign()` / `verify()`                          | RSASSA-PKCS1-v1_5, ECDSA, HMAC        |
+| `importKey()`                                  | JWK, PKCS#8, SPKI, raw (HMAC)         |
+| `getRandomValues()`                            | ✓                                     |
+| `encrypt()` / `decrypt()`                      | **Not implemented**                   |
+| `generateKey()`, `deriveKey()`, `deriveBits()` | **Not implemented**                   |
+| `exportKey()`                                  | **Not implemented**                   |
+
+These operations support JWT verification (HMAC / ECDSA / RSASSA-PKCS1-v1_5), SAML assertion verification (SHA-256 digest + RSASSA-PKCS1-v1_5 + SPKI importKey), and general signature verification workflows. Encryption / key generation / key export are unavailable.
 
 `importKey` overloads:
 
@@ -1202,6 +1207,19 @@ new EventTarget(): EventTarget
 | `structuredClone(value, opts?)` | `(value: any, options?: StructuredSerializeOptions) => any` | Deep-clones a value. Transferable: `ArrayBuffer`. |
 
 `WorkerLocation` exposes `href`, `origin`, `protocol`, `host`, `hostname`, `port`, `pathname`, `search`, and `hash` as read-only string properties.
+
+---
+
+## Unavailable APIs
+
+These APIs are not implemented on the FastEdge JS runtime (StarlingMonkey, WinterCG-style). There is no Node.js compatibility layer.
+
+- `node:crypto` — not implemented; not polyfillable (sync Node crypto cannot bridge to async `crypto.subtle`). See the runtime constraints reference for why polyfills don't work.
+- `node:fs`, `node:path`, `node:buffer`, `process`, `require` — not implemented
+- `WebSocket` — not implemented
+- DOM APIs (`document`, `window`, etc.) — not implemented (this is a server-side runtime, not a browser)
+
+For implementation guidance on what to use instead — particularly for crypto-heavy patterns like SAML — see the runtime constraints reference.
 
 ---
 
