@@ -85,7 +85,7 @@ fi
   echo ""
 
   # INDEX.md first — it's the entry point
-  index_heading=$(head -1 "$DOCS_DIR/INDEX.md" | sed 's/^#\+ //')
+  index_heading=$(grep -m1 '^#' "$DOCS_DIR/INDEX.md" | sed 's/^#\+ //')
   echo "- [$index_heading](docs/INDEX.md)"
 
   # Remaining docs alphabetically, skip INDEX.md
@@ -93,7 +93,7 @@ fi
     filename=$(basename "$doc")
     [ "$filename" = "INDEX.md" ] && continue
 
-    heading=$(head -1 "$doc" | sed 's/^#\+ //')
+    heading=$(grep -m1 '^#' "$doc" | sed 's/^#\+ //')
     if [ -z "$heading" ]; then
       # Fallback: use filename without extension
       heading="${filename%.md}"

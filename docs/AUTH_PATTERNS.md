@@ -149,7 +149,7 @@ The FastEdge JS runtime supports a subset of `crypto.subtle`:
 
 | Operation | Algorithms supported |
 |---|---|
-| `digest` | SHA-1, SHA-256, SHA-384, SHA-512, MD5 |
+| `digest` | SHA-1, SHA-256, SHA-384, SHA-512 |
 | `sign` / `verify` | RSASSA-PKCS1-v1_5, ECDSA, HMAC |
 | `importKey` | JWK, PKCS#8, SPKI, raw (HMAC) |
 
