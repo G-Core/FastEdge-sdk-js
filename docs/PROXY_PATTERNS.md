@@ -37,7 +37,7 @@ Modify the response body before returning it. This is the pattern from `examples
 
 ```typescript
 async function handle() {
-  const upstream = await fetch("http://jsonplaceholder.typicode.com/users");
+  const upstream = await fetch("https://jsonplaceholder.typicode.com/users");
   const users = await upstream.json();
 
   const transformed = {

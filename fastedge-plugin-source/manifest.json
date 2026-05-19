@@ -43,7 +43,7 @@
     "runtime-constraints": {
       "files": ["docs/RUNTIME_CONSTRAINTS.md"],
       "required": true,
-      "description": "JS runtime constraints — StarlingMonkey, WinterCG capabilities, crypto.subtle support matrix, Node.js polyfill impossibility, SAML library compatibility. Hand-curated research"
+      "description": "JS runtime constraints — StarlingMonkey, WinterCG capabilities, Node.js polyfill impossibility (sync/async mismatch), SAML library compatibility and viable WebCrypto-native alternatives. Hand-curated research. crypto.subtle algorithm matrix is in the SDK API reference."
     },
 
     "hello-world-blueprint": {
@@ -178,6 +178,123 @@
       ],
       "required": true,
       "description": "Cache example — docs pattern extraction"
+    },
+
+    "cache-basic-blueprint": {
+      "files": [
+        "examples/cache-basic/src/index.js",
+        "examples/cache-basic/package.json"
+      ],
+      "required": false,
+      "description": "Cache Basic example — scaffold blueprint (atomic per-POP key/value store: set/get/exists/delete)"
+    },
+    "kv-store-basic-blueprint": {
+      "files": [
+        "examples/kv-store-basic/src/index.js",
+        "examples/kv-store-basic/package.json"
+      ],
+      "required": false,
+      "description": "KV Store Basic example — scaffold blueprint (simple KvStore.open + getEntry pattern)"
+    },
+    "bloom-filter-denylist-blueprint": {
+      "files": [
+        "examples/bloom-filter-denylist/src/index.js",
+        "examples/bloom-filter-denylist/package.json"
+      ],
+      "required": false,
+      "description": "Bloom Filter Denylist example — scaffold blueprint (KV bloom filter for IP/path blocking)"
+    },
+    "crypto-hmac-jwt-blueprint": {
+      "files": [
+        "examples/crypto-hmac-jwt/src/index.js",
+        "examples/crypto-hmac-jwt/package.json"
+      ],
+      "required": false,
+      "description": "Crypto HMAC JWT example — scaffold blueprint (HS256 JWT verification via crypto.subtle)"
+    },
+    "secret-rotation-blueprint": {
+      "files": [
+        "examples/secret-rotation/src/index.js",
+        "examples/secret-rotation/package.json"
+      ],
+      "required": false,
+      "description": "Secret Rotation example — scaffold blueprint (getSecret with slot-based rotation)"
+    },
+    "outbound-modify-response-blueprint": {
+      "files": [
+        "examples/outbound-modify-response/src/index.js",
+        "examples/outbound-modify-response/package.json"
+      ],
+      "required": false,
+      "description": "Outbound Modify Response example — scaffold blueprint (fetch + JSON transform + header manipulation)"
+    },
+    "streaming-blueprint": {
+      "files": [
+        "examples/streaming/src/index.js",
+        "examples/streaming/package.json"
+      ],
+      "required": false,
+      "description": "Streaming example — scaffold blueprint (ReadableStream chunked response)"
+    },
+    "request-inspection-blueprint": {
+      "files": [
+        "examples/request-inspection/src/index.js",
+        "examples/request-inspection/package.json"
+      ],
+      "required": false,
+      "description": "Request Inspection example — scaffold blueprint (method, path, headers, geo introspection)"
+    },
+    "variables-and-secrets-blueprint": {
+      "files": [
+        "examples/variables-and-secrets/src/index.js",
+        "examples/variables-and-secrets/package.json"
+      ],
+      "required": false,
+      "description": "Variables and Secrets example — scaffold blueprint (getEnv + getSecret usage patterns)"
+    },
+    "template-invoice-blueprint": {
+      "files": [
+        "examples/template-invoice/src/index.js",
+        "examples/template-invoice/package.json"
+      ],
+      "required": false,
+      "description": "Template Invoice example — scaffold blueprint (Handlebars HTML rendering)"
+    },
+    "template-invoice-ab-testing-blueprint": {
+      "files": [
+        "examples/template-invoice-ab-testing/src/index.js",
+        "examples/template-invoice-ab-testing/package.json"
+      ],
+      "required": false,
+      "description": "Template Invoice A/B Testing example — scaffold blueprint (cookie-based variant selection + Handlebars rendering)"
+    },
+    "mcp-server-blueprint": {
+      "files": [
+        "examples/mcp-server/src/index.ts",
+        "examples/mcp-server/src/server.ts",
+        "examples/mcp-server/package.json",
+        "examples/mcp-server/tsconfig.json"
+      ],
+      "required": false,
+      "description": "MCP Server example — scaffold blueprint (Model Context Protocol server over FastEdge HTTP)"
+    },
+    "react-with-hono-server-blueprint": {
+      "files": [
+        "examples/react-with-hono-server/fastedge-server/server.ts",
+        "examples/react-with-hono-server/package.json",
+        "examples/react-with-hono-server/tsconfig.fastedge.json"
+      ],
+      "required": false,
+      "description": "React with Hono Server example — scaffold blueprint (Hono routing + React SSR on FastEdge)"
+    },
+    "static-assets-blueprint": {
+      "files": [
+        "examples/static-assets/src/index.tsx",
+        "examples/static-assets/package.json",
+        "examples/static-assets/tsconfig.json"
+      ],
+      "required": false,
+      "description": "Static Assets example — scaffold blueprint (createStaticServer, JSX pages, asset manifests)"
     }
   },
   "target_mapping": {
@@ -277,6 +394,63 @@
       },
     "cache-pattern": {
       "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-cache-js.md",
+      "section": null
+    },
+
+    "cache-basic-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/cache-basic-ts.md",
+      "section": null
+    },
+    "kv-store-basic-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/kv-store-basic-ts.md",
+      "section": null
+    },
+    "bloom-filter-denylist-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/bloom-filter-denylist-ts.md",
+      "section": null
+    },
+    "crypto-hmac-jwt-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/crypto-hmac-jwt-ts.md",
+      "section": null
+    },
+    "secret-rotation-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/secret-rotation-ts.md",
+      "section": null
+    },
+    "outbound-modify-response-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/outbound-modify-response-ts.md",
+      "section": null
+    },
+    "streaming-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/streaming-ts.md",
+      "section": null
+    },
+    "request-inspection-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/request-inspection-ts.md",
+      "section": null
+    },
+    "variables-and-secrets-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/variables-and-secrets-ts.md",
+      "section": null
+    },
+    "template-invoice-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/template-invoice-ts.md",
+      "section": null
+    },
+    "template-invoice-ab-testing-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/template-invoice-ab-testing-ts.md",
+      "section": null
+    },
+    "mcp-server-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/mcp-server-ts.md",
+      "section": null
+    },
+    "react-with-hono-server-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/react-with-hono-server-ts.md",
+      "section": null
+    },
+    "static-assets-blueprint": {
+      "reference_file": "plugins/gcore-fastedge/skills/scaffold/reference/http/static-assets-ts.md",
       "section": null
     }
   },

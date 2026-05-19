@@ -370,8 +370,10 @@ if [ "$run_all" = true ]; then
     exit 1
   fi
 
-  # Regenerate llms.txt from docs/ contents
-  "$SCRIPT_DIR/generate-llms-txt.sh"
+  # Regenerate llms.txt from docs/ contents (if the script is installed)
+  if [ -x "$SCRIPT_DIR/generate-llms-txt.sh" ]; then
+    "$SCRIPT_DIR/generate-llms-txt.sh"
+  fi
 else
   # Specific files: run sequentially (user chose explicit order)
   failed=()

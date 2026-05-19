@@ -130,6 +130,12 @@ importers:
         specifier: link:../..
         version: link:../..
 
+  examples/bloom-filter-denylist:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
+
   examples/cache:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
@@ -142,43 +148,7 @@ importers:
         specifier: link:../..
         version: link:../..
 
-  examples/outbound-fetch:
-    dependencies:
-      '@gcoredev/fastedge-sdk-js':
-        specifier: link:../..
-        version: link:../..
-
-  examples/outbound-modify-response:
-    dependencies:
-      '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
-
-  examples/bloom-filter-denylist:
-    dependencies:
-      '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
-
   examples/crypto-hmac-jwt:
-    dependencies:
-      '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
-
-  examples/request-inspection:
-    dependencies:
-      '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
-
-  examples/secret-rotation:
-    dependencies:
-      '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
-
-  examples/tls-client-info:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
         specifier: link:../..
@@ -235,6 +205,18 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
+
+  examples/outbound-fetch:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
+
+  examples/outbound-modify-response:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
 
   examples/react-with-hono-server:
     dependencies:
@@ -300,11 +282,17 @@ importers:
         specifier: ^7.1.7
         version: 7.3.2(@types/node@24.12.2)(terser@5.46.1)(tsx@4.21.0)
 
-  examples/streaming:
+  examples/request-inspection:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: link:../..
+        version: link:../..
+
+  examples/secret-rotation:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
 
   examples/static-assets:
     dependencies:
@@ -318,6 +306,12 @@ importers:
       npm-run-all2:
         specifier: ^8.0.4
         version: 8.0.4
+
+  examples/streaming:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
 
   examples/template-invoice:
     dependencies:

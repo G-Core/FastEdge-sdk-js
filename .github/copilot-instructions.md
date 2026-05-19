@@ -23,16 +23,34 @@ The public API surface is defined by:
 
 Changes to these surfaces require updated `docs/`, updated tests, and a semver-appropriate version bump.
 
-## Generated Content — `docs/`
+## Content in `docs/`
 
-Files in `docs/` are **machine-generated** from source code by `./fastedge-plugin-source/generate-docs.sh`. They must not be edited by hand — manual changes will be silently overwritten on the next generation run.
+`docs/` contains two distinct types of files with different authoring rules:
+
+### Machine-generated docs (most files)
+
+These files are generated from source code by `./fastedge-plugin-source/generate-docs.sh` and **must not be edited by hand** — manual changes will be silently overwritten on the next generation run:
+
+- `docs/BUILD_CLI.md`, `docs/INIT_CLI.md`, `docs/ASSETS_CLI.md`, `docs/STATIC_SITES.md`, `docs/SDK_API.md`
+- `docs/quickstart.md`, `docs/INDEX.md`
+
+### Hand-curated docs (exception)
+
+These files contain knowledge and best practices with no single code-source equivalent. They are **authored directly** and are not produced by `generate-docs.sh`:
+
+- `docs/AUTH_PATTERNS.md` — JWT/HMAC auth patterns, `crypto.subtle` usage guidance
+- `docs/HONO_PATTERNS.md` — Hono framework integration patterns for FastEdge
+- `docs/PROXY_PATTERNS.md` — Proxy and response transformation patterns
+- `docs/RUNTIME_CONSTRAINTS.md` — StarlingMonkey JS runtime capabilities and constraints
+
+**For hand-curated docs:** Edit them directly. Do not run `generate-docs.sh` for these files — it will not affect them.
 
 ### When reviewing PRs that touch `docs/`:
 
-- **Never** suggest manual edits to any file in `docs/`
-- If docs are stale or incorrect, suggest: **Run `./fastedge-plugin-source/generate-docs.sh`**
-- If the generated output itself is wrong (e.g., wrong structure, missing section), the fix belongs in `fastedge-plugin-source/.generation-config.md`, not in `docs/` directly
-- If a PR modifies `docs/` files without a corresponding source code change, flag it — the change should come from the generation script, not a hand-edit
+- For **generated** docs: never suggest manual edits. If stale or incorrect, suggest: **Run `./fastedge-plugin-source/generate-docs.sh`**
+- For **hand-curated** docs (`AUTH_PATTERNS.md`, `HONO_PATTERNS.md`, `PROXY_PATTERNS.md`, `RUNTIME_CONSTRAINTS.md`): direct edits are correct and expected
+- If the generated output itself is wrong (e.g., wrong structure, missing section), the fix belongs in `fastedge-plugin-source/.generation-config.md`, not in the generated `docs/` file directly
+- If a PR modifies a **generated** `docs/` file without a corresponding source code change, flag it — the change should come from the generation script, not a hand-edit
 
 ### When reviewing PRs that change source code covered by `docs/`:
 
@@ -69,6 +87,10 @@ Files in `docs/` are **machine-generated** from source code by `./fastedge-plugi
 | `types/globals.d.ts` | `docs/SDK_API.md` |
 | `package.json` (exports, bin) | `docs/INDEX.md` |
 | `types/`, `src/cli/`, `README.md` (quickstart examples) | `docs/quickstart.md` |
+| hand-curated — JWT/HMAC auth patterns, `crypto.subtle` usage guidance | `docs/AUTH_PATTERNS.md` |
+| hand-curated — Hono framework integration patterns for FastEdge | `docs/HONO_PATTERNS.md` |
+| hand-curated — proxy and response transformation patterns | `docs/PROXY_PATTERNS.md` |
+| hand-curated — StarlingMonkey JS runtime capabilities and constraints | `docs/RUNTIME_CONSTRAINTS.md` |
 | `fastedge-plugin-source/manifest.json` | `.github/copilot-instructions.md` |
 
 ### Violation example

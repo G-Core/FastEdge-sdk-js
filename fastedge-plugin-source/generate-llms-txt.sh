@@ -8,13 +8,17 @@ set -euo pipefail
 # LLM agents discover and navigate package documentation.
 #
 # Usage:
-#   ./fastedge-plugin-source/generate-llms-txt.sh   # standalone
-#   ./fastedge-plugin-source/generate-docs.sh        # calls this automatically after a full run
+#   ./fastedge-plugin-source/generate-llms-txt.sh
+#
+# Setup:
+#   1. Copy this file to <your-repo>/fastedge-plugin-source/generate-llms-txt.sh
+#   2. chmod +x fastedge-plugin-source/generate-llms-txt.sh
+#   3. Called automatically by generate-docs.sh after a full generation run
 #
 # Requirements: bash 4+, jq (only if package.json is the name source)
 # No customization needed — package name and docs are discovered at runtime.
-# Supports: package.json (Node), Cargo.toml (Rust), pyproject.toml (Python),
-#           or falls back to the directory name.
+# Supports: package.json (Node), Cargo.toml (Rust), or falls back to the
+#           directory name.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -33,8 +37,8 @@ if [ ! -f "$DOCS_DIR/INDEX.md" ]; then
   exit 1
 fi
 
-# --- Extract package name (language-agnostic) ---
-# Tries in order: package.json (Node), Cargo.toml (Rust), pyproject.toml (Python), dirname fallback
+# --- Extract package name ---
+# Tries in order: package.json (Node), Cargo.toml (Rust), dirname fallback
 
 detect_package_name() {
   if [ -f "$REPO_ROOT/package.json" ]; then
@@ -45,15 +49,12 @@ detect_package_name() {
   fi
 
   if [ -f "$REPO_ROOT/Cargo.toml" ]; then
-    sed -n '/^\[package\]/,/^\[/{ s/^name *= *"\(.*\)"/\1/p; }' "$REPO_ROOT/Cargo.toml" | head -1
+    # Extract name from [package] section — skip the header line, stop at next section
+    awk '/^\[package\]/{found=1; next} /^\[/{found=0} found && /^name *= *"/{gsub(/^name *= *"|"$/, ""); print; exit}' "$REPO_ROOT/Cargo.toml"
     return
   fi
 
-  if [ -f "$REPO_ROOT/pyproject.toml" ]; then
-    sed -n '/^\[project\]/,/^\[/{ s/^name *= *"\(.*\)"/\1/p; }' "$REPO_ROOT/pyproject.toml" | head -1
-    return
-  fi
-
+  # Fallback: directory name
   basename "$REPO_ROOT"
 }
 
@@ -83,30 +84,18 @@ fi
   echo "## Documentation"
   echo ""
 
-  # Curated order: INDEX first (entry point), then quickstart, then rest alphabetically.
-  # This keeps the most useful docs near the top rather than relying on glob order
-  # (which puts lowercase filenames like quickstart.md last).
-  PRIORITY_FILES=("INDEX.md" "quickstart.md")
+  # INDEX.md first — it's the entry point
+  index_heading=$(head -1 "$DOCS_DIR/INDEX.md" | sed 's/^#\+ //')
+  echo "- [$index_heading](docs/INDEX.md)"
 
-  for pfile in "${PRIORITY_FILES[@]}"; do
-    if [ -f "$DOCS_DIR/$pfile" ]; then
-      heading=$(head -1 "$DOCS_DIR/$pfile" | sed 's/^#\+ //')
-      [ -z "$heading" ] && heading="${pfile%.md}"
-      echo "- [$heading](docs/$pfile)"
-    fi
-  done
-
-  # Remaining docs alphabetically, skip priority files
+  # Remaining docs alphabetically, skip INDEX.md
   for doc in "$DOCS_DIR"/*.md; do
     filename=$(basename "$doc")
-    skip=false
-    for pfile in "${PRIORITY_FILES[@]}"; do
-      [ "$filename" = "$pfile" ] && skip=true && break
-    done
-    [ "$skip" = true ] && continue
+    [ "$filename" = "INDEX.md" ] && continue
 
     heading=$(head -1 "$doc" | sed 's/^#\+ //')
     if [ -z "$heading" ]; then
+      # Fallback: use filename without extension
       heading="${filename%.md}"
     fi
 
