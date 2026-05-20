@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "No action param — usage menu listing all three patterns",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  }
+}

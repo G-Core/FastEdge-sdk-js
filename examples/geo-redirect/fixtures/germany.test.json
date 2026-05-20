@@ -1,0 +1,15 @@
+{
+  "appType": "http-wasm",
+  "description": "German visitor — redirects to the DE origin configured in env",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "geoip-country-code": "DE"
+    }
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

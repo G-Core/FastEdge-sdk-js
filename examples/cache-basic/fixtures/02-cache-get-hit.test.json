@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Cache.get — hit on a key that was set (run cache-set first)",
+  "request": {
+    "method": "GET",
+    "path": "/?action=get&key=demo-key",
+    "headers": {}
+  }
+}

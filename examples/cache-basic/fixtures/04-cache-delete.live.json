@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 200,
+    "json": { "action": "delete", "key": "demo-key", "deleted": true }
+  }
+}

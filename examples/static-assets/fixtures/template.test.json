@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /template — returns the templates/index.html file read from the in-memory asset cache",
+  "request": {
+    "method": "GET",
+    "path": "/template",
+    "headers": {}
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "No ab-test-* headers — renders with default logo and font",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  }
+}

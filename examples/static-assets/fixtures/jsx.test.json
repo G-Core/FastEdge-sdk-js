@@ -1,0 +1,11 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /jsx — renders a JSX component server-side",
+  "request": {
+    "method": "GET",
+    "path": "/jsx",
+    "headers": {
+      "accept": "text/html"
+    }
+  }
+}

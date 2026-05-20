@@ -1,0 +1,15 @@
+{
+  "appType": "http-wasm",
+  "description": "Unmapped country (FR) — falls back to BASE_ORIGIN",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "geoip-country-code": "FR"
+    }
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

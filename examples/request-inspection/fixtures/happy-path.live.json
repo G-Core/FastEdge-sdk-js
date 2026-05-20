@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/plain; charset=utf-8"
+    },
+    "bodyContains": ["Method: GET", "x-custom-trace: trace-12345"]
+  }
+}

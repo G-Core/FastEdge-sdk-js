@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-crypto-hmac-jwt",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: verify HS256 JWTs with the Web Crypto API",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/crypto-hmac-jwt.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+  }
+}

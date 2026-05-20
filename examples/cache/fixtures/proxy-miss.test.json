@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Proxy pattern — cache miss, fetches upstream and caches response with x-cache: miss",
+  "request": {
+    "method": "GET",
+    "path": "/?action=proxy&url=https://example.com",
+    "headers": {}
+  }
+}

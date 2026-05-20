@@ -17,16 +17,16 @@ async function eventHandler({ request }) {
 
   const headers = createAbTestHeaders(slicedHeaders, testConfig, xid);
 
-  // This is the URL of the downstream service - i.e. could be a url to your origin
+  // This is the URL of the outbound service - i.e. could be a url to your origin
   // e.g. https://template-invoice-ab-test-123456.fastedge.cdn.gc.onl/
-  const downstreamUrl = getEnv('DOWNSTREAM_URL');
-  if (!downstreamUrl || !String(downstreamUrl).trim()) {
-    return new Response('DOWNSTREAM_URL environment variable is not configured', {
+  const outboundUrl = getEnv('OUTBOUND_URL');
+  if (!outboundUrl || !String(outboundUrl).trim()) {
+    return new Response('OUTBOUND_URL environment variable is not configured', {
       status: 500,
     });
   }
 
-  const response = await fetch(downstreamUrl, { headers });
+  const response = await fetch(outboundUrl, { headers });
 
   // Request/Response Headers are immutable, so we need to create a new Headers object
   const resHeaders = new Headers(response.headers);

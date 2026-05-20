@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-secret-rotation",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: slot-based secret retrieval for rotation",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/secret-rotation.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+  }
+}

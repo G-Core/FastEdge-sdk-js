@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Cache.exists — presence check on demo-key",
+  "request": {
+    "method": "GET",
+    "path": "/?action=exists&key=demo-key",
+    "headers": {}
+  }
+}

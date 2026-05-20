@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Proxy pattern — invalid url param triggers URL parse error before cache",
+  "request": {
+    "method": "GET",
+    "path": "/?action=proxy&url=not-a-valid-url",
+    "headers": {}
+  }
+}

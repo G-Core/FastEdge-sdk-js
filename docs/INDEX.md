@@ -9,7 +9,7 @@ WebAssembly components that run across global edge data centers.
 | Field       | Value                       |
 | ----------- | --------------------------- |
 | **npm**     | `@gcoredev/fastedge-sdk-js` |
-| **Version** | `2.2.2`                     |
+| **Version** | `2.3.0`                     |
 | **Node**    | `>=22`                      |
 | **License** | `Apache-2.0`                |
 
@@ -53,10 +53,10 @@ addEventListener('fetch', (event) => {
 
 ## Build Types
 
-| Type       | Description                         | CLI                                                   |
-| ---------- | ----------------------------------- | ----------------------------------------------------- |
-| **HTTP**   | Standard request handler            | `fastedge-build src/index.js output.wasm`             |
-| **Static** | Serve static files embedded in WASM | `fastedge-build --config .fastedge/build-config.js`   |
+| Type       | Description                         | CLI                                                 |
+| ---------- | ----------------------------------- | --------------------------------------------------- |
+| **HTTP**   | Standard request handler            | `fastedge-build src/index.js output.wasm`           |
+| **Static** | Serve static files embedded in WASM | `fastedge-build --config .fastedge/build-config.js` |
 
 ## Runtime APIs
 
@@ -76,16 +76,16 @@ imports are resolved at compile time by the SDK.
 
 ### KvStoreInstance Methods
 
-| Method                 | Signature                                                                         | Description                                            |
-| ---------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `get`                  | `(key: string): ArrayBuffer \| null`                                              | Retrieve a value by key                                |
-| `getEntry`             | `(key: string): Promise<KvStoreEntry \| null>`                                    | Retrieve a value as a `KvStoreEntry`                   |
-| `scan`                 | `(pattern: string): Array<string>`                                                | Retrieve keys matching a prefix pattern (e.g. `foo*`)  |
-| `zrangeByScore`        | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`           | Retrieve sorted set entries by score range             |
-| `zrangeByScoreEntries` | `(key: string, min: number, max: number): Promise<Array<[KvStoreEntry, number]>>` | `zrangeByScore` returning `KvStoreEntry` wrappers      |
-| `zscan`                | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`                    | Retrieve sorted set entries matching a prefix pattern  |
-| `zscanEntries`         | `(key: string, pattern: string): Promise<Array<[KvStoreEntry, number]>>`          | `zscan` returning `KvStoreEntry` wrappers              |
-| `bfExists`             | `(key: string, value: string): boolean`                                           | Check if a value exists in a Bloom Filter              |
+| Method                 | Signature                                                                         | Description                                           |
+| ---------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `get`                  | `(key: string): ArrayBuffer \| null`                                              | Retrieve a value by key                               |
+| `getEntry`             | `(key: string): Promise<KvStoreEntry \| null>`                                    | Retrieve a value as a `KvStoreEntry`                  |
+| `scan`                 | `(pattern: string): Array<string>`                                                | Retrieve keys matching a prefix pattern (e.g. `foo*`) |
+| `zrangeByScore`        | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`           | Retrieve sorted set entries by score range            |
+| `zrangeByScoreEntries` | `(key: string, min: number, max: number): Promise<Array<[KvStoreEntry, number]>>` | `zrangeByScore` returning `KvStoreEntry` wrappers     |
+| `zscan`                | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`                    | Retrieve sorted set entries matching a prefix pattern |
+| `zscanEntries`         | `(key: string, pattern: string): Promise<Array<[KvStoreEntry, number]>>`          | `zscan` returning `KvStoreEntry` wrappers             |
+| `bfExists`             | `(key: string, value: string): boolean`                                           | Check if a value exists in a Bloom Filter             |
 
 ### KvStoreEntry Methods
 
@@ -127,17 +127,17 @@ async function app(event) {
 addEventListener('fetch', (event) => event.respondWith(app(event)));
 ```
 
-| Method     | Signature                                                                                                                                   | Description                                                                  |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `get`      | `(key: string): Promise<CacheEntry \| null>`                                                                                                | Get entry or `null` if absent or expired                                     |
-| `exists`   | `(key: string): Promise<boolean>`                                                                                                           | Check key presence without transferring value                                |
-| `set`      | `(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`                                                                   | Store a value, optionally with expiry                                        |
-| `delete`   | `(key: string): Promise<void>`                                                                                                              | Remove a key; no-op if absent                                                |
-| `expire`   | `(key: string, options: WriteOptions): Promise<boolean>`                                                                                    | Update expiry; `true` if key exists, `false` if not                          |
-| `incr`     | `(key: string, delta?: number): Promise<number>`                                                                                            | Atomically increment an integer; returns new value                           |
-| `decr`     | `(key: string, delta?: number): Promise<number>`                                                                                            | Atomically decrement an integer; returns new value                           |
-| `getOrSet` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`                             | Get entry or populate, cache, and return the result                          |
-| `getOrSet` | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions): Promise<CacheEntry \| null>`     | As above; a `null` populator result skips the write and resolves with `null` |
+| Method     | Signature                                                                                                                               | Description                                                                  |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `get`      | `(key: string): Promise<CacheEntry \| null>`                                                                                            | Get entry or `null` if absent or expired                                     |
+| `exists`   | `(key: string): Promise<boolean>`                                                                                                       | Check key presence without transferring value                                |
+| `set`      | `(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`                                                               | Store a value, optionally with expiry                                        |
+| `delete`   | `(key: string): Promise<void>`                                                                                                          | Remove a key; no-op if absent                                                |
+| `expire`   | `(key: string, options: WriteOptions): Promise<boolean>`                                                                                | Update expiry; `true` if key exists, `false` if not                          |
+| `incr`     | `(key: string, delta?: number): Promise<number>`                                                                                        | Atomically increment an integer; returns new value                           |
+| `decr`     | `(key: string, delta?: number): Promise<number>`                                                                                        | Atomically decrement an integer; returns new value                           |
+| `getOrSet` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`                         | Get entry or populate, cache, and return the result                          |
+| `getOrSet` | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions): Promise<CacheEntry \| null>` | As above; a `null` populator result skips the write and resolves with `null` |
 
 ### CacheValue
 
@@ -153,11 +153,11 @@ type CacheValue = string | ArrayBuffer | ArrayBufferView | ReadableStream | Resp
 Controls how long a cache entry lives. Pass exactly one field. Omit the options bag entirely to
 store with no expiry.
 
-| Field       | Type     | Description                                                                            |
-| ----------- | -------- | -------------------------------------------------------------------------------------- |
-| `ttl`       | `number` | Relative TTL in seconds from now. Mutually exclusive with `ttlMs` and `expiresAt`.     |
-| `ttlMs`     | `number` | Relative TTL in milliseconds from now. Mutually exclusive with `ttl` and `expiresAt`.  |
-| `expiresAt` | `number` | Absolute expiry, Unix epoch seconds. Mutually exclusive with `ttl` and `ttlMs`.        |
+| Field       | Type     | Description                                                                           |
+| ----------- | -------- | ------------------------------------------------------------------------------------- |
+| `ttl`       | `number` | Relative TTL in seconds from now. Mutually exclusive with `ttlMs` and `expiresAt`.    |
+| `ttlMs`     | `number` | Relative TTL in milliseconds from now. Mutually exclusive with `ttl` and `expiresAt`. |
+| `expiresAt` | `number` | Absolute expiry, Unix epoch seconds. Mutually exclusive with `ttl` and `ttlMs`.       |
 
 ### CacheEntry Methods
 

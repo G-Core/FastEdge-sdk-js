@@ -158,11 +158,14 @@ it:
 
 ```ts
 // Register weather tools
-server.tool(
-  'get_alerts',
-  'Get weather alerts for a state',
+server.registerTool(
+  'get-alerts',
   {
-    state: z.string().length(2).describe('Two-letter state code (e.g. CA, NY)'),
+    title: 'Get Weather Alerts',
+    description: 'Get weather alerts for a US state',
+    inputSchema: z.object({
+      state: z.string().length(2).describe('Two-letter state code (e.g. CA, NY)'),
+    }),
   },
   async ({ state }) => {
     const stateCode = state.toUpperCase();
@@ -206,12 +209,15 @@ server.tool(
   },
 );
 
-server.tool(
-  'get_forecast',
-  'Get weather forecast for a location',
+server.registerTool(
+  'get-forecast',
   {
-    latitude: z.number().min(-90).max(90).describe('Latitude of the location'),
-    longitude: z.number().min(-180).max(180).describe('Longitude of the location'),
+    title: 'Get Weather Forecast',
+    description: 'Get weather forecast for a location',
+    inputSchema: z.object({
+      latitude: z.number().min(-90).max(90).describe('Latitude of the location'),
+      longitude: z.number().min(-180).max(180).describe('Longitude of the location'),
+    }),
   },
   async ({ latitude, longitude }) => {
     // Get grid point data

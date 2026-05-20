@@ -161,6 +161,15 @@ Items that need attention. Surface these when asked "what's next" or "what needs
 - **semantic-release** 23 → 25: Two major versions, needs CI pipeline testing. Upgrade with `conventional-changelog-eslint` 5 → 6.
 - **TypeScript** 5.8 → 6.0: High risk, wait for ecosystem (`typescript-eslint`, tooling) to stabilize. Run `npx @andrewbranch/ts5to6` migration tool when ready.
 
+### Doc verification backlog (build a test example, then add to `docs/`)
+
+These are runtime/Web-API behaviors that have been *requested* in patterns docs but cannot yet be verified against an existing example or runtime test. Build a minimal example app proving each works on FastEdge before adding it to a `docs/` file. If a behavior is **not** supported, capture that here too — negative findings are also documentation.
+
+- **`Response.clone()`** — Standard Web Fetch API. Used by patterns where the upstream body needs to be read twice (e.g. log full response while transforming a copy). No example currently exercises this. Build: a small handler that clones a `fetch()` response and reads both copies. Verify both bodies decode to the same bytes. If it works, the `docs/PROXY_PATTERNS.md` "JSON Transform" section can be expanded to document `clone()` for dual-read patterns.
+- **`fetch(url, { redirect: "manual" })`** — Standard Web Fetch option, returns the upstream redirect response without following it. Used by patterns where the app needs to inspect or rewrite the `Location` header. Runtime test harness includes WPT `redirect-mode.any.js` but that does not confirm FastEdge's outbound `fetch` honors the option in production. Build: a handler that issues a `fetch()` to a known 302 endpoint with `redirect: "manual"` and asserts the response is the 302 itself, not the followed target. If it works, the `docs/PROXY_PATTERNS.md` operational notes can call out manual redirect handling.
+
+When adding either to docs, also update the manifest source description so reviewers know the content is now grounded in an example.
+
 ---
 
 ## Search Tips

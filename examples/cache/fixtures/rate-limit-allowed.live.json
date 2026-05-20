@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 200,
+    "bodyContains": ["\"pattern\":\"rate-limit\"", "\"windowSeconds\":60"]
+  }
+}

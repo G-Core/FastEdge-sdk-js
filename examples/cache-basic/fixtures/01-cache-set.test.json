@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Cache.set — write a key with 60s TTL",
+  "request": {
+    "method": "GET",
+    "path": "/?action=set&key=demo-key&value=hello",
+    "headers": {}
+  }
+}

@@ -23,11 +23,45 @@ The public API surface is defined by:
 
 Changes to these surfaces require updated `docs/`, updated tests, and a semver-appropriate version bump.
 
+## Content in `docs/`
+
+`docs/` contains two distinct types of files with different authoring rules:
+
+### Machine-generated docs (most files)
+
+These files are generated from source code by `./fastedge-plugin-source/generate-docs.sh` and **must not be edited by hand** — manual changes will be silently overwritten on the next generation run:
+
+- `docs/BUILD_CLI.md`, `docs/INIT_CLI.md`, `docs/ASSETS_CLI.md`, `docs/STATIC_SITES.md`, `docs/SDK_API.md`
+- `docs/quickstart.md`, `docs/INDEX.md`
+
+### Hand-curated docs (exception)
+
+These files contain knowledge and best practices with no single code-source equivalent. They are **authored directly** and are not produced by `generate-docs.sh`:
+
+- `docs/AUTH_PATTERNS.md` — JWT/HMAC auth patterns, `crypto.subtle` usage guidance
+- `docs/HONO_PATTERNS.md` — Hono framework integration patterns for FastEdge
+- `docs/PROXY_PATTERNS.md` — Proxy and response transformation patterns
+- `docs/RUNTIME_CONSTRAINTS.md` — StarlingMonkey JS runtime capabilities and constraints
+
+**For hand-curated docs:** Edit them directly. Do not run `generate-docs.sh` for these files — it will not affect them.
+
+### When reviewing PRs that touch `docs/`:
+
+- For **generated** docs: never suggest manual edits. If stale or incorrect, suggest: **Run `./fastedge-plugin-source/generate-docs.sh`**
+- For **hand-curated** docs (`AUTH_PATTERNS.md`, `HONO_PATTERNS.md`, `PROXY_PATTERNS.md`, `RUNTIME_CONSTRAINTS.md`): direct edits are correct and expected
+- If the generated output itself is wrong (e.g., wrong structure, missing section), the fix belongs in `fastedge-plugin-source/.generation-config.md`, not in the generated `docs/` file directly
+- If a PR modifies a **generated** `docs/` file without a corresponding source code change, flag it — the change should come from the generation script, not a hand-edit
+
+### When reviewing PRs that change source code covered by `docs/`:
+
+- Check whether the change affects the public API or user-facing behavior
+- If yes, and `docs/` was not regenerated in the same PR, **request changes** with:
+  > Source code affecting public API was changed but docs/ was not regenerated.
+  > Run: `./fastedge-plugin-source/generate-docs.sh`
+
 ## Documentation Freshness
 
-`docs/` is the single source of truth for public API documentation. When code changes affect the public API or user-facing behavior, **request changes** if the corresponding doc file was not updated in the same PR.
-
-### Public API changes (must update docs/)
+### Public API changes (must regenerate docs/)
 - New, modified, or removed CLI flags in `src/cli/fastedge-build/build.ts`
 - Changes to `BuildConfig` or `AssetCacheConfig` interfaces in `src/cli/fastedge-build/types.ts`
 - Changes to scaffold wizard behavior in `src/cli/fastedge-init/`
@@ -53,19 +87,23 @@ Changes to these surfaces require updated `docs/`, updated tests, and a semver-a
 | `types/globals.d.ts` | `docs/SDK_API.md` |
 | `package.json` (exports, bin) | `docs/INDEX.md` |
 | `types/`, `src/cli/`, `README.md` (quickstart examples) | `docs/quickstart.md` |
+| hand-curated — JWT/HMAC auth patterns, `crypto.subtle` usage guidance | `docs/AUTH_PATTERNS.md` |
+| hand-curated — Hono framework integration patterns for FastEdge | `docs/HONO_PATTERNS.md` |
+| hand-curated — proxy and response transformation patterns | `docs/PROXY_PATTERNS.md` |
+| hand-curated — StarlingMonkey JS runtime capabilities and constraints | `docs/RUNTIME_CONSTRAINTS.md` |
 | `fastedge-plugin-source/manifest.json` | `.github/copilot-instructions.md` |
 
 ### Violation example
 
-> PR changes `BuildConfig` interface in `types.ts` but `docs/BUILD_CLI.md` still shows the old field names → **request changes**. The config interface must be documented before merge.
+> PR changes `BuildConfig` interface in `types.ts` but `docs/BUILD_CLI.md` still shows the old field names → **request changes**. Run `./fastedge-plugin-source/generate-docs.sh` before merge.
 
 ### Quickstart protection
 
-If any public API signature or CLI behavior changes, check whether `docs/quickstart.md` examples are still accurate. Request changes if examples would no longer work against the updated code.
+If any public API signature or CLI behavior changes, check whether `docs/quickstart.md` examples are still accurate. Request regeneration if examples would no longer work against the updated code.
 
 ### Pipeline source contract
 
-If `fastedge-plugin-source/manifest.json` lists source files that overlap with files changed in this PR, request that `docs/` is updated to keep the plugin pipeline's source material current.
+If `fastedge-plugin-source/manifest.json` lists source files that overlap with files changed in this PR, request that `docs/` is regenerated (run `./fastedge-plugin-source/generate-docs.sh`) to keep the plugin pipeline's source material current.
 
 ## Quality Rules
 

@@ -1,0 +1,15 @@
+{
+  "appType": "http-wasm",
+  "description": "x-slot=0 — fetches the earliest slot value of TOKEN_SECRET",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "x-slot": "0"
+    }
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

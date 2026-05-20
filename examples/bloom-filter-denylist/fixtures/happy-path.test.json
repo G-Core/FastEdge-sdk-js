@@ -1,0 +1,13 @@
+{
+  "appType": "http-wasm",
+  "description": "Happy path — looks up client IP in the bloom filter; populate the store out of band to see blocked responses",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

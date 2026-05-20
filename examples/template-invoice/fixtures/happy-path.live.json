@@ -1,0 +1,7 @@
+{
+  "expected": {
+    "status": 200,
+    "headers": { "content-type": "text/html" },
+    "bodyContains": ["Homer Simpson", "Invoice #:", "1729", "355.00"]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "expected": {
+    "status": 200,
+    "body": "Returned all headers with a custom header added",
+    "headers": {
+      "my-custom-header": "hello-from-env"
+    }
+  }
+}

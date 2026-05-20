@@ -1,0 +1,12 @@
+{
+  "appType": "http-wasm",
+  "description": "ab-test-logo=bottle and ab-test-font=gloria — the alternative variant pair",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "ab-test-logo": "bottle",
+      "ab-test-font": "gloria"
+    }
+  }
+}

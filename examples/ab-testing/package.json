@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "FastEdge JS example: cookie-based A/B testing",
   "type": "module",
+  "main": "src/index.js",
   "scripts": {
     "build": "fastedge-build src/index.js dist/ab-testing.wasm"
   },

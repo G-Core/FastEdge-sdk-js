@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 201,
+    "json": { "success": true, "data": { "name": "alice", "email": "alice@example.com" } }
+  }
+}

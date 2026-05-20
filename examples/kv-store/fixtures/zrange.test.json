@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "KV zrange — sorted-set range by score",
+  "request": {
+    "method": "GET",
+    "path": "/?store=my-store&action=zrange&key=leaderboard&min=0&max=100",
+    "headers": {}
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 200,
+    "json": { "action": "set", "key": "demo-key", "value": "hello", "ttl": 60 }
+  }
+}

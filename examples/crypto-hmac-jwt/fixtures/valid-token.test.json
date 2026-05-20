@@ -1,0 +1,15 @@
+{
+  "appType": "http-wasm",
+  "description": "Valid HS256 JWT — replace the token with one minted against your JWT_SECRET (e.g. at jwt.io)",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJuYW1lIjoiVGVzdCBVc2VyIiwiZXhwIjo5OTk5OTk5OTk5fQ.VOPl0Bp4ABHVVMxbIcMa0uDuXrIVcRLNB0n83nTdWHI"
+    }
+  },
+  "dotenv": {
+    "enabled": true,
+    "path": "."
+  }
+}

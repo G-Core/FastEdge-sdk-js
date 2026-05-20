@@ -1,0 +1,11 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /api/hello — Hono API route",
+  "request": {
+    "method": "GET",
+    "path": "/api/hello",
+    "headers": {
+      "accept": "application/json"
+    }
+  }
+}

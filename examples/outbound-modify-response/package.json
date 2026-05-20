@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-outbound-modify-response",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: fetch and modify outbound response",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/outbound-modify-response.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.2.2"
+  }
+}

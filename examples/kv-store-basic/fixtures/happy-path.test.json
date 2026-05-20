@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Reads hardcoded key 'key' from KV store 'kv-store-name-as-defined-on-app' — populate the store out of band before running",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {}
+  }
+}

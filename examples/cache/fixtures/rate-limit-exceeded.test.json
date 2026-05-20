@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Rate-limit pattern — 429 when count exceeds RATE_LIMIT_MAX (requires 11+ prior calls from same IP in the window)",
+  "request": {
+    "method": "GET",
+    "path": "/?action=rate-limit",
+    "headers": {}
+  }
+}

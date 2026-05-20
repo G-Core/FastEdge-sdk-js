@@ -1,0 +1,11 @@
+{
+  "appType": "http-wasm",
+  "description": "GET / — served by the static asset catch-all (returns the React index.html)",
+  "request": {
+    "method": "GET",
+    "path": "/",
+    "headers": {
+      "accept": "text/html"
+    }
+  }
+}

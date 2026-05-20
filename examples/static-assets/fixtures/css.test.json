@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /styles/index.css — served from the styles static asset manifest",
+  "request": {
+    "method": "GET",
+    "path": "/styles/index.css",
+    "headers": {}
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "Memo pattern — getOrSet computes and caches a report for MEMO_TTL_S seconds",
+  "request": {
+    "method": "GET",
+    "path": "/?action=memo",
+    "headers": {}
+  }
+}
