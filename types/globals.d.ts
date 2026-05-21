@@ -509,12 +509,13 @@ declare var Response: {
   json(data: any, init?: ResponseInit): Response;
 
   // ---------------------------------------------------------------------------
-  // Spec static methods not implemented by the StarlingMonkey runtime
+  // Spec methods not implemented by the StarlingMonkey runtime
   // ---------------------------------------------------------------------------
   // Will be uncommented when the runtime exposes them. See:
   //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
   //
-  // error(): Response;
+  // error(): Response;           // static
+  // prototype.clone(): Response; // instance
 };
 
 /**
