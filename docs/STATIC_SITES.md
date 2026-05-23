@@ -131,9 +131,9 @@ All fields are optional. Pass only the fields you need.
 | `extendedCache`   | `Array<string \| RegExp>` | `[]`    | Paths or patterns that receive a `Cache-Control: max-age=31536000` response header                        |
 | `compression`     | `string[]`                | `[]`    | Content encodings to serve (e.g. `['br', 'gzip']`); matched against the request `Accept-Encoding` header |
 | `notFoundPage`    | `string \| null`          | `null`  | Asset path to serve when no match is found (e.g. `'/404.html'`); only served for HTML-accepting requests  |
-| `autoExt`         | `string[]`                | `[]`    | Extensions to append when no exact path match is found (e.g. `['.html']`)                                |
-| `autoIndex`       | `string[]`                | `[]`    | Index file names to try for directory requests (e.g. `['index.html']`)                                   |
-| `spaEntrypoint`   | `string \| null`          | `null`  | Asset path served as the SPA fallback for unmatched routes; only served for HTML-accepting requests       |
+| `autoExt`         | `string[]`                | `[]`    | Extensions to append when no exact path match is found (e.g. `['.html']`)                                 |
+| `autoIndex`       | `string[]`                | `[]`    | Index file names to try for directory requests (e.g. `['index.html']`)                                    |
+| `spaEntrypoint`   | `string \| null`          | `null`  | Asset path served as the SPA fallback for unmatched routes; only served for HTML-accepting requests        |
 
 #### routePrefix
 

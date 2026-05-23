@@ -217,6 +217,11 @@ $existing_doc
 "
   fi
 
+  # Build prompt with sandwich output constraint:
+  # The OUTPUT CONSTRAINT appears at both the start and end of the prompt.
+  # This is critical for large prompts where the model may lose track of
+  # the instruction to output only raw markdown. Without it, the model
+  # sometimes produces conversational preamble or asks for permission.
   local prompt
   prompt="$(cat <<PROMPT
 OUTPUT CONSTRAINT: Your output is piped directly to a file. Output ONLY raw markdown. No conversational text. No preamble. No "here is" or "I'll generate". No "the existing content is accurate", "no changes needed", "outputting verbatim", or any similar acknowledgement — this applies equally when the existing content needs no changes. No questions. No explanation. No permission requests. Start your very first character with # (the level-1 heading). End with the last line of markdown.
@@ -244,7 +249,8 @@ PROMPT
   tmpfile=$(mktemp "$DOCS_DIR/.${target}.XXXXXX")
   # Note: we do NOT trap-rm the tmpfile on RETURN. Failed-validation output is
   # preserved under $DOCS_DIR/.failures/ for prompt-debugging (see below) —
-  # the success path mv's the tmpfile out, the interrupt path rm's it explicitly,
+  # the success path writes stripped content directly to docs/$target and deletes
+  # the tmpfile, the interrupt path rm's it explicitly,
   # and after max_attempts we explicitly rm the working tmpfile.
 
   # Failure-preservation directory. Accumulates across runs so you can compare
@@ -276,14 +282,22 @@ PROMPT
     # the doc. The original is still saved to .failures/ so the prompt can
     # be tuned later.
     local stripped
-    stripped=$(awk '/^#/ { found=1 } found' "$tmpfile")
+    # Fence-aware level-1-only salvage: track ``` fences so that #-prefixed
+    # lines inside a fence (shell comments, #include, etc.) don't trigger the
+    # heading-detection scan. Fence delimiter lines are NOT skipped — they fall
+    # through to `found { print }` so fenced code blocks are preserved intact
+    # in the output. Only a bare `# ` heading outside a fence sets found=1.
+    stripped=$(awk '/^```/ { in_fence = !in_fence } !in_fence && /^# / { found=1 } found' "$tmpfile")
 
-    if [ -n "$stripped" ]; then
-      # Detect preamble: anything before the first line starting with '#' is preamble.
-      # Matches the prompt's constraint ("first character is #") rather than requiring
-      # '# ' (hash + space), so a model that emits '#Title' still salvages.
+    # Post-strip validation: confirm the salvaged output actually starts with a
+    # level-1 heading (# followed by a space). Belt-and-suspenders against any
+    # remaining edge case; reject and retry rather than silently writing junk.
+    local first_nonempty
+    first_nonempty=$(printf '%s\n' "$stripped" | grep -m1 '.')
+    if [ -n "$stripped" ] && [[ "$first_nonempty" =~ ^"# " ]]; then
+      # Detect preamble: anything before the first level-1 heading is preamble.
       local first_heading_line
-      first_heading_line=$(grep -n -m1 '^#' "$tmpfile" | cut -d: -f1)
+      first_heading_line=$(grep -n -m1 '^# ' "$tmpfile" | cut -d: -f1)
       if [ "${first_heading_line:-1}" -gt 1 ]; then
         local preamble_copy="$failure_dir/${target}.preamble.attempt-${attempt}.$(date +%s).md"
         cp "$tmpfile" "$preamble_copy"
@@ -295,10 +309,10 @@ PROMPT
       return 0
     fi
 
-    # No level-1 heading anywhere — genuine failure. Save and retry.
+    # No valid level-1 heading found — genuine failure. Save and retry.
     local failed_copy="$failure_dir/${target}.attempt-${attempt}.$(date +%s).md"
     cp "$tmpfile" "$failed_copy"
-    echo "  Attempt $attempt/$max_attempts failed for $target (no '# ' heading found in output) — saved to $failed_copy, retrying..."
+    echo "  Attempt $attempt/$max_attempts failed for $target (no level-1 heading found in output) — saved to $failed_copy, retrying..."
     attempt=$((attempt + 1))
   done
 
