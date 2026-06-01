@@ -280,5 +280,36 @@ declare module 'fastedge::cache' {
       populate: () => CacheValue | null | Promise<CacheValue | null>,
       options?: WriteOptions,
     ): Promise<CacheEntry | null>;
+
+    /**
+     * Purge all cache entries owned by this application.
+     *
+     * The host scans the application's key index, deletes every cached key,
+     * and removes the index itself. Resolves with the number of keys deleted.
+     *
+     * @example
+     * ```js
+     * const deleted = await Cache.purge();
+     * return Response.json({ purged: deleted });
+     * ```
+     */
+    static purge(): Promise<number>;
+
+    /**
+     * Purge all cache entries whose keys begin with `prefix`.
+     *
+     * The host scans the application's key index for keys that begin with the
+     * given prefix, deletes every matched key, and removes the matched entries
+     * from the index (the index itself is kept for any remaining keys).
+     * Resolves with the number of keys deleted.
+     *
+     * @example
+     * ```js
+     * // Invalidate all cached user profiles after a bulk update
+     * const deleted = await Cache.purgePrefix('user:');
+     * return Response.json({ purged: deleted });
+     * ```
+     */
+    static purgePrefix(prefix: string): Promise<number>;
   }
 }

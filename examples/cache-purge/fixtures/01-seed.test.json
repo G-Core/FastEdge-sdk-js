@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "seed — populate 5 keys across user: and product: namespaces",
+  "request": {
+    "method": "GET",
+    "path": "/?action=seed",
+    "headers": {}
+  }
+}
