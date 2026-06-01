@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 200,
+    "json": { "action": "purge-prefix", "prefix": "user:", "purged": 3 }
+  }
+}

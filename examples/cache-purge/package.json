@@ -1,0 +1,12 @@
+{
+  "name": "fastedge-example-cache-purge",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: bulk cache invalidation with Cache.purge and Cache.purgePrefix",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build src/index.js dist/cache-purge.wasm"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.3.0"
+  }
+}

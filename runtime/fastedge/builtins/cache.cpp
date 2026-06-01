@@ -171,6 +171,8 @@ public:
   static bool incr(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool decr(JSContext *cx, unsigned argc, JS::Value *vp);
   static bool getOrSet(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool purge(JSContext *cx, unsigned argc, JS::Value *vp);
+  static bool purge_prefix(JSContext *cx, unsigned argc, JS::Value *vp);
 
   // Promise reaction handlers used by `set` for the async coercion path.
   // Static (not in the anon namespace) so their addresses can be passed as
@@ -1185,15 +1187,49 @@ bool Cache::decr(JSContext *cx, unsigned argc, JS::Value *vp) {
   return incr_common(cx, args, "decr", /*negate=*/true);
 }
 
+bool Cache::purge(JSContext *cx, unsigned argc, JS::Value *vp) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+  auto result = host_api::cache_purge();
+  if (!result.is_ok()) {
+    throw_cache_error(cx, result.unwrap_err());
+    return ReturnPromiseRejectedWithPendingError(cx, args);
+  }
+
+  JS::RootedValue rv(cx, JS::NumberValue(static_cast<double>(result.unwrap())));
+  return resolve_with(cx, rv, args);
+}
+
+bool Cache::purge_prefix(JSContext *cx, unsigned argc, JS::Value *vp) {
+  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+  if (!args.requireAtLeast(cx, "purgePrefix", 1)) return false;
+
+  JS::RootedString prefix_str(cx, JS::ToString(cx, args[0]));
+  if (!prefix_str) return false;
+  auto prefix = core::encode(cx, prefix_str);
+  if (!prefix) return false;
+
+  auto result = host_api::cache_purge_prefix(std::string_view(prefix.ptr.get(), prefix.len));
+  if (!result.is_ok()) {
+    throw_cache_error(cx, result.unwrap_err());
+    return ReturnPromiseRejectedWithPendingError(cx, args);
+  }
+
+  JS::RootedValue rv(cx, JS::NumberValue(static_cast<double>(result.unwrap())));
+  return resolve_with(cx, rv, args);
+}
+
 const JSFunctionSpec cache_methods[] = {
-    JS_FN("get",      Cache::get,       1, JSPROP_ENUMERATE),
-    JS_FN("exists",   Cache::exists,    1, JSPROP_ENUMERATE),
-    JS_FN("set",      Cache::set,       2, JSPROP_ENUMERATE),
-    JS_FN("delete",   Cache::delete_op, 1, JSPROP_ENUMERATE),
-    JS_FN("expire",   Cache::expire,    2, JSPROP_ENUMERATE),
-    JS_FN("incr",     Cache::incr,      1, JSPROP_ENUMERATE),
-    JS_FN("decr",     Cache::decr,      1, JSPROP_ENUMERATE),
-    JS_FN("getOrSet", Cache::getOrSet,  2, JSPROP_ENUMERATE),
+    JS_FN("get",         Cache::get,          1, JSPROP_ENUMERATE),
+    JS_FN("exists",      Cache::exists,       1, JSPROP_ENUMERATE),
+    JS_FN("set",         Cache::set,          2, JSPROP_ENUMERATE),
+    JS_FN("delete",      Cache::delete_op,    1, JSPROP_ENUMERATE),
+    JS_FN("expire",      Cache::expire,       2, JSPROP_ENUMERATE),
+    JS_FN("incr",        Cache::incr,         1, JSPROP_ENUMERATE),
+    JS_FN("decr",        Cache::decr,         1, JSPROP_ENUMERATE),
+    JS_FN("getOrSet",    Cache::getOrSet,     2, JSPROP_ENUMERATE),
+    JS_FN("purge",       Cache::purge,        0, JSPROP_ENUMERATE),
+    JS_FN("purgePrefix", Cache::purge_prefix, 1, JSPROP_ENUMERATE),
     JS_FS_END,
 };
 
