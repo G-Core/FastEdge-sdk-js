@@ -148,6 +148,12 @@ importers:
         specifier: link:../..
         version: link:../..
 
+  examples/cache-purge:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
+
   examples/crypto-hmac-jwt:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
