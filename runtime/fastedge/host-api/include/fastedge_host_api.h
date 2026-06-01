@@ -209,6 +209,8 @@ std::optional<CacheError> cache_delete(std::string_view key);
 CacheResult<bool> cache_exists(std::string_view key);
 CacheResult<int64_t> cache_incr(std::string_view key, int64_t delta);
 CacheResult<bool> cache_expire(std::string_view key, uint64_t ttl_ms);
+CacheResult<uint64_t> cache_purge();
+CacheResult<uint64_t> cache_purge_prefix(std::string_view prefix);
 
 // Utils
 void utils_set_user_diag(std::string_view name);
