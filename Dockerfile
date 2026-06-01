@@ -1,4 +1,4 @@
-FROM harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.2
+FROM harbor.p.gc.onl/fastedge/clang-monkey-compiler:0.0.3
 
 WORKDIR /usr/src/app
 
