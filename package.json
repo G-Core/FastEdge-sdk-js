@@ -1,6 +1,6 @@
 {
   "name": "@gcoredev/fastedge-sdk-js",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "engines": {
     "node": ">=22",
     "pnpm": ">=10"
@@ -84,7 +84,7 @@
   },
   "dependencies": {
     "@bytecodealliance/jco": "^1.17.6",
-    "@bytecodealliance/wizer": "^10.0.0",
+    "@bytecodealliance/wizer": "^11.0.3",
     "acorn": "^8.16.0",
     "acorn-walk": "^8.3.5",
     "arg": "^5.0.2",
