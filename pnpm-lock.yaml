@@ -15,8 +15,8 @@ importers:
         specifier: ^1.17.6
         version: 1.17.6
       '@bytecodealliance/wizer':
-        specifier: ^10.0.0
-        version: 10.0.0
+        specifier: ^11.0.3
+        version: 11.0.3
       acorn:
         specifier: ^8.16.0
         version: 8.16.0
@@ -1009,8 +1009,20 @@ packages:
     os: [darwin]
     hasBin: true
 
+  '@bytecodealliance/wizer-darwin-arm64@11.0.3':
+    resolution: {integrity: sha512-QKU5sLLYMyz+XON5yIqPoffQb8qLUH/qWfnXuVz9GfM9K3sHSnDenkPUmLbqz6L+q+zvXnjhGv+u0wr+DVdR8A==}
+    cpu: [arm64]
+    os: [darwin]
+    hasBin: true
+
   '@bytecodealliance/wizer-darwin-x64@10.0.0':
     resolution: {integrity: sha512-r/LUIZw6Q3Hf4htd46mD+EBxfwjBkxVIrTM1r+B2pTCddoBYQnKVdVsI4UFyy7NoBxzEg8F8BwmTNoSLmFRjpw==}
+    cpu: [x64]
+    os: [darwin]
+    hasBin: true
+
+  '@bytecodealliance/wizer-darwin-x64@11.0.3':
+    resolution: {integrity: sha512-3pAcAtBkpTHDTJL39G9xJMZjBsJrCBS1vo5JXV5URlz8purksv72lsYm9zp4vwFzjwESQPve7ZoH4sZo9QFKGg==}
     cpu: [x64]
     os: [darwin]
     hasBin: true
@@ -1021,8 +1033,20 @@ packages:
     os: [linux]
     hasBin: true
 
+  '@bytecodealliance/wizer-linux-arm64@11.0.3':
+    resolution: {integrity: sha512-NHO9cceJ7F4b7sNyHT/GRby+fpm85gk57c7fOernZlRSgpq6/AUae1b48P0UrJXwjob7M3oDnCW/uRu6a6r1Vw==}
+    cpu: [arm64]
+    os: [linux]
+    hasBin: true
+
   '@bytecodealliance/wizer-linux-s390x@10.0.0':
     resolution: {integrity: sha512-O8vHxRTAdb1lUnVXMIMTcp/9q4pq1D4iIKigJCipg2JN15taV9uFAWh0fO88wylXwuSlO7dOE1AwQl54fMKXQg==}
+    cpu: [s390x]
+    os: [linux]
+    hasBin: true
+
+  '@bytecodealliance/wizer-linux-s390x@11.0.3':
+    resolution: {integrity: sha512-G7VScGT8K/H2jvTaQzXTRdfe82jikDxCVR1j4j4jCekmZF0jzV390WauZF/QaDB0FXZY0aAOob7gt76HGbS1aw==}
     cpu: [s390x]
     os: [linux]
     hasBin: true
@@ -1033,14 +1057,31 @@ packages:
     os: [linux]
     hasBin: true
 
+  '@bytecodealliance/wizer-linux-x64@11.0.3':
+    resolution: {integrity: sha512-HvqiIcnSdaNeQ/D/Q613OXgyW4bWt3bXrl62kv+MvcCeiMskYLclRjvvDH8Mvrjvtjtx0GwuyhyP4gYFaiIQxg==}
+    cpu: [x64]
+    os: [linux]
+    hasBin: true
+
   '@bytecodealliance/wizer-win32-x64@10.0.0':
     resolution: {integrity: sha512-55BPLfGT7iT7gH5M69NpTM16QknJZ7OxJ0z73VOEoeGA9CT8QPKMRzFKsPIvLs+W8G28fdudFA94nElrdkp3Kg==}
     cpu: [x64]
     os: [win32]
     hasBin: true
 
+  '@bytecodealliance/wizer-win32-x64@11.0.3':
+    resolution: {integrity: sha512-5MMQwTfpEAHhQabFT7YZtD+XLB9qp1lSliwDqFCiLJkMkxus+6hHIJaMQOiFb6Lb2rP2MA6w57p7T7SYZl9ucg==}
+    cpu: [x64]
+    os: [win32]
+    hasBin: true
+
   '@bytecodealliance/wizer@10.0.0':
     resolution: {integrity: sha512-ziWmovyu1jQl9TsKlfC2bwuUZwxVPFHlX4fOqTzxhgS76jITIo45nzODEwPgU+jjmOr8F3YX2V2wAChC5NKujg==}
+    engines: {node: '>=16'}
+    hasBin: true
+
+  '@bytecodealliance/wizer@11.0.3':
+    resolution: {integrity: sha512-OVKpXne02S5O0TXgfhf5RishlU4YrjA6N76vGGNZWsZZJMAsjy3T35scRVPqtC/k9SDDgzKFGhvXhwma6V8uKg==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -7207,19 +7248,37 @@ snapshots:
   '@bytecodealliance/wizer-darwin-arm64@10.0.0':
     optional: true
 
+  '@bytecodealliance/wizer-darwin-arm64@11.0.3':
+    optional: true
+
   '@bytecodealliance/wizer-darwin-x64@10.0.0':
+    optional: true
+
+  '@bytecodealliance/wizer-darwin-x64@11.0.3':
     optional: true
 
   '@bytecodealliance/wizer-linux-arm64@10.0.0':
     optional: true
 
+  '@bytecodealliance/wizer-linux-arm64@11.0.3':
+    optional: true
+
   '@bytecodealliance/wizer-linux-s390x@10.0.0':
+    optional: true
+
+  '@bytecodealliance/wizer-linux-s390x@11.0.3':
     optional: true
 
   '@bytecodealliance/wizer-linux-x64@10.0.0':
     optional: true
 
+  '@bytecodealliance/wizer-linux-x64@11.0.3':
+    optional: true
+
   '@bytecodealliance/wizer-win32-x64@10.0.0':
+    optional: true
+
+  '@bytecodealliance/wizer-win32-x64@11.0.3':
     optional: true
 
   '@bytecodealliance/wizer@10.0.0':
@@ -7230,6 +7289,15 @@ snapshots:
       '@bytecodealliance/wizer-linux-s390x': 10.0.0
       '@bytecodealliance/wizer-linux-x64': 10.0.0
       '@bytecodealliance/wizer-win32-x64': 10.0.0
+
+  '@bytecodealliance/wizer@11.0.3':
+    optionalDependencies:
+      '@bytecodealliance/wizer-darwin-arm64': 11.0.3
+      '@bytecodealliance/wizer-darwin-x64': 11.0.3
+      '@bytecodealliance/wizer-linux-arm64': 11.0.3
+      '@bytecodealliance/wizer-linux-s390x': 11.0.3
+      '@bytecodealliance/wizer-linux-x64': 11.0.3
+      '@bytecodealliance/wizer-win32-x64': 11.0.3
 
   '@capsizecss/unpack@4.0.0':
     dependencies:
