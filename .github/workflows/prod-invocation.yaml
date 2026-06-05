@@ -108,7 +108,7 @@ jobs:
           comment: 'Deployed by prod-invocation workflow'
           env: |
             BUILD_SHA=${{ github.sha }}
-            TEST_FETCH_URL=https://httpbin.org/json
+            TEST_FETCH_URL=https://auth.gcore.com/login/assets/config.json
           secrets: |
             test-secret=${{ steps.create-test-secret.outputs.secret_id }}
 
