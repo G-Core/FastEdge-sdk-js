@@ -155,6 +155,10 @@ export default defineConfig({
                   label: 'getOrSet',
                   link: `${import.meta.env.BASE_URL}reference/fastedge/cache/get-or-set/`,
                 },
+                {
+                  label: 'purge / purgePrefix',
+                  link: `${import.meta.env.BASE_URL}reference/fastedge/cache/purge/`,
+                },
               ],
             },
           ],

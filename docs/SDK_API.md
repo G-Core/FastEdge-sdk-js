@@ -360,6 +360,8 @@ All methods are static; `Cache` is never constructed. All methods return `Promis
 | `decr(key, delta?)`                 | `(key: string, delta?: number) => Promise<number>`                                                                                        | `Promise<number>`             |
 | `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions) => Promise<CacheEntry>`                         | `Promise<CacheEntry>`         |
 | `getOrSet(key, populate, options?)` | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions) => Promise<CacheEntry \| null>` | `Promise<CacheEntry \| null>` |
+| `purge()`                           | `() => Promise<number>`                                                                                                                   | `Promise<number>`             |
+| `purgePrefix(prefix)`               | `(prefix: string) => Promise<number>`                                                                                                     | `Promise<number>`             |
 
 ##### `get`
 
@@ -501,6 +503,41 @@ async function app(event) {
   return new Response(await entry.arrayBuffer(), {
     headers: { "content-type": "application/json" },
   });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+##### `purge`
+
+Deletes all cache entries available to this application. The host scans the key index, removes every cached key, and clears the index. Resolves with the number of keys deleted.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  const deleted = await Cache.purge();
+  return Response.json({ purged: deleted });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+##### `purgePrefix`
+
+Deletes all cache entries whose keys begin with `prefix`. The host scans the key index for matching keys, removes them, and updates the index (the index itself is retained for any remaining keys). Resolves with the number of keys deleted.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  // Invalidate all cached user profiles after a bulk update
+  const deleted = await Cache.purgePrefix("user:");
+  return Response.json({ purged: deleted });
 }
 
 addEventListener("fetch", event => event.respondWith(app(event)));

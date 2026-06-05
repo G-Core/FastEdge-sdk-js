@@ -9,7 +9,7 @@ WebAssembly components that run across global edge data centers.
 | Field       | Value                       |
 | ----------- | --------------------------- |
 | **npm**     | `@gcoredev/fastedge-sdk-js` |
-| **Version** | `2.3.0`                     |
+| **Version** | `2.4.0`                     |
 | **Node**    | `>=22`                      |
 | **License** | `Apache-2.0`                |
 
@@ -127,17 +127,19 @@ async function app(event) {
 addEventListener('fetch', (event) => event.respondWith(app(event)));
 ```
 
-| Method     | Signature                                                                                                                               | Description                                                                  |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `get`      | `(key: string): Promise<CacheEntry \| null>`                                                                                            | Get entry or `null` if absent or expired                                     |
-| `exists`   | `(key: string): Promise<boolean>`                                                                                                       | Check key presence without transferring value                                |
-| `set`      | `(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`                                                               | Store a value, optionally with expiry                                        |
-| `delete`   | `(key: string): Promise<void>`                                                                                                          | Remove a key; no-op if absent                                                |
-| `expire`   | `(key: string, options: WriteOptions): Promise<boolean>`                                                                                | Update expiry; `true` if key exists, `false` if not                          |
-| `incr`     | `(key: string, delta?: number): Promise<number>`                                                                                        | Atomically increment an integer; returns new value                           |
-| `decr`     | `(key: string, delta?: number): Promise<number>`                                                                                        | Atomically decrement an integer; returns new value                           |
-| `getOrSet` | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`                         | Get entry or populate, cache, and return the result                          |
-| `getOrSet` | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions): Promise<CacheEntry \| null>` | As above; a `null` populator result skips the write and resolves with `null` |
+| Method       | Signature                                                                                                                               | Description                                                                  |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `get`        | `(key: string): Promise<CacheEntry \| null>`                                                                                            | Get entry or `null` if absent or expired                                     |
+| `exists`     | `(key: string): Promise<boolean>`                                                                                                       | Check key presence without transferring value                                |
+| `set`        | `(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`                                                               | Store a value, optionally with expiry                                        |
+| `delete`     | `(key: string): Promise<void>`                                                                                                          | Remove a key; no-op if absent                                                |
+| `expire`     | `(key: string, options: WriteOptions): Promise<boolean>`                                                                                | Update expiry; `true` if key exists, `false` if not                          |
+| `incr`       | `(key: string, delta?: number): Promise<number>`                                                                                        | Atomically increment an integer; returns new value                           |
+| `decr`       | `(key: string, delta?: number): Promise<number>`                                                                                        | Atomically decrement an integer; returns new value                           |
+| `getOrSet`   | `(key: string, populate: () => CacheValue \| Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`                         | Get entry or populate, cache, and return the result                          |
+| `getOrSet`   | `(key: string, populate: () => CacheValue \| null \| Promise<CacheValue \| null>, options?: WriteOptions): Promise<CacheEntry \| null>` | As above; a `null` populator result skips the write and resolves with `null` |
+| `purge`      | `(): Promise<number>`                                                                                                                   | Delete all cache entries for this application; returns count deleted         |
+| `purgePrefix` | `(prefix: string): Promise<number>`                                                                                                    | Delete all entries whose keys begin with `prefix`; returns count deleted     |
 
 ### CacheValue
 
