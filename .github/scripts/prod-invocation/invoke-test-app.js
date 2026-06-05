@@ -20,8 +20,8 @@ async function checkOutboundFetch(appUrl) {
   if (!data.ok) {
     throw new Error(`/fetch: outbound request failed (ok=${data.ok}, status=${data.status})`);
   }
-  if (data.title !== 'Sample Slide Show') {
-    throw new Error(`/fetch: unexpected slideshow title: "${data.title}"`);
+  if (!data.cdnDebugEndpoint || typeof data.cdnDebugEndpoint !== 'string' || !data.cdnDebugEndpoint.includes('.well-known')) {
+    throw new Error(`/fetch: missing or invalid cdnDebugEndpoint: "${data.cdnDebugEndpoint}"`);
   }
 }
 

@@ -10,13 +10,13 @@ async function handleEnvCheck(event) {
 }
 
 async function handleOutboundFetch(event) {
-  const targetUrl = getEnv('TEST_FETCH_URL') || 'https://httpbin.org/json';
+  const targetUrl = getEnv('TEST_FETCH_URL') || 'https://auth.gcore.com/login/assets/config.json';
   const res = await fetch(targetUrl);
   const data = await res.json();
   return Response.json({
     status: res.status,
     ok: res.ok,
-    title: data?.slideshow?.title,
+    cdnDebugEndpoint: data?.cdnDebugEndpoint,
   });
 }
 
