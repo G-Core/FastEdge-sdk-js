@@ -58,12 +58,7 @@ declare module 'fastedge::cache' {
    *   need to round-trip status or headers, encode them into the value
    *   yourself (for example, as a JSON envelope).
    */
-  export type CacheValue =
-    | string
-    | ArrayBuffer
-    | ArrayBufferView
-    | ReadableStream
-    | Response;
+  export type CacheValue = string | ArrayBuffer | ArrayBufferView | ReadableStream | Response;
 
   /**
    * Options controlling how long a cache entry lives.
@@ -173,11 +168,7 @@ declare module 'fastedge::cache' {
      * await Cache.set("manifest", await fetch("/manifest.json"));
      * ```
      */
-    static set(
-      key: string,
-      value: CacheValue,
-      options?: WriteOptions,
-    ): Promise<void>;
+    static set(key: string, value: CacheValue, options?: WriteOptions): Promise<void>;
 
     /**
      * Remove `key` from the cache.
@@ -282,10 +273,10 @@ declare module 'fastedge::cache' {
     ): Promise<CacheEntry | null>;
 
     /**
-     * Purge all cache entries owned by this application.
+     * Purge all cache entries available to this application.
      *
-     * The host scans the application's key index, deletes every cached key,
-     * and removes the index itself. Resolves with the number of keys deleted.
+     * The host scans the key index, deletes every cached key, and removes the
+     * index itself. Resolves with the number of keys deleted.
      *
      * @example
      * ```js
@@ -298,9 +289,9 @@ declare module 'fastedge::cache' {
     /**
      * Purge all cache entries whose keys begin with `prefix`.
      *
-     * The host scans the application's key index for keys that begin with the
-     * given prefix, deletes every matched key, and removes the matched entries
-     * from the index (the index itself is kept for any remaining keys).
+     * The host scans the key index for keys that begin with the given prefix,
+     * deletes every matched key, and removes the matched entries from the
+     * index (the index itself is kept for any remaining keys).
      * Resolves with the number of keys deleted.
      *
      * @example
