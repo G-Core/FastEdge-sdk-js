@@ -10,7 +10,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG clang_version=18
 ARG distro
 ARG rustArch=x86_64-unknown-linux-gnu
-ARG rust_version=1.80.0
+ARG rust_version=1.88.0
 ARG wasi_target=wasm32-wasip1
 ARG cmake_version=3.31.8
 

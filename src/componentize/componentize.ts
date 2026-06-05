@@ -76,7 +76,7 @@ async function componentize(
         '--wasm-reference-types=true',
         '--inherit-env=true',
         '--dir=.',
-        // '--dir=../', // Farq: NEED to iterate config file and add these paths for static building...
+        // '--dir=../', // Could iterate config file and add these paths for static building... ( enhancement for later, if required )
         `--dir=${useUnixPath(dirname(wizerInput))}`,
         '-r _start=wizer.resume',
         `-o=${useUnixPath(wasmOutputDir)}`,

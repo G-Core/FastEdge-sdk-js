@@ -76,6 +76,21 @@ jobs:
         run: |
           echo "is_prod ${{ steps.env-check.outputs.is_prod }}"
 
+      - name: Create test secret
+        id: create-test-secret
+        uses: gcore-github-actions/fastedge/secrets@v1
+        with:
+          api_key:
+            ${{ steps.env-check.outputs.is_prod == 'true' &&
+            steps.secrets.outputs.PROD_GCORE_API_TOKEN ||
+            steps.secrets.outputs.PREPROD_GCORE_API_TOKEN }}
+          api_url:
+            ${{ steps.env-check.outputs.is_prod == 'true' &&
+            steps.secrets.outputs.PROD_GCORE_API_HOSTNAME ||
+            steps.secrets.outputs.PREPROD_GCORE_API_HOSTNAME }}
+          secret_name: 'fastedge-sdk-js-test-secret'
+          secret_value: 'hello-from-fastedge-secret'
+
       - name: Deploy Test App to Gcore
         id: deploy-app
         uses: gcore-github-actions/fastedge/deploy-app@v1
@@ -93,6 +108,9 @@ jobs:
           comment: 'Deployed by prod-invocation workflow'
           env: |
             BUILD_SHA=${{ github.sha }}
+            TEST_FETCH_URL=https://httpbin.org/json
+          secrets: |
+            test-secret=${{ steps.create-test-secret.outputs.secret_id }}
 
       - name: Invoke test application
         uses: actions/github-script@v8

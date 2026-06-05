@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "purge-prefix — remove the 3 user: keys, leaving product: keys intact",
+  "request": {
+    "method": "GET",
+    "path": "/?action=purge-prefix&prefix=user%3A",
+    "headers": {}
+  }
+}
