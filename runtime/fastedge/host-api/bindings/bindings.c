@@ -61,6 +61,12 @@ extern void __wasm_import_gcore_fastedge_cache_sync_incr(uint8_t *, size_t, int6
 __attribute__((__import_module__("gcore:fastedge/cache-sync"), __import_name__("expire")))
 extern void __wasm_import_gcore_fastedge_cache_sync_expire(uint8_t *, size_t, int64_t, uint8_t *);
 
+__attribute__((__import_module__("gcore:fastedge/cache-sync"), __import_name__("purge")))
+extern void __wasm_import_gcore_fastedge_cache_sync_purge(uint8_t *);
+
+__attribute__((__import_module__("gcore:fastedge/cache-sync"), __import_name__("purge-prefix")))
+extern void __wasm_import_gcore_fastedge_cache_sync_purge_prefix(uint8_t *, size_t, uint8_t *);
+
 // Imported Functions from `wasi:cli/environment@0.2.3`
 
 __attribute__((__import_module__("wasi:cli/environment@0.2.3"), __import_name__("get-environment")))
@@ -838,6 +844,13 @@ void gcore_fastedge_cache_sync_result_bool_error_free(gcore_fastedge_cache_sync_
 }
 
 void gcore_fastedge_cache_sync_result_s64_error_free(gcore_fastedge_cache_sync_result_s64_error_t *ptr) {
+  if (!ptr->is_err) {
+  } else {
+    gcore_fastedge_cache_sync_error_free(&ptr->val.err);
+  }
+}
+
+void gcore_fastedge_cache_sync_result_u64_error_free(gcore_fastedge_cache_sync_result_u64_error_t *ptr) {
   if (!ptr->is_err) {
   } else {
     gcore_fastedge_cache_sync_error_free(&ptr->val.err);
@@ -2532,6 +2545,90 @@ bool gcore_fastedge_cache_sync_expire(bindings_string_t *key, uint64_t ttl_ms, b
         }
         case 2: {
           variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 8))), (*((size_t*) (ptr + 12))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_cache_sync_purge(uint64_t *ret, gcore_fastedge_cache_sync_error_t *err) {
+  __attribute__((__aligned__(8)))
+  uint8_t ret_area[24];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_cache_sync_purge(ptr);
+  gcore_fastedge_cache_sync_result_u64_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (uint64_t) (*((int64_t*) (ptr + 8)));
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_cache_types_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 8));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 12))), (*((size_t*) (ptr + 16))) };
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+bool gcore_fastedge_cache_sync_purge_prefix(bindings_string_t *prefix, uint64_t *ret, gcore_fastedge_cache_sync_error_t *err) {
+  __attribute__((__aligned__(8)))
+  uint8_t ret_area[24];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_fastedge_cache_sync_purge_prefix((uint8_t *) (*prefix).ptr, (*prefix).len, ptr);
+  gcore_fastedge_cache_sync_result_u64_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (uint64_t) (*((int64_t*) (ptr + 8)));
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_fastedge_cache_types_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + 8));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          variant.val.other = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 12))), (*((size_t*) (ptr + 16))) };
           break;
         }
       }

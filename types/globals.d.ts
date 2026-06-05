@@ -263,6 +263,8 @@ declare class URLSearchParams {
   has(name: string): boolean;
   set(name: string, value: string): void;
   sort(): void;
+  /** The number of search parameter entries. */
+  readonly size: number;
 
   keys(): IterableIterator<string>;
   values(): IterableIterator<string>;

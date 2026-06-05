@@ -29,6 +29,9 @@ package-lock.json
 examples/**/pnpm-lock.yaml
 examples/**/package-lock.json
 
+# Claude Code local settings — developer-only, not for version control
+examples/**/.claude/
+
 # Doc-generator failure artifacts — rejected/preamble-leaked claude -p
 # outputs preserved for prompt-debugging. Prune manually.
 docs/.failures/

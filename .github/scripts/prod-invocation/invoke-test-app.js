@@ -1,58 +1,85 @@
 const MAX_RETRIES = 3;
 const INITIAL_WAIT_FOR_DEPLOYMENT_SECONDS = 15;
 const RETRY_DELAY_SECONDS = 5;
-const DATA_IS_VALID = 'DATA_IS_VALID';
 
-const sleep = (secs = RETRY_DELAY_SECONDS) =>
-  new Promise((resolve) => setTimeout(resolve, secs * 1000));
+const sleep = (secs) => new Promise((resolve) => setTimeout(resolve, secs * 1000));
 
-const isResponseDataValid = (data, build_sha) => {
-  if (data.build_sha !== build_sha) {
-    return `prod environment build_sha mismatch: expected ${build_sha}, got ${data.build_sha}`;
+async function checkEnv(appUrl, buildSha) {
+  const res = await fetch(appUrl);
+  if (res.status !== 200) throw new Error(`/: bad status ${res.status}`);
+  const data = await res.json();
+  if (data.build_sha !== buildSha) {
+    throw new Error(`/: build_sha mismatch: expected ${buildSha}, got ${data.build_sha}`);
   }
+}
 
-  return DATA_IS_VALID;
-};
+async function checkOutboundFetch(appUrl) {
+  const res = await fetch(`${appUrl}/fetch`);
+  if (res.status !== 200) throw new Error(`/fetch: bad status ${res.status}`);
+  const data = await res.json();
+  if (!data.ok) {
+    throw new Error(`/fetch: outbound request failed (ok=${data.ok}, status=${data.status})`);
+  }
+  if (data.title !== 'Sample Slide Show') {
+    throw new Error(`/fetch: unexpected slideshow title: "${data.title}"`);
+  }
+}
+
+async function checkSecret(appUrl) {
+  const res = await fetch(`${appUrl}/secret`);
+  if (res.status !== 200) throw new Error(`/secret: bad status ${res.status}`);
+  const data = await res.json();
+  if (data.value !== 'hello-from-fastedge-secret') {
+    throw new Error(`/secret: wrong value "${data.value}"`);
+  }
+}
+
+async function checkRequestEcho(appUrl) {
+  const res = await fetch(`${appUrl}/echo`, {
+    method: 'POST',
+    headers: { 'x-test-header': 'hello-fastedge', 'content-type': 'text/plain' },
+    body: 'ping',
+  });
+  if (res.status !== 200) throw new Error(`/echo: bad status ${res.status}`);
+  const data = await res.json();
+  if (data.method !== 'POST') throw new Error(`/echo: wrong method "${data.method}"`);
+  if (data.body !== 'ping') throw new Error(`/echo: wrong body "${data.body}"`);
+  if (data.headers?.['x-test-header'] !== 'hello-fastedge') {
+    throw new Error(`/echo: wrong x-test-header "${data.headers?.['x-test-header']}"`);
+  }
+}
 
 export default async ({ github, context, core }) => {
-  // Ensure this is running in GitHub Actions
   if (!process.env.GITHUB_ENV) {
     throw new Error(
       'GITHUB_ENV is not defined. This script must be run in a GitHub Actions environment.',
     );
   }
 
-  const appUrl = process.env.APP_URL;
-  const build_sha = context.sha;
+  const appUrl = process.env.APP_URL.replace(/\/$/, '');
+  const buildSha = context.sha;
 
-  // Give the production environment some time to update with the new test application
   await sleep(INITIAL_WAIT_FOR_DEPLOYMENT_SECONDS);
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    // Pause between attempts
     await sleep(RETRY_DELAY_SECONDS);
     try {
-      const res = await fetch(appUrl);
-      if (res.status !== 200) {
-        throw new Error(`prod environment bad response: ${res.status}`);
-      }
-      const data = await res.json();
-      core.info(`Response data: ${JSON.stringify(data)}`);
+      await checkEnv(appUrl, buildSha);
+      core.info('✓ env check passed');
 
-      // validate response data matches what we expect
-      const validationResult = isResponseDataValid(data, build_sha);
-      if (validationResult === DATA_IS_VALID) {
-        // Response is as we expected
-        break;
-      }
+      await checkOutboundFetch(appUrl);
+      core.info('✓ outbound fetch check passed');
 
-      throw new Error(validationResult);
+      await checkSecret(appUrl);
+      core.info('✓ secret check passed');
+
+      await checkRequestEcho(appUrl);
+      core.info('✓ request echo check passed');
+
+      break;
     } catch (error) {
-      // Log the error and retry again after a delay
       core.warning(`Attempt ${attempt} failed: ${error.message}`);
-
       if (attempt === MAX_RETRIES) {
-        // If we've reached the max retries, re-throw an error to kill the workflow
         throw new Error(
           `Test application invocation failed after ${MAX_RETRIES} attempts: ${error.message}`,
         );
@@ -60,5 +87,5 @@ export default async ({ github, context, core }) => {
     }
   }
 
-  core.info(`Test application invocation succeeded with status 200 and valid response data.`);
+  core.info('All checks passed.');
 };

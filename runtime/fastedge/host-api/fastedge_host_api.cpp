@@ -325,6 +325,31 @@ CacheResult<bool> cache_expire(std::string_view key, uint64_t ttl_ms) {
   return CacheResult<bool>::err(convert_cache_error(err));
 }
 
+CacheResult<uint64_t> cache_purge() {
+  uint64_t ret = 0;
+  gcore_fastedge_cache_sync_error_t err{};
+
+  bool success = gcore_fastedge_cache_sync_purge(&ret, &err);
+
+  if (success) {
+    return CacheResult<uint64_t>::ok(ret);
+  }
+  return CacheResult<uint64_t>::err(convert_cache_error(err));
+}
+
+CacheResult<uint64_t> cache_purge_prefix(std::string_view prefix) {
+  auto prefix_str = string_view_to_world_string(prefix);
+  uint64_t ret = 0;
+  gcore_fastedge_cache_sync_error_t err{};
+
+  bool success = gcore_fastedge_cache_sync_purge_prefix(&prefix_str, &ret, &err);
+
+  if (success) {
+    return CacheResult<uint64_t>::ok(ret);
+  }
+  return CacheResult<uint64_t>::err(convert_cache_error(err));
+}
+
 // Utils
 
 void utils_set_user_diag(std::string_view name) {

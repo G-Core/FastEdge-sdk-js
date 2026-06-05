@@ -200,6 +200,14 @@ typedef struct {
 } gcore_fastedge_cache_sync_result_s64_error_t;
 
 typedef struct {
+  bool is_err;
+  union {
+    uint64_t ok;
+    gcore_fastedge_cache_sync_error_t err;
+  } val;
+} gcore_fastedge_cache_sync_result_u64_error_t;
+
+typedef struct {
   bindings_string_t f0;
   bindings_string_t f1;
 } bindings_tuple2_string_string_t;
@@ -1550,6 +1558,23 @@ extern bool gcore_fastedge_cache_sync_incr(bindings_string_t *key, int64_t delta
 // If the expiry was updated successfully, returns `ok(true)`.
 // Returns `err(error)` if the operation fails.
 extern bool gcore_fastedge_cache_sync_expire(bindings_string_t *key, uint64_t ttl_ms, bool *ret, gcore_fastedge_cache_sync_error_t *err);
+// Purge all cache entries owned by the calling application.
+// 
+// The host scans the application's key index, deletes every cached key,
+// and then removes the index itself.
+// 
+// Returns the number of keys that were deleted, or `err(error)` if the
+// operation fails.
+extern bool gcore_fastedge_cache_sync_purge(uint64_t *ret, gcore_fastedge_cache_sync_error_t *err);
+// Purge all cache entries whose keys begin with `prefix`.
+// 
+// The host scans the application's key index for keys that begin with the
+// given prefix, deletes every matched key, and removes the matched entries
+// from the index (the index itself is kept for any remaining keys).
+// 
+// Returns the number of keys that were deleted, or `err(error)` if the
+// operation fails.
+extern bool gcore_fastedge_cache_sync_purge_prefix(bindings_string_t *prefix, uint64_t *ret, gcore_fastedge_cache_sync_error_t *err);
 
 // Imported Functions from `wasi:cli/environment@0.2.3`
 // Get the POSIX-style environment variables.
@@ -2114,6 +2139,8 @@ void gcore_fastedge_cache_sync_result_void_error_free(gcore_fastedge_cache_sync_
 void gcore_fastedge_cache_sync_result_bool_error_free(gcore_fastedge_cache_sync_result_bool_error_t *ptr);
 
 void gcore_fastedge_cache_sync_result_s64_error_free(gcore_fastedge_cache_sync_result_s64_error_t *ptr);
+
+void gcore_fastedge_cache_sync_result_u64_error_free(gcore_fastedge_cache_sync_result_u64_error_t *ptr);
 
 void bindings_tuple2_string_string_free(bindings_tuple2_string_string_t *ptr);
 
