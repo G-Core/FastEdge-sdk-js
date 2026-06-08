@@ -38,6 +38,7 @@
 | `CHANGELOG.md` | ~25+ | Change history. Use grep, don't read linearly as this file grows. |
 | `ENHANCEMENTS.md` | ~50 | Known inconsistencies and planned improvements. Read before refactoring related areas. |
 | `KNOWN_LIMITATIONS.md` | ~90 | Confirmed runtime gaps — standard Web APIs that look available but don't work on FastEdge (e.g. `Response.clone()`). Read when a user reports "X is in the types/spec but throws at runtime". |
+| `PATCHES.md` | ~60 | Applied patches on the `gcore/integration` StarlingMonkey branch — upstream PR links, rebase procedure, and retirement steps. Read before touching `runtime/StarlingMonkey`. |
 
 ### Plugin Integration (read when modifying manifest or examples)
 
@@ -103,6 +104,10 @@
 2. Read `runtime/FastEdge-wit/world.wit` (top-level world)
 3. Read `runtime/fastedge/host-api/wit/` (local bindings)
 4. Run `pnpm run generate:wit-world` after changes
+
+### Bumping the StarlingMonkey Submodule
+1. Read `PATCHES.md` — lists applied patches, upstream PR status, and the full rebase procedure
+2. Follow the rebase steps there when a new upstream tag lands
 
 ### Writing Tests
 1. Read `development/TESTING_GUIDE.md`
@@ -194,7 +199,7 @@ When adding either to docs, also update the manifest source description so revie
 |----------|-----------|-------------|
 | Architecture | 2 docs | ~330 |
 | Development | 2 docs | ~200 |
-| Reference | 3 docs | ~265 |
-| **Total** | **7 docs** | **~790** |
+| Reference | 4 docs | ~325 |
+| **Total** | **8 docs** | **~850** |
 
 All documents are designed for single-sitting reads. No doc exceeds 170 lines.
