@@ -6,7 +6,7 @@ bin/
 dist/
 lib/
 integration-tests/test-files/output.wasm
-integration-tests/test-application/test-app.wasm
+integration-tests/test-application/dist/
 # *.o
 # *.d
 /rusturl/

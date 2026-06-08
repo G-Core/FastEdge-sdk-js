@@ -14,51 +14,22 @@ or asks "does FastEdge support X?". For *planned* work and unverified items, see
 
 ---
 
-## `Response.clone()` — not implemented
+## `Response.clone()` — ~~not implemented~~ implemented via gcore patch
 
-**Status:** Not supported by the runtime. Declared but **commented out** in
-`types/globals.d.ts` (see the "Spec methods not implemented" block on the
-`Response` interface).
+**Status:** Implemented in the `gcore/integration` StarlingMonkey branch (as of
+2026-06-08). `clone(): Response` is now declared on the `Response` interface in
+`types/globals.d.ts`. See `context/PATCHES.md` for the upstream PR status.
 
-**Symptom:** Calling `.clone()` on a `Response` (e.g. to read an upstream
-`fetch()` body twice — log one copy while transforming another) is a runtime
-error. There is no `clone` method on the `Response` prototype.
+**When the upstream PR merges** ([PR #312](https://github.com/bytecodealliance/StarlingMonkey/pull/312))
+and the submodule is rebased onto a release containing it, remove the
+prod-invocation test guard per the checklist in `context/PATCHES.md`.
 
-**Why:** It simply hasn't been finished and merged upstream — not a deep
-technical impossibility.
-
-- `Request.clone()` **is** implemented (`Request::clone`, registered in
-  `Request::methods`). It works by calling `ReadableStreamTee()` to split the
-  body into two independent streams.
-- `Response` registers only `arrayBuffer / blob / formData / json / text` — there
-  is **no** `Response::clone` symbol in
-  `runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp`.
-
-**The Response-specific wrinkle:** An *incoming* `Response` (the result of a
-`fetch()`) is backed by a host `HttpIncomingBody` handle. The runtime optimizes
-this in `RequestOrResponse::maybe_stream_body` by **direct-forwarding** the host
-body straight to the outgoing body via async host tasks — without ever
-materializing a JS `ReadableStream`. That host body is a *single-consumer*
-resource. Cloning requires reifying it into a tee-able JS stream and giving up
-that fast path, which is what makes a fully spec-conformant implementation
-non-trivial.
-
-**Upstream tracking:**
-
-| Ref | What | State |
-|-----|------|-------|
-| [Issue #125](https://github.com/bytecodealliance/StarlingMonkey/issues/125) | "Response.clone support" | Open — *"We support `Request.clone` but not `Response.clone`."* |
-| [PR #178](https://github.com/bytecodealliance/StarlingMonkey/pull/178) | "Implement Response.clone" | **Open draft.** Adapts `Request.clone`; stalled on WPT conformance (only 6/21 `response-clone.any.js` cases passing). |
-| [Issue #84](https://github.com/bytecodealliance/StarlingMonkey/issues/84) | "Request.clone() regression" | Closed — context that even the Request side has been fragile. |
-
-**When fixed upstream:** Uncomment `prototype.clone(): Response;` in
-`types/globals.d.ts`, bump the `runtime/StarlingMonkey` submodule pin, and verify
-with a handler that clones a `fetch()` response and reads both copies to the same
-bytes.
-
-**Workaround today:** Read the body once (e.g. `await res.arrayBuffer()`) and
-construct fresh `Response` objects from the buffered bytes when you need to use
-the payload more than once.
+**Historical note:** The implementation was non-trivial because an incoming
+`Response` (result of `fetch()`) is backed by a host `HttpIncomingBody` handle
+that the runtime fast-forwards directly to the outgoing body without materialising
+a JS `ReadableStream`. Cloning requires reifying it into a tee-able stream and
+giving up that fast path. PR #312 solves this by materialising the stream on
+clone.
 
 ---
 

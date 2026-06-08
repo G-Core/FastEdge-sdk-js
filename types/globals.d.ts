@@ -499,6 +499,8 @@ interface Response extends Body {
   readonly statusText: string;
   readonly type: ResponseType;
   readonly url: string;
+  /** Creates a copy of the current Response object. */
+  clone(): Response;
 }
 
 /**
@@ -516,8 +518,7 @@ declare var Response: {
   // Will be uncommented when the runtime exposes them. See:
   //   runtime/StarlingMonkey/builtins/web/fetch/request-response.cpp
   //
-  // error(): Response;           // static
-  // prototype.clone(): Response; // instance
+  // error(): Response; // static
 };
 
 /**

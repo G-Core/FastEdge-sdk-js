@@ -5,6 +5,32 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-06-08] — Response.clone(), blob.type fix, prod-invocation test infrastructure
+
+### Overview
+Implemented `Response.clone()` and `blob.type` propagation in the StarlingMonkey runtime via a `gcore/integration` fork branch. Restructured the prod-invocation test application to be extensible and TypeScript-first.
+
+### Changes
+
+**Runtime (StarlingMonkey submodule):**
+- `feat(fetch): implement Response.clone()` — upstream PR #312 (open)
+- `fix(fetch): body.blob() sets Blob.type from Content-Type header` — upstream issue #311 (open)
+- Submodule now pinned to `godronus/gcore/integration` (SHA `84f5d52`) rather than bare `0.3.0` tag
+- `context/PATCHES.md` added — documents applied patches, upstream PR links, rebase procedure, and test guard removal checklist
+
+**Prod-invocation test application (`integration-tests/test-application/`):**
+- Converted from a single flat JS file to TypeScript with Hono routing
+- Split into `handlers/` (WASM context, `fastedge::` imports) and `checks/` (Node.js, auto-discovered)
+- `routes.ts` — single source of truth for route paths and test names
+- `types.ts` — shared `CheckContext`, `HandlerModule`, `CheckModule` interfaces
+- Build artefacts consolidated under `dist/` (one gitignore entry covers both wasm and compiled checks)
+- Temporary `response-clone` handler + check added as regression guard for the StarlingMonkey patches
+- `scripts/build-test-app.js` + `scripts/run-test-app-checks.js` — local equivalents of CI scripts
+- `pnpm test:app:build` and `pnpm test:app:check` scripts added
+- `integration-tests/test-application/README.md` added
+
+---
+
 ## [2026-05-05] — Pin host-api bindings to wit-bindgen 0.30.0 (fix wasmtime 36 trap)
 
 ### Overview

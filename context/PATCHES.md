@@ -70,3 +70,16 @@ drop the commit from `gcore/integration` during the next rebase:
 ```bash
 git rebase -i vX.Y.Z   # drop the line for the merged commit
 ```
+
+Also delete any prod-invocation test guard that was added for the patch:
+
+- `integration-tests/test-application/handlers/<patch>.ts`
+- `integration-tests/test-application/checks/<patch>.ts`
+- The route constant in `integration-tests/test-application/routes.ts`
+- The import + array entry in `integration-tests/test-application/test-app.ts`
+
+## Current test guards
+
+| Patch | Guard files | Remove when |
+|-------|-------------|-------------|
+| Response.clone() (patches 1–2) | `handlers/response-clone.ts`, `checks/response-clone.ts` | PR #312 merges and submodule is rebased |

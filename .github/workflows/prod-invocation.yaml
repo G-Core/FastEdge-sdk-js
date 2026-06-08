@@ -17,10 +17,10 @@ jobs:
       - name: Setup Node Environment
         uses: ./.github/setup-node
 
-      - name: Clean up test-app.wasm
+      - name: Clean up dist/
         shell: bash
         run: |
-          rm -f ./integration-tests/test-application/test-app.wasm
+          rm -rf ./integration-tests/test-application/dist/
 
       - name: Restore build cache
         id: restore-build-cache
@@ -103,7 +103,7 @@ jobs:
             ${{ steps.env-check.outputs.is_prod == 'true' &&
             steps.secrets.outputs.PROD_GCORE_API_HOSTNAME ||
             steps.secrets.outputs.PREPROD_GCORE_API_HOSTNAME }}
-          wasm_file: integration-tests/test-application/test-app.wasm
+          wasm_file: integration-tests/test-application/dist/test-app.wasm
           app_name: 'fastedge-sdk-js-test-app'
           comment: 'Deployed by prod-invocation workflow'
           env: |
