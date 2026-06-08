@@ -4,6 +4,7 @@ import { join } from 'path';
 
 const TEST_APP_SOURCE_FILE_PATH = './integration-tests/test-application/test-app.ts';
 const TEST_APP_WASM_FILE_PATH = './integration-tests/test-application/dist/test-app.wasm';
+const TEST_APP_TSCONFIG_PATH = './integration-tests/test-application/tsconfig.json';
 const CHECKS_SOURCE_DIR = './integration-tests/test-application/checks';
 const CHECKS_DIST_DIR = './integration-tests/test-application/dist/checks';
 
@@ -18,7 +19,7 @@ export default async ({ core }) => {
 
   // Build the test app into a WASM binary
   const buildResponse = execSync(
-    `./bin/fastedge-build.js --input ${TEST_APP_SOURCE_FILE_PATH} --output ${TEST_APP_WASM_FILE_PATH}`,
+    `./bin/fastedge-build.js --input ${TEST_APP_SOURCE_FILE_PATH} --output ${TEST_APP_WASM_FILE_PATH} --tsconfig ${TEST_APP_TSCONFIG_PATH}`,
     { encoding: 'utf8', cwd: workspaceDir },
   );
 
@@ -39,11 +40,10 @@ export default async ({ core }) => {
 
   execSync(
     [
-      'node ./node_modules/.bin/esbuild',
-      '--bundle=false',
+      './node_modules/.bin/esbuild',
+      '--bundle',
       '--format=esm',
       '--platform=node',
-      '--external:fastedge::*',
       `--outdir=${CHECKS_DIST_DIR}`,
       checkFiles.join(' '),
     ].join(' '),
