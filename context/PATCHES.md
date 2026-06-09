@@ -11,29 +11,25 @@ below to carry the patches forward.
 
 ## Applied patches
 
-### 1. `feat(fetch): implement Response.clone()`
+### 1. `fix(fetch): Response.clone - full clone isolation via cloneForBranch2 tee`
 
 | Field | Value |
 |-------|-------|
-| Commit on `gcore/integration` | `65f6a6c` |
+| Commit on `gcore/integration` | `db26865` |
 | Source branch | `godronus/feature/response-clone` |
 | Upstream PR | https://github.com/bytecodealliance/StarlingMonkey/pull/312 |
 | Status | Open — awaiting upstream review |
 
-### 2. `test(wpt): update WPT expectations`
+Single squashed commit implementing `Response.clone()`: eager `cloneForBranch2`
+tee for body isolation, handle-based header cloning (preserves `Set-Cookie`,
+avoids the immutable-headers throw), the `bodyUsed`/`ReadableStreamIsDisturbed`
+fallback, and the accompanying WPT expectations.
+
+### 2. `fix(fetch): body.blob() sets Blob.type from Content-Type header`
 
 | Field | Value |
 |-------|-------|
-| Commit on `gcore/integration` | `8fc9b89` |
-| Source branch | `godronus/feature/response-clone` |
-| Upstream PR | https://github.com/bytecodealliance/StarlingMonkey/pull/312 |
-| Status | Open — part of the Response.clone() PR |
-
-### 3. `fix(fetch): body.blob() sets Blob.type from Content-Type header`
-
-| Field | Value |
-|-------|-------|
-| Commit on `gcore/integration` | `84f5d52` |
+| Commit on `gcore/integration` | `702d7a4` |
 | Source branch | `godronus/fix/blob-type` |
 | Upstream issue | https://github.com/bytecodealliance/StarlingMonkey/issues/311 |
 | Upstream PR | (PR opened from fork — link when available) |
@@ -75,11 +71,14 @@ Also delete any prod-invocation test guard that was added for the patch:
 
 - `integration-tests/test-application/handlers/<patch>.ts`
 - `integration-tests/test-application/checks/<patch>.ts`
-- The route constant in `integration-tests/test-application/routes.ts`
-- The import + array entry in `integration-tests/test-application/test-app.ts`
+- Any helper handler the guard relies on (e.g. a source route it fetches)
+- The route constant(s) in `integration-tests/test-application/routes.ts`
+- The import(s) + array entries in `integration-tests/test-application/test-app.ts`
 
 ## Current test guards
 
 | Patch | Guard files | Remove when |
 |-------|-------------|-------------|
-| Response.clone() (patches 1–2) | `handlers/response-clone.ts`, `checks/response-clone.ts` | PR #312 merges and submodule is rebased |
+| Response.clone() | `handlers/response-clone.ts` (tests 1–9), `checks/response-clone.ts`, `handlers/multi-chunk-source.ts` (multi-chunk source self-fetched by tests 7–9), `RESPONSE_CLONE` + `MULTI_CHUNK_SOURCE` in `routes.ts`, and both `test-app.ts` registrations | PR #312 merges and submodule is rebased |
+
+The `response-clone` guard covers: basic clone + metadata (1), constructed getReader mutation guard (2), incoming `text()` (3) and getReader mutation guard (4), consumed/locked `TypeError` (5–6), host-backed multi-chunk mutation guard (7), cancel-one-branch (8), and read-header-then-clone (9, guards the Headers-immutable clone path).
