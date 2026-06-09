@@ -28,7 +28,8 @@ Each test is a pair of files with matching names:
 | `handlers/outbound-fetch.ts` | `checks/outbound-fetch.ts` | `GET /fetch` | Outbound HTTP fetch |
 | `handlers/secret.ts` | `checks/secret.ts` | `GET /secret` | Secret injection |
 | `handlers/echo.ts` | `checks/echo.ts` | `POST /echo` | Request method/headers/body echo |
-| `handlers/response-clone.ts` | `checks/response-clone.ts` | `GET /response-clone` | **[temporary]** `Response.clone()` |
+| `handlers/response-clone.ts` | `checks/response-clone.ts` | `GET /response-clone` | **[temporary]** `Response.clone()` (9 sub-tests) |
+| `handlers/multi-chunk-source.ts` | _(none — helper)_ | `GET /multi-chunk-source` | **[temporary]** serves a multi-chunk body the `response-clone` test self-fetches (tests 7–9) |
 
 ## How CI uses this
 
@@ -92,4 +93,4 @@ Some tests exist only to guard against a specific regression until an upstream f
 
 | Test | Upstream fix | Remove when |
 |------|-------------|-------------|
-| `response-clone` | [PR #312](https://github.com/bytecodealliance/StarlingMonkey/pull/312) | PR merges and submodule is rebased |
+| `response-clone` (+ its `multi-chunk-source` helper route) | [PR #312](https://github.com/bytecodealliance/StarlingMonkey/pull/312) | PR merges and submodule is rebased |

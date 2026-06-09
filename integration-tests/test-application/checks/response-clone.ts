@@ -24,9 +24,24 @@ interface ResponseCloneResult {
     origText: string;
     cloneText: string;
   };
+  multiChunk: {
+    origLength: number;
+    matches: boolean;
+  };
+  canceledOriginal: {
+    cloneLength: number;
+    matchesSource: boolean;
+  };
+  headerThenClone: {
+    error: string | null;
+    bodiesMatch: boolean;
+  };
   consumedCloneError: string | null;
   lockedCloneError: string | null;
 }
+
+// MULTI_CHUNK_SOURCE serves CHUNK_COUNT (128) chunks of CHUNK_SIZE (1024) bytes.
+const MULTI_CHUNK_BODY_LENGTH = 128 * 1024;
 
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(`${RESPONSE_CLONE.route}: ${message}`);
@@ -97,5 +112,37 @@ export async function check(appUrl: string, _ctx: CheckContext): Promise<void> {
   assert(
     data.lockedCloneError === 'TypeError',
     `expected TypeError cloning locked body, got "${data.lockedCloneError}"`,
+  );
+
+  // Test 7: host-backed, multi-chunk body + mutation guard.
+  // A genuine HttpIncomingBody re-segmented across multiple host reads; if any chunk's buffer
+  // is shared across the tee, fill(0) on the original would corrupt the clone.
+  assert(
+    data.multiChunk.origLength === MULTI_CHUNK_BODY_LENGTH,
+    `multiChunk origLength wrong: ${data.multiChunk.origLength} (expected ${MULTI_CHUNK_BODY_LENGTH})`,
+  );
+  assert(
+    data.multiChunk.matches,
+    `multiChunk clone != original after mutation — shared buffer across multi-chunk host body`,
+  );
+
+  // Test 8: cancelling the original branch must not starve or corrupt the clone.
+  assert(
+    data.canceledOriginal.cloneLength === MULTI_CHUNK_BODY_LENGTH,
+    `canceledOriginal cloneLength wrong: ${data.canceledOriginal.cloneLength} (clone starved by original cancel)`,
+  );
+  assert(
+    data.canceledOriginal.matchesSource,
+    `canceledOriginal clone content mismatch after cancelling the original branch`,
+  );
+
+  // Test 9: reading a header on an incoming response then cloning must not throw.
+  assert(
+    data.headerThenClone.error === null,
+    `cloning after reading a header threw: ${data.headerThenClone.error}`,
+  );
+  assert(
+    data.headerThenClone.bodiesMatch,
+    `headerThenClone bodies empty or mismatched`,
   );
 }
