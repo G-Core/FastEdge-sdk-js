@@ -37,7 +37,7 @@
 | `PROJECT_OVERVIEW.md` | ~150 | Lightweight project overview — architecture, key modules, dev setup, common commands. Read when new to the codebase. |
 | `CHANGELOG.md` | ~25+ | Change history. Use grep, don't read linearly as this file grows. |
 | `ENHANCEMENTS.md` | ~50 | Known inconsistencies and planned improvements. Read before refactoring related areas. |
-| `KNOWN_LIMITATIONS.md` | ~90 | Confirmed runtime gaps — standard Web APIs that look available but don't work on FastEdge (e.g. `Response.clone()`). Read when a user reports "X is in the types/spec but throws at runtime". |
+| `KNOWN_LIMITATIONS.md` | ~90 | Confirmed runtime gaps — standard Web APIs that look available but don't work on FastEdge (e.g. `Response.error()`). Read when a user reports "X is in the types/spec but throws at runtime". |
 | `PATCHES.md` | ~60 | Applied patches on the `gcore/integration` StarlingMonkey branch — upstream PR links, rebase procedure, and retirement steps. Read before touching `runtime/StarlingMonkey`. |
 
 ### Plugin Integration (read when modifying manifest or examples)
@@ -181,7 +181,6 @@ Items that need attention. Surface these when asked "what's next" or "what needs
 
 These are runtime/Web-API behaviors that have been *requested* in patterns docs but cannot yet be verified against an existing example or runtime test. Build a minimal example app proving each works on FastEdge before adding it to a `docs/` file. If a behavior is **not** supported, capture that here too — negative findings are also documentation.
 
-- **`Response.clone()`** — **Partially implemented** via `gcore/integration` StarlingMonkey branch (2026-06-08). Calling `.clone()` and reading both branches via `.text()` works. However, the tee implementation shares chunk `ArrayBuffer`s between branches — mutating a `Uint8Array` chunk from one reader corrupts the other. Blocks release. See `context/KNOWN_LIMITATIONS.md` for the full bug description and `context/PATCHES.md` for the removal checklist.
 - **`fetch(url, { redirect: "manual" })`** — Standard Web Fetch option, returns the upstream redirect response without following it. Used by patterns where the app needs to inspect or rewrite the `Location` header. Runtime test harness includes WPT `redirect-mode.any.js` but that does not confirm FastEdge's outbound `fetch` honors the option in production. Build: a handler that issues a `fetch()` to a known 302 endpoint with `redirect: "manual"` and asserts the response is the 302 itself, not the followed target. If it works, the `docs/PROXY_PATTERNS.md` operational notes can call out manual redirect handling.
 
 When adding either to docs, also update the manifest source description so reviewers know the content is now grounded in an example.

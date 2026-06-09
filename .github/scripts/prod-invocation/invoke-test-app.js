@@ -37,10 +37,12 @@ export default async ({ context, core }) => {
       }
       break;
     } catch (error) {
-      core.warning(`Attempt ${attempt} failed: ${error.message}`);
+      const detail = error instanceof Error ? (error.stack ?? error.message) : String(error);
+      core.warning(`Attempt ${attempt} failed: ${detail}`);
       if (attempt === MAX_RETRIES) {
+        const summary = error instanceof Error ? error.message : String(error);
         throw new Error(
-          `Test application invocation failed after ${MAX_RETRIES} attempts: ${error.message}`,
+          `Test application invocation failed after ${MAX_RETRIES} attempts: ${summary}`,
         );
       }
     }

@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
@@ -32,21 +32,23 @@ export default async ({ core }) => {
   core.info(`Test application built into wasm binary at ${TEST_APP_WASM_FILE_PATH}`);
 
   // Compile TypeScript check modules to JS so invoke-test-app.js can import them in Node.js.
-  // fastedge:: modules are only available in the WASM runtime — mark them external so esbuild
-  // leaves the imports as-is. The check functions never call handler code so they never execute.
+  // Checks should import only routes.ts/types.ts, never handlers or fastedge:: modules. fastedge::
+  // is marked external as a guard: a stray handler/fastedge:: import in a check then surfaces when
+  // Node loads that check, rather than aborting the whole bundle at build time.
   const checkFiles = readdirSync(join(workspaceDir, CHECKS_SOURCE_DIR))
     .filter((f) => f.endsWith('.ts'))
     .map((f) => join(CHECKS_SOURCE_DIR, f));
 
-  execSync(
+  execFileSync(
+    './node_modules/.bin/esbuild',
     [
-      './node_modules/.bin/esbuild',
       '--bundle',
       '--format=esm',
       '--platform=node',
+      '--external:fastedge::*',
       `--outdir=${CHECKS_DIST_DIR}`,
-      checkFiles.join(' '),
-    ].join(' '),
+      ...checkFiles,
+    ],
     { encoding: 'utf8', cwd: workspaceDir },
   );
 

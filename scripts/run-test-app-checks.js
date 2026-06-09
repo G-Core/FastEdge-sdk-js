@@ -3,7 +3,7 @@
 // Compiles checks/*.ts and runs all check functions against a deployed app.
 // Usage: APP_URL=https://your-app.example.com pnpm test:app:check
 //        BUILD_SHA=<sha> APP_URL=... pnpm test:app:check  (optional: override sha)
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { mkdirSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -23,20 +23,24 @@ const CHECKS_DIST_DIR = './integration-tests/test-application/dist/checks';
 
 // Compile TypeScript check modules for Node.js. Bundle each file so relative
 // imports (routes.ts, types.ts) are inlined and resolve correctly from dist/checks/.
+// fastedge:: is marked external as a guard: checks should only import routes/types, but if one
+// ever pulls in a handler, this keeps that stray import from aborting the whole bundle (it would
+// instead surface when Node loads that check).
 mkdirSync(CHECKS_DIST_DIR, { recursive: true });
 const checkFiles = readdirSync(CHECKS_SOURCE_DIR)
   .filter((f) => f.endsWith('.ts'))
   .map((f) => join(CHECKS_SOURCE_DIR, f));
 
-execSync(
+execFileSync(
+  './node_modules/.bin/esbuild',
   [
-    './node_modules/.bin/esbuild',
     '--bundle',
     '--format=esm',
     '--platform=node',
+    '--external:fastedge::*',
     `--outdir=${CHECKS_DIST_DIR}`,
-    checkFiles.join(' '),
-  ].join(' '),
+    ...checkFiles,
+  ],
   { encoding: 'utf8' },
 );
 
@@ -66,7 +70,9 @@ for (const [index, result] of checkResults.entries()) {
     console.log(`✓ ${modName} check passed`);
     passed += 1;
   } else {
-    console.error(`✗ ${modName} check failed: ${result.reason.message}`);
+    const { reason } = result;
+    const detail = reason instanceof Error ? (reason.stack ?? reason.message) : String(reason);
+    console.error(`✗ ${modName} check failed: ${detail}`);
     failed += 1;
   }
 }
