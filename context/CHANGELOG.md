@@ -5,6 +5,52 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-06-09] — Response.clone() full isolation + headers-clone fix; prod guard expanded
+
+### Overview
+Completed `Response.clone()`: the body tee now hands each branch independent chunks, and cloning a response after its headers have been read no longer throws. Squashed the Response.clone work into a single commit on `gcore/integration` and re-pinned the submodule. Expanded the prod-invocation guard.
+
+### Changes
+
+**Runtime (StarlingMonkey submodule, `gcore/integration`):**
+- `fix(fetch): Response.clone - full clone isolation via cloneForBranch2 tee` — replaces the initial tee (which shared one chunk object between branches) with a hand-rolled `ReadableStreamDefaultTee` (`cloneForBranch2 = true`): branch1 keeps the original chunk, branch2 receives an eager structured clone taken at source-read time. Per-branch cancellation tracked (`canceled1`/`canceled2`).
+- Header cloning rewritten to clone via the header handle (`headers_handle_clone`) instead of replaying entries through a guarded append. Fixes `TypeError: Headers are immutable` when cloning an incoming response after its headers were materialised, and preserves multiple `Set-Cookie`.
+- The two earlier Response.clone commits (`feat` + wpt expectations) squashed into one; submodule re-pinned `84f5d52` → `702d7a4` (`gcore/integration` = `0.3.0` → Response.clone → blob #311 fix).
+- WPT `fetch/api/response/response-clone.any.js` — 21/21.
+
+**Prod-invocation test application:**
+- `response-clone` guard extended to 9 sub-tests: host-backed multi-chunk mutation guard (7), cancel-one-branch (8), read-header-then-clone (9).
+- `handlers/multi-chunk-source.ts` added — serves a multi-chunk body the guard self-fetches (over https) to exercise a host-backed `HttpIncomingBody` re-segmented across multiple host reads.
+- `KNOWN_LIMITATIONS.md` — removed the now-resolved `Response.clone()` tee-bug entry.
+
+---
+
+## [2026-06-08] — Response.clone(), blob.type fix, prod-invocation test infrastructure
+
+### Overview
+Implemented `Response.clone()` and `blob.type` propagation in the StarlingMonkey runtime via a `gcore/integration` fork branch. Restructured the prod-invocation test application to be extensible and TypeScript-first.
+
+### Changes
+
+**Runtime (StarlingMonkey submodule):**
+- `feat(fetch): implement Response.clone()` — upstream PR #312 (open)
+- `fix(fetch): body.blob() sets Blob.type from Content-Type header` — upstream issue #311 (open)
+- Submodule now pinned to `godronus/gcore/integration` (SHA `84f5d52`) rather than bare `0.3.0` tag
+- `context/PATCHES.md` added — documents applied patches, upstream PR links, rebase procedure, and test guard removal checklist
+
+**Prod-invocation test application (`integration-tests/test-application/`):**
+- Converted from a single flat JS file to TypeScript with Hono routing
+- Split into `handlers/` (WASM context, `fastedge::` imports) and `checks/` (Node.js, auto-discovered)
+- `routes.ts` — single source of truth for route paths and test names
+- `types.ts` — shared `CheckContext`, `HandlerModule`, `CheckModule` interfaces
+- Build artefacts consolidated under `dist/` (one gitignore entry covers both wasm and compiled checks)
+- Temporary `response-clone` handler + check added as regression guard for the StarlingMonkey patches
+- `scripts/build-test-app.js` + `scripts/run-test-app-checks.js` — local equivalents of CI scripts
+- `pnpm test:app:build` and `pnpm test:app:check` scripts added
+- `integration-tests/test-application/README.md` added
+
+---
+
 ## [2026-05-05] — Pin host-api bindings to wit-bindgen 0.30.0 (fix wasmtime 36 trap)
 
 ### Overview

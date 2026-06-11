@@ -74,6 +74,7 @@ Use the decision tree in CONTEXT_INDEX.md to determine what to read. **Only read
 | **Adding an example** | Browse `examples/` for similar existing example |
 | **Changing build system** | BUILD_SYSTEM + `esbuild/` scripts |
 | **Working with WIT** | RUNTIME_ARCHITECTURE (WIT section) + `runtime/FastEdge-wit/` |
+| **Bumping StarlingMonkey submodule** | `context/PATCHES.md` (rebase procedure + patch list) |
 | **Writing tests** | TESTING_GUIDE |
 | **Understanding the system** | PROJECT_OVERVIEW (~150 lines) |
 | **Updating docs site** | `github-pages/` (Astro, separate workspace) |
