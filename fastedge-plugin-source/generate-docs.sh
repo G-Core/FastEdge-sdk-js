@@ -88,7 +88,7 @@ ALL_FILES=("${TIER1_FILES[@]}" "${TIER2_FILES[@]}" "${TIER3_FILES[@]}")
 
 declare -A SOURCE_FILES
 SOURCE_FILES[INDEX.md]="package.json README.md docs/SDK_API.md"
-SOURCE_FILES[quickstart.md]="README.md src/cli/fastedge-init/init.ts src/cli/fastedge-build/build.ts"
+SOURCE_FILES[quickstart.md]="README.md src/cli/fastedge-init/init.ts src/cli/fastedge-build/build.ts examples/cache/tsconfig.json"
 SOURCE_FILES[BUILD_CLI.md]="src/cli/fastedge-build/build.ts src/cli/fastedge-build/types.ts src/cli/fastedge-build/config-build.ts"
 SOURCE_FILES[INIT_CLI.md]="src/cli/fastedge-init/init.ts src/cli/fastedge-init/http-handler.ts src/cli/fastedge-init/static-site.ts src/cli/fastedge-init/create-config.ts"
 SOURCE_FILES[ASSETS_CLI.md]="src/cli/fastedge-assets/asset-cli.ts src/server/static-assets/asset-manifest/create-manifest.ts"
