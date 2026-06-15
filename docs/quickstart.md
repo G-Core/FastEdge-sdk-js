@@ -58,6 +58,33 @@ npx fastedge-build --input src/index.ts --output app.wasm --tsconfig tsconfig.js
 | `--version`  | `-v`  | `boolean`  | Print version                   |
 | `--help`     | `-h`  | `boolean`  | Print help                      |
 
+## TypeScript Configuration
+
+If you're using TypeScript, use a `tsconfig.json` that works with `fastedge-build`'s esbuild-based compilation pipeline. The following is the canonical template:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "lib": ["ES2023"],
+    "types": ["@gcoredev/fastedge-sdk-js"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
+```
+
+Three settings require explanation:
+
+- **`moduleResolution: "Bundler"`** — Required. `fastedge-build` uses esbuild to resolve modules, not Node's resolution algorithm. The `node`, `node16`, and `nodenext` modes are incorrect for FastEdge apps and will produce spurious import errors.
+- **`types: ["@gcoredev/fastedge-sdk-js"]`** — Brings `FetchEvent` and all FastEdge globals into scope automatically. No triple-slash directive (`/// <reference types="..." />`) is needed in TypeScript source files when this field is set.
+- **`noEmit: true`** — `tsc` is used for type-checking only. `fastedge-build` handles the actual compilation to WebAssembly; emitting JavaScript from `tsc` would be redundant and incorrect.
+
 ## Write Your First App
 
 Create `src/index.js`:
@@ -91,7 +118,6 @@ The output `app.wasm` is a WebAssembly component ready for deployment on the Fas
 `getEnv` is only available during request processing, not at build-time initialization.
 
 ```js
-/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { getEnv } from 'fastedge::env';
 
 addEventListener('fetch', (event) => {
@@ -116,7 +142,6 @@ Returns `null` when the environment variable is not set.
 `getSecret` and `getSecretEffectiveAt` are only available during request processing, not at build-time initialization.
 
 ```js
-/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { getSecret } from 'fastedge::secret';
 
 addEventListener('fetch', (event) => {
@@ -140,7 +165,6 @@ Both return `null` when the secret is not set.
 ## Using KV Store
 
 ```js
-/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { KvStore } from 'fastedge::kv';
 
 addEventListener('fetch', (event) => {
@@ -182,7 +206,6 @@ addEventListener('fetch', (event) => {
 The `fastedge::cache` module provides a POP-local key/value store with TTL and atomic counter primitives. Unlike `fastedge::kv`, which is globally replicated across all data centers, the cache is strongly consistent within a single point of presence and invisible to other POPs — making it suited for request-time state such as rate limiting, hit counters, and response memoisation where low latency within a POP matters more than global durability.
 
 ```js
-/// <reference types="@gcoredev/fastedge-sdk-js" />
 import { Cache } from 'fastedge::cache';
 
 addEventListener('fetch', (event) => {
