@@ -82,7 +82,7 @@ If you're using TypeScript, use a `tsconfig.json` that works with `fastedge-buil
 Three settings require explanation:
 
 - **`moduleResolution: "Bundler"`** — Required. `fastedge-build` uses esbuild to resolve modules, not Node's resolution algorithm. The `node`, `node16`, and `nodenext` modes are incorrect for FastEdge apps and will produce spurious import errors.
-- **`types: ["@gcoredev/fastedge-sdk-js"]`** — Brings `FetchEvent` and all FastEdge globals into scope automatically. No triple-slash directive (`/// <reference types="..." />`) is needed when this field is set.
+- **`types: ["@gcoredev/fastedge-sdk-js"]`** — Brings `FetchEvent` and all FastEdge globals into scope automatically. No triple-slash directive (`/// <reference types="..." />`) is needed in TypeScript source files when this field is set.
 - **`noEmit: true`** — `tsc` is used for type-checking only. `fastedge-build` handles the actual compilation to WebAssembly; emitting JavaScript from `tsc` would be redundant and incorrect.
 
 ## Write Your First App
