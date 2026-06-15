@@ -60,7 +60,7 @@ npx fastedge-build --input src/index.ts --output app.wasm --tsconfig tsconfig.js
 
 ## TypeScript Configuration
 
-FastEdge apps require a specific `tsconfig.json` that works with `fastedge-build`'s esbuild-based compilation pipeline. The following is the canonical template:
+If you're using TypeScript, use a `tsconfig.json` that works with `fastedge-build`'s esbuild-based compilation pipeline. The following is the canonical template:
 
 ```json
 {
