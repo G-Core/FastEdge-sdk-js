@@ -20,7 +20,13 @@ const config = {
     'runtime/fastedge/deps',
   ],
   transform: {
-    '^.+\\.(ts|js)$': 'babel-jest',
+    '^.+\\.(ts|js)$': ['@swc/jest', {
+      jsc: {
+        parser: { syntax: 'typescript' },
+        target: 'es2022',
+      },
+      module: { type: 'commonjs' },
+    }],
   },
 };
 export default config;

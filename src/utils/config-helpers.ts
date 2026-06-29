@@ -146,7 +146,7 @@ function normalizeConfig<T extends Record<string, unknown>>(
 ): T {
   const result = { ...config } as T;
   // Only normalize keys that are explicitly configured
-  // eslint-disable-next-line unicorn/no-array-for-each
+  // eslint-disable-next-line unicorn/no-for-each
   (Object.keys(normalize) as Array<keyof T>).forEach((key) => {
     const normalizeFnKey = normalize[key];
     const normalizeFn = normalizeFns[normalizeFnKey];
