@@ -2,9 +2,16 @@ packages:
   - github-pages
   - examples/*
 
-overrides:
-  '@gcoredev/fastedge-sdk-js': 'link:.'
+ignoredBuiltDependencies:
+  - '@swc/core'
 
 onlyBuiltDependencies:
   - esbuild
   - sharp
+
+overrides:
+  '@gcoredev/fastedge-sdk-js': link:.
+  fast-uri: '^3.1.1'
+  brace-expansion: '^5.0.6'
+  js-yaml: '^4.2.0'
+  '@babel/core': '^7.29.6'

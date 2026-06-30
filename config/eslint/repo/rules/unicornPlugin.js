@@ -1,7 +1,7 @@
 export default {
   rules: {
     // Improve regexes by making them shorter, consistent, and safer
-    'unicorn/better-regex': ['error', { sortCharacterClasses: true }],
+    'unicorn/better-regex': 'error',
     // Enforce a specific parameter name in catch clauses
     'unicorn/catch-error-name': ['error', { name: 'error', ignore: [] }],
     // Use destructured variables over properties
@@ -20,7 +20,7 @@ export default {
     'unicorn/expiring-todo-comments': [
       'error',
       {
-        ignoreDatesOnPullRequests: true,
+        checkDatesOnPullRequests: false,
         terms: ['todo', 'fixme', 'xxx'],
         allowWarningComments: true,
         ignore: [],
@@ -29,7 +29,7 @@ export default {
     // Enforce explicitly comparing the `length` or `size` property of a value
     'unicorn/explicit-length-check': ['error', { 'non-zero': 'greater-than' }],
     // Enforce a case style for filenames
-    'unicorn/filename-case': ['error', { cases: { kebabCase: true }, ignore: [] }],
+    'unicorn/filename-case': ['error', { cases: { kebabCase: true }, ignore: [/^__\w+__$/u] }],
     // Enforce specific import styles per module
     'unicorn/import-style': 'off',
     // Enforce the use of new for all builtins, except `String`, `Number`, `Boolean`, `Symbol`
@@ -39,8 +39,8 @@ export default {
     'unicorn/no-abusive-eslint-disable': 'error',
     // Prevent passing a function reference directly to iterator methods
     'unicorn/no-array-callback-reference': 'off',
-    // Prefer `for…of` over `Array#forEach(…)`
-    'unicorn/no-array-for-each': 'error',
+    // Prefer `for…of` over `Array#forEach(…)` (renamed from no-array-for-each in v65)
+    'unicorn/no-for-each': 'error',
     // Disallow using the `this` argument in array methods
     'unicorn/no-array-method-this-argument': 'error',
     // Enforce combining multiple `Array#push()` into one call
@@ -161,7 +161,7 @@ export default {
     // Prefer `.textContent` over `.innerText`
     'unicorn/prefer-dom-node-text-content': 'error',
     // Prefer `export…from` when re-exporting
-    'unicorn/prefer-export-from': ['error', { ignoreUsedVariables: false }],
+    'unicorn/prefer-export-from': ['error', { checkUsedVariables: true }],
     // Prefer `.includes()` over `.indexOf()` and `Array#some()` when checking for existence
     //  or non-existence
     'unicorn/prefer-includes': 'error',
@@ -214,22 +214,7 @@ export default {
     // Enforce throwing `TypeError` in type checking conditions
     'unicorn/prefer-type-error': 'error',
     // Prevent abbreviations
-    'unicorn/prevent-abbreviations': [
-      'off',
-      {
-        replacements: {},
-        extendDefaultReplacements: false,
-        allowList: {},
-        extendDefaultAllowList: false,
-        checkDefaultAndNamespaceImports: 'internal',
-        checkShorthandImports: 'internal',
-        checkShorthandProperties: false,
-        checkProperties: false,
-        checkVariables: true,
-        checkFilenames: true,
-        ignore: [],
-      },
-    ],
+    'unicorn/prevent-abbreviations': 'off',
     // Enforce consistent relative URL style
     'unicorn/relative-url-style': ['error', 'always'],
     // Enforce using the separator argument with `Array#join()`

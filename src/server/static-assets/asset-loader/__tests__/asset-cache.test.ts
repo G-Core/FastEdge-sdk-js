@@ -166,7 +166,6 @@ describe('asset-cache', () => {
         expect.assertions(3);
         const cache = createAssetCache<string | null | undefined>();
         cache.loadAsset('null-asset', null);
-        // eslint-disable-next-line unicorn/no-useless-undefined
         cache.loadAsset('undefined-asset', undefined);
         expect(cache.getAsset('null-asset')).toBeNull();
         expect(cache.getAsset('undefined-asset')).toBeNull();
@@ -188,12 +187,12 @@ describe('asset-cache', () => {
           '🚀🎯📦', // Emojis
         ];
 
-        // eslint-disable-next-line unicorn/no-array-for-each
+        // eslint-disable-next-line unicorn/no-for-each
         specialKeys.forEach((key, index) => {
           cache.loadAsset(key, `content-${index}`);
         });
 
-        // eslint-disable-next-line unicorn/no-array-for-each
+        // eslint-disable-next-line unicorn/no-for-each
         specialKeys.forEach((key, index) => {
           expect(cache.getAsset(key)).toBe(`content-${index}`);
         });
@@ -390,7 +389,7 @@ describe('asset-cache', () => {
         const cache = createAssetCache<string>();
         const specialKeys = ['key with spaces', 'key-dash', 'key_underscore', 'key.dot'];
 
-        // eslint-disable-next-line unicorn/no-array-for-each
+        // eslint-disable-next-line unicorn/no-for-each
         specialKeys.forEach((key) => {
           cache.loadAsset(key, 'value');
         });

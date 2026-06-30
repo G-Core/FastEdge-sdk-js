@@ -34,7 +34,6 @@ describe('deep-copy', () => {
       it('should return null and undefined unchanged', () => {
         expect.assertions(2);
         expect(deepCopy(null)).toBeNull();
-        // eslint-disable-next-line unicorn/no-useless-undefined
         expect(deepCopy(undefined)).toBeUndefined();
       });
 

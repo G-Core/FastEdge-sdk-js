@@ -166,7 +166,7 @@ export default defineConfig({
         {
           label: 'Migrating',
           collapsed: true,
-          autogenerate: { directory: 'migrating' },
+          items: [{ autogenerate: { directory: 'migrating' } }],
         },
       ],
     }),

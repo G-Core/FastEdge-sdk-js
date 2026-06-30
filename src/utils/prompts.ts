@@ -70,7 +70,7 @@ const multiPrompt = async <T>(
     choices,
   });
   const selections = (await prompt.run()) as Array<unknown>;
-  const isAll = selections.find((selection) => selection === selectAll.name);
+  const isAll = selections.includes(selectAll.name);
   if (isAll) {
     return choices
       .map((choice) => (choice.value === selectAll.value ? undefined : choice.value))

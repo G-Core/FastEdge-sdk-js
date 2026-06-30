@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/no-array-for-each */
+/* eslint-disable unicorn/no-for-each */
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 
 import { tmpdir } from 'node:os';

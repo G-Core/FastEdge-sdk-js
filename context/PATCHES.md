@@ -35,6 +35,41 @@ fallback, and the accompanying WPT expectations.
 | Upstream PR | (PR opened from fork — link when available) |
 | Status | Open — awaiting upstream review |
 
+### 3. `Ensure maybe_stream_body does not bypass JS Streams when cloned`
+
+| Field | Value |
+|-------|-------|
+| Commit on `gcore/integration` | `c0d7f79` |
+| Source branch | `godronus/feature/response-clone` |
+| Upstream PR | https://github.com/bytecodealliance/StarlingMonkey/pull/312 (part of the Response.clone work) |
+| Status | Open — awaiting upstream review |
+
+Follow-up to patch #1. `RequestOrResponse::maybe_stream_body` forwards incoming
+bodies host-to-host gated only on `is_incoming()`, ignoring whether a JS
+`BodyStream` exists. `clone()` tees the body into `self`'s `BodyStream` but
+leaves the incoming handle attached, so sending the original after a clone took
+the fast path, bypassed the tee branch, and double-read the single host body.
+Fix is one condition — also gate on `!body_stream(body_owner)` — so once a
+stream is reified (`.body` access or a `clone()` tee) the JS-stream path is used.
+Lives in shared `maybe_stream_body`, so it also closes the same latent hazard in
+`Request::clone`.
+
+### 4. `update WPT expectations for mime-type`
+
+| Field | Value |
+|-------|-------|
+| Commit on `gcore/integration` | `4dc05f3` |
+| Source branch | `godronus/feature/response-clone` |
+| Status | Test baseline only |
+
+Re-records `expectations/fetch/api/body/mime-type.any.js.json` to match the
+`Blob.type`-from-`Content-Type` behaviour added in patch #2 (which updated the
+code but not this baseline). 13 subtests flip to PASS. One subtest,
+`Response: Extract a MIME type with clone`, stays FAIL on purpose: the upstream
+WPT test passes its `headers` dict as a stray 3rd argument to `Blob(...)` instead
+of the `Response` init, so the Response never receives the header — it fails in
+conformant browsers too, not a runtime issue.
+
 ---
 
 ## Rebase procedure (when upstream releases a new version)
