@@ -1,6 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
 import { prepareEnvironment } from '@gmrchk/cli-testing-library';
 
@@ -10,7 +9,6 @@ const helpInfo = USAGE_TEXT.split('\n')
   .filter(Boolean)
   .map((s) => s.trim());
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const packageJson = readFileSync(join(__dirname, '../package.json'), {
   encoding: 'utf-8',
