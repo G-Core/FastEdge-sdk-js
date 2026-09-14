@@ -23,7 +23,7 @@ env:
 jobs:
   build:
     name: Build Static Docs
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -57,7 +57,8 @@ jobs:
   deploy:
     name: Deploy Static Docs
     needs: build
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    # GitHub Pages deploy via OIDC
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

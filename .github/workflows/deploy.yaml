@@ -18,7 +18,12 @@ on:
 jobs:
   # Gihub Actions do not allow regex validation for numbers in *.*.x branch names
   validate_branch_name:
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    runs-on: ubuntu-latest
+    # Scoped to this job rather than the whole workflow: a called workflow
+    # cannot be granted more than its caller, and release.yaml needs contents,
+    # issues, pull-requests and id-token write in order to publish.
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -53,6 +58,10 @@ jobs:
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
+  cross_platform_tests:
+    needs: [build_fastedge_artifacts]
+    uses: ./.github/workflows/cross-platform-tests.yaml
+
   test_prod_invocation:
     needs: [build_fastedge_artifacts]
     uses: ./.github/workflows/prod-invocation.yaml
@@ -60,7 +69,7 @@ jobs:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
   npm_release:
-    needs: [test_prod_invocation]
+    needs: [cross_platform_tests, test_prod_invocation]
     uses: ./.github/workflows/release.yaml
     with:
       dry_run: ${{ github.event.inputs.dry_run || 'true' }}

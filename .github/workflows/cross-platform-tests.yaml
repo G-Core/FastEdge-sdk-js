@@ -1,0 +1,68 @@
+name: Cross Platform Tests
+
+# Every platform independently typechecks, builds the CLI/libs/types, and runs
+# the full JS -> wasm build pipeline (which spawns wizer, tsc and node).
+#
+# The one input that is NOT rebuilt per platform is lib/fastedge-runtime.wasm:
+# it is a wasm binary compiled from StarlingMonkey C++ inside Docker, there is
+# no per-platform variant of it, and the same bytes are what wizer consumes on
+# every host. It is downloaded from the artifact build-libs.yaml publishes.
+
+# workflow_call only, deliberately. The runtime wasm arrives as an artifact
+# from build-libs.yaml in the same run, and download-artifact cannot reach a
+# previous run's artifacts - so a manual workflow_dispatch would always fail
+# at the download step.
+on:
+  workflow_call:
+
+# Read-only: this workflow checks out the repo and downloads an artifact from
+# its own run, which needs nothing more. Downloading from a *different* run
+# would additionally require `actions: read`.
+permissions:
+  contents: read
+
+jobs:
+  cross_platform_build:
+    name: Build & verify (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false # one platform failing must not hide the others
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node Environment
+        uses: ./.github/setup-node
+
+      # Published by build-libs.yaml. An artifact rather than the build cache
+      # because actions/cache does not share entries across operating systems,
+      # so Windows and macOS could never restore that Linux-written cache.
+      - name: Download prebuilt runtime wasm
+        uses: actions/download-artifact@v4
+        with:
+          name: fastedge-runtime-libs
+          path: lib/
+
+      # The artifact carries Linux-built lib/*.js alongside the wasm. Drop
+      # those so this platform must produce its own, and a build failure here
+      # cannot be masked by the downloaded copies.
+      - name: Discard prebuilt JS output (keep runtime wasm)
+        shell: bash
+        run: |
+          rm -f ./lib/*.js
+          ls -l ./lib
+
+      - name: Typecheck, build CLI, libs and types
+        run: pnpm run build:js
+
+      - name: Ensure bin files have execute permissions
+        if: runner.os != 'Windows'
+        shell: bash
+        run: chmod +x ./bin/*.js
+
+      - name: Verify build pipeline end to end
+        run: pnpm run test:cross-platform
