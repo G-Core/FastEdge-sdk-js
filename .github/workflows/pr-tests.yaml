@@ -6,6 +6,11 @@ on:
 
   workflow_dispatch: # trigger manually
 
+# Entry point for fork pull requests, so pin it to read-only explicitly. Both
+# called workflows need nothing more.
+permissions:
+  contents: read
+
 jobs:
   code_validation:
     uses: ./.github/workflows/code-validation.yaml

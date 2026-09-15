@@ -5,6 +5,52 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-09-15] — Shell-free child processes, TypeScript 5/6/7 compatibility, cross-platform CI
+
+### Overview
+Removed `shell: true` from every `spawnSync` in the build path, replaced the `npx tsc` invocation with direct resolution of the consumer's TypeScript, and added CI covering three operating systems and four TypeScript majors. Cleared all outstanding dependency advisories.
+
+### Changes
+
+**Child processes (`src/componentize/componentize.ts`, `src/utils/syntax-checker.ts`):**
+- All three `spawnSync` calls dropped `shell: true`. They interpolated paths into a string the shell then re-parsed, so an argument value could be read as shell syntax instead of a path. No shell is needed: `wizer` (from `@bytecodealliance/wizer`) and `process.execPath` are absolute paths to binaries.
+- `-r _start=wizer.resume` became two argv entries (`'-r'`, `'_start=wizer.resume'`). It was previously one entry containing a space, which only produced two arguments because the shell re-split it — without a shell, wizer receives one malformed argument.
+- `process.execPath` was wrapped in literal quotes (`"${process.execPath}"`) for the shell's benefit; those quotes became part of the path once the shell was gone.
+- Side effect: paths were interpolated unquoted, so any input or output path containing a space previously failed to build. That now works, and has its own regression tests separate from the argument-handling ones.
+- Scope note: this is defense in depth rather than a fix for a reachable exploit. Every shipped caller either already has code execution (a developer at a terminal; `.fastedge/build-config.js`, which `load-config-file.ts` runs through `await import()`) or already validates (FastEdge-mcp-server constrains entry/output/tsconfig via `normalizePath()` → `INVALID_PATH`; FastEdge-vscode spawns with an argv array behind a trusted-workspace guard). No CVE or advisory was filed for that reason.
+- A path-containment check in the SDK was considered and not added: containment is already enforced by the callers above, and restricting output to the working directory would break legitimate builds such as `fastedge-build src/index.js ../dist/app.wasm`.
+
+**TypeScript invocation (`src/utils/syntax-checker.ts`):**
+- `npx` is no longer used. On Windows it is a `.cmd` shim, and since the fix for CVE-2024-27980 Node refuses to spawn `.bat`/`.cmd` without `shell: true`. Naming `npx.cmd` explicitly was tried first and fails with `EINVAL`, so the only shell-free option is to run TypeScript's own entry point under `process.execPath`.
+- `resolveTypeScript()` resolves `typescript/package.json` and reads that manifest's `bin.tsc`, rather than resolving the `typescript/bin/tsc` subpath directly. TS 7 ships an `exports` map listing only `./package.json`, `.` and `./unstable/*`, so the direct subpath throws there while working on TS 5. Every major from 5.0 to 7.0 has `bin.tsc` pointing at a real file.
+- The TypeScript version now comes from that manifest instead of a `tsc --version` child process, removing a spawn site.
+- Resolution is rooted at `process.cwd()`, i.e. the project being built. Under Yarn PnP there is no `node_modules` and the CLI runs without PnP loader hooks, so resolution fails and reports "TypeScript is not installed." That is a deliberate trade: it fails with an actionable message rather than mis-building, and the alternative (`npx`) is what breaks Windows.
+
+**TypeScript version behaviour (verified against real installs of 5.0.4, 5.5.4, 5.9.3, 6.0.0-beta, 7.0.2):**
+- `--module esnext` is now passed explicitly alongside `--moduleResolution bundler`. `bundler` requires module `preserve` or es2015+, and leaving it implicit ties that to `--target` staying high (TS derives module from target, so lowering the target fails with TS5095). More significantly, the value TS infers from `--target esnext` alone is es2015, which rejects `import.meta` with TS1343 even though it is valid ESM the runtime supports — that was true before this change too, under the old `node` resolution. `esnext` matches how input is actually consumed, since esbuild bundles ESM.
+- `--moduleResolution` changed from `node` to `bundler`. `node` means node10, which TS 7 removed outright: every `.ts` build failed with TS5108 for a consumer on TS 7, and this was the cause of 4 pre-existing `test:integration` failures on `main`. `bundler` is supported from TS 5.0 and describes how input is actually consumed, since it is esbuild-bundled before componentization.
+- `--ignoreDeprecations` is passed only for a consumer's own tsconfig (`--project`), and its value follows the major: `"6.0"` from TS 6, `"5.0"` on TS 5, omitted from TS 7. TS 6 rejects `"5.0"` with TS5107 and requires `"6.0"`, so a single constant regresses one major or the other. From TS 7 the affected options are removed rather than deprecated and no value suppresses them. The SDK's own default flags use no deprecated option, so they pass none.
+- `moduleResolution: node` in a consumer tsconfig behaves differently in each major: accepted silently on 5.0/5.5/5.9, TS5107 on 6.0.0-beta (suppressible only with `"6.0"`), TS5108 on 7.0.2 (not suppressible).
+- On TS 5.0.4, `preserveValueImports`, `keyofStringsOnly`, `noImplicitUseStrict` and `suppressImplicitAnyIndexErrors` all error without `--ignoreDeprecations` and are silenced by `"5.0"`. `importsNotUsedAsValues` emits nothing on 5.x despite looking like it belongs in that list. By 5.9 these are removed and no flag helps.
+- There is no stable TypeScript 6 — npm publishes only `6.0.0-beta` and `6.0.0-dev.*`, and TypeScript went 5.9 → 7.0. The prereleases are installable, so the TS 6 branch is still reachable.
+
+**Testing:**
+- `integration-tests/cross-platform-build.test.js` (new), run by `pnpm run test:cross-platform` — wasm output, spaces in input and output paths, literal argument passing, and per-platform checks that argument values are not interpreted by a shell. Payloads are platform-specific and must end in `.wasm`: `validateFilePaths()` rejects anything else before the spawn is reached, and cmd.exe does not honour `$(...)`, so a single generic payload would pass without testing anything. Checked against the pre-fix code, where 4 of the 5 tests fail.
+- `integration-tests/typescript-versions.test.js` (new) — installs TypeScript 5.0.4, 5.9.3, 6.0.0-beta and 7.0.2 into sandboxes and asserts the per-major behaviour above. Installs carry their own `spawnSync` timeout because `spawnSync` blocks Jest's event loop, so Jest's test timeout cannot interrupt a stalled install. Each assertion was checked to fail when the corresponding fix is reverted.
+
+**CI:**
+- `.github/workflows/cross-platform-tests.yaml` (new) — ubuntu/windows/macos matrix; each platform typechecks, builds CLI/libs/types and runs the full JS→wasm pipeline. Gates `npm_release`. Nothing previously validated the build off Linux, and `test:integration` ran only inside the release path, so pull requests never exercised it.
+- The runtime wasm reaches the matrix as an artifact from `build-libs.yaml` rather than the build cache, because `actions/cache` does not share entries across operating systems — Windows and macOS cannot restore the Linux-written cache without `enableCrossOsArchive` on every save and restore. The existing `${{ runner.os }}`-keyed cache is unchanged; it was briefly renamed while the matrix still used it, then restored once the artifact removed the need.
+- The upload sets `overwrite: true` (v4 artifacts are immutable, so rerunning a run would otherwise hit a name conflict). The workflow is `workflow_call` only: the artifact comes from `build-libs` in the same run, and `download-artifact` cannot reach a previous run's artifacts.
+- `build-libs` and `prod-invocation` remain self-hosted — they are the only jobs needing Vault and Harbor on `gc.onl`. `code-validation` and `unit-tests` were reachable from fork pull requests with no internal dependency, so they and the remaining jobs moved to GitHub-hosted runners, which are free for public repositories.
+
+**Dependencies:**
+- `pnpm audit`: 1 critical, 24 high, 29 moderate, 4 low → 0. Every advisory sat in a workspace package (`github-pages`, `examples/*`) or a devDependency, so the exposure was development and CI only.
+- The published set is `types/`, `bin/fastedge-{assets,build,init}.js`, `lib/*.wasm`, `lib/*.js` and `README.md`. Note that `lib/*.js` and `bin/*.js` are esbuild bundles with `bundle: true`, so a dependency they import would be *inlined* into the published artifact rather than resolved by the consumer — the published set alone does not settle the question. Checked against esbuild metafiles: `lib/create-static-server.js` has 9 inputs, all first-party `src/` and no `node_modules`; `bin/*.js` inline 42 npm packages (jco, wizer, acorn, esbuild, enquirer, magic-string, regexpu-core and their transitives), none of which appears in the advisory list. `types/` is declarations only and `lib/*.wasm` is the compiled runtime.
+- The `overrides` block in `pnpm-workspace.yaml` had gone stale (`fast-uri: ^3.1.1` no longer covered the `>=3.1.6` advisory) and was refreshed; `astro`, `sharp` and `hono` bumped directly.
+
+---
+
 ## [2026-06-09] — Response.clone() full isolation + headers-clone fix; prod guard expanded
 
 ### Overview

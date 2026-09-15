@@ -3,9 +3,15 @@ name: Code Validation
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   code_validation:
-    runs-on: [self-hosted, ubuntu-22-04, regular]
+    # GitHub-hosted: this job needs no internal (gc.onl) access, and it is
+    # reachable from fork pull requests via pr-tests.yaml - untrusted code must
+    # not run on a self-hosted runner. Free for public repositories.
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
