@@ -116,6 +116,29 @@ describe.each(TS_VERSIONS)('with typescript@%s', (version) => {
   );
 
   it(
+    'should build a .ts file when tsconfig.json is present in the CWD but no --tsconfig flag is passed (TS5112 regression)',
+    async () => {
+      // TS 7 errors with TS5112 when a file is passed on the CLI and an ambient
+      // tsconfig.json exists in the CWD. --ignoreConfig suppresses it; this test
+      // locks the exact invocation so the flag cannot be silently dropped.
+      expect.assertions(2);
+      const { execute, cleanup, writeFile } = await setup();
+      await writeFile('input.ts', VALID_TS);
+      await writeFile('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true } }));
+
+      const { code, stdout } = await execute(
+        'node',
+        './bin/fastedge-build.js input.ts dist/output.wasm',
+      );
+
+      expect(code).toBe(0);
+      expect(stdout[0]).toContain('Build success!!');
+      await cleanup();
+    },
+    INSTALL_AND_BUILD_TIMEOUT,
+  );
+
+  it(
     'should reject a TypeScript entrypoint with a type error',
     async () => {
       expect.assertions(2);
