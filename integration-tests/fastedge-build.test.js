@@ -149,6 +149,29 @@ describe('fastedge-build', () => {
       await cleanup();
     });
 
+    it('should build a .ts file even when tsconfig.json is present in the CWD (TS5112 regression)', async () => {
+      // TS 7 errors with TS5112 when a file is passed on the CLI and an ambient
+      // tsconfig.json exists in the CWD. This test locks that path so the flag
+      // cannot be silently dropped.
+      expect.assertions(3);
+      const { execute, cleanup, writeFile, path } = await prepareEnvironment();
+      spawnSync('npm', ['install', 'typescript'], {
+        stdio: 'inherit',
+        cwd: path,
+      });
+      await writeFile('input.ts', 'function hello() { console.log("Hello World"); }');
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      await writeFile('tsconfig.json', JSON.stringify({ compilerOptions: { strict: true } }));
+      const { code, stdout, stderr } = await execute(
+        'node',
+        './bin/fastedge-build.js input.ts dist/output.wasm',
+      );
+      expect(code).toBe(0);
+      expect(stderr).toHaveLength(0);
+      expect(stdout[0]).toContain('Build success!!');
+      await cleanup();
+    }, 30_000);
+
     it('should exit with an error if the TypeScript is not valid', async () => {
       expect.assertions(4);
       const { execute, cleanup, writeFile, path } = await prepareEnvironment();
