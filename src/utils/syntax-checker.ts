@@ -127,6 +127,12 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
   // TS infers from `--target esnext` is es2015, which rejects `import.meta`
   // with TS1343 even though it is valid ESM that the runtime supports.
   // `esnext` matches how input is actually consumed: esbuild bundles ESM.
+
+  // TS 7 (Go rewrite) errors (TS5112) when a file is passed on the command
+  // line and a tsconfig.json exists in the CWD. We control all flags
+  // explicitly here, so ignoring any ambient tsconfig is correct.
+  const ignoreConfig = typescript.major >= 7 ? ['--ignoreConfig'] : [];
+
   const defaultTscBuildFlags = [
     '--noEmit',
     '--skipLibCheck',
@@ -138,6 +144,7 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
     'esnext',
     '--moduleResolution',
     moduleResolution,
+    ...ignoreConfig,
     ...includeFastEdgeTypes,
     tsInput,
   ];
