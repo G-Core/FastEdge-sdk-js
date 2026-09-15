@@ -4,9 +4,17 @@ import { createWasmInlineAsset } from '../inline-asset/inline-asset.ts';
 import type { StaticAssetMetadata } from '../inline-asset/inline-asset.ts';
 
 const mockReadFileSync = jest.fn();
-jest.mock('fastedge::fs', () => ({
-  readFileSync: jest.fn((...args) => mockReadFileSync(...args)),
-}));
+// `virtual` because fastedge::fs is supplied by the FastEdge runtime and has
+// no on-disk module to resolve. It previously resolved via a manual mock file
+// literally named `fastedge::fs.ts`, which made the repo impossible to check
+// out on Windows - `:` is not a legal path character on NTFS.
+jest.mock(
+  'fastedge::fs',
+  () => ({
+    readFileSync: jest.fn((...args) => mockReadFileSync(...args)),
+  }),
+  { virtual: true },
+);
 
 const mockCreateEmbeddedStoreEntry = jest.fn();
 jest.mock('../embedded-store-entry/embedded-store-entry', () => ({
