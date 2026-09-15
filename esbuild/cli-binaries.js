@@ -1,5 +1,4 @@
 import { build } from "esbuild";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -39,9 +38,12 @@ try {
 }
 
 const prependNodeShebangToFile = (relativeFilePath) => {
-  const filePath = fileURLToPath(
-    new URL(path.resolve(process.cwd(), relativeFilePath), import.meta.url),
-  );
+  // path.resolve already returns an absolute filesystem path, which is what fs
+  // wants. Routing it through `new URL(..., import.meta.url)` + fileURLToPath
+  // was a no-op on POSIX and threw on Windows: an absolute Windows path starts
+  // with a drive letter, so `D:\a\...` parses as scheme `d:` rather than a path
+  // relative to the `file:` base, and fileURLToPath rejects it.
+  const filePath = path.resolve(process.cwd(), relativeFilePath);
   const content = readFileSync(filePath, "utf8");
   const shebang = "#!/usr/bin/env node";
   const shebangExists = content.startsWith(shebang);
