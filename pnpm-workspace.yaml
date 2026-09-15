@@ -13,7 +13,7 @@ overrides:
   '@gcoredev/fastedge-sdk-js': link:.
   '@babel/core': '^7.29.6'
   # Transitive-only advisory fixes. None of these reach the published package
-  # (files: types/, bin/*.js, lib/*.wasm) - they are workspace/dev-tree only.
+  # (files: types/, bin/*.js, lib/*.js, lib/*.wasm, README.md) - they are workspace/dev-tree only.
   fast-uri: '^3.1.6'
   brace-expansion: '^5.0.9'
   js-yaml: '^4.3.2'
