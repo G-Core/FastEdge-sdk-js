@@ -59,7 +59,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  rmSync(workDir, { recursive: true, force: true });
+  if (workDir) rmSync(workDir, { recursive: true, force: true });
 });
 
 describe(`fastedge-build on ${process.platform}`, () => {
