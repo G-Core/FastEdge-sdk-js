@@ -78,14 +78,18 @@ async function componentize(
         '--dir=.',
         // '--dir=../', // Could iterate config file and add these paths for static building... ( enhancement for later, if required )
         `--dir=${useUnixPath(dirname(wizerInput))}`,
-        '-r _start=wizer.resume',
+        // Two argv entries, not one. This previously relied on `shell: true`
+        // word-splitting a single "-r _start=wizer.resume" string.
+        '-r',
+        '_start=wizer.resume',
         `-o=${useUnixPath(wasmOutputDir)}`,
         useUnixPath(wasmEngine),
       ],
       {
         stdio: [null, process.stdout, process.stderr],
         input: useUnixPath(wizerInput),
-        shell: true,
+        // No `shell: true`: `wizer` is an absolute path to a binary, and a
+        // shell would re-parse the interpolated output/dir paths as syntax.
         encoding: 'utf-8',
         env: {
           // ENABLE_EXPERIMENTAL_HIGH_RESOLUTION_TIME_METHODS:

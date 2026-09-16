@@ -72,14 +72,14 @@ describe('componentize', () => {
         '--inherit-env=true',
         '--dir=.',
         '--dir=temp_root',
-        '-r _start=wizer.resume',
+        '-r',
+        '_start=wizer.resume',
         '-o=output.wasm',
         'root_dir/lib/fastedge-runtime.wasm',
       ],
       {
         stdio: [null, process.stdout, process.stderr],
         input: 'temp_root/temp.bundle.js',
-        shell: true,
         encoding: 'utf-8',
         env: {
           ENABLE_PBL: '0',

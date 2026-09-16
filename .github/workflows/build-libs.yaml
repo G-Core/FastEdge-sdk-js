@@ -6,6 +6,12 @@ on:
       VAULT_TOKEN:
         required: true
 
+# Vault and Harbor authenticate with their own secrets rather than the
+# GITHUB_TOKEN, and the artifact upload targets this same run, so read-only
+# access to the repository is sufficient.
+permissions:
+  contents: read
+
 jobs:
   build_fastedge_libs:
     runs-on: [self-hosted, ubuntu-22-04, regular]
@@ -82,3 +88,19 @@ jobs:
             bin/
             types/
           key: ${{ runner.os }}-libs-artifact-${{ github.sha }}
+
+      # Also published as an artifact for cross-platform-tests.yaml.
+      # actions/cache does not share entries across operating systems, so the
+      # Windows and macOS matrix jobs cannot restore the cache above; artifacts
+      # have no such restriction. The runtime wasm is built here (Docker +
+      # clang, Linux only) and the same bytes are valid on every host.
+      - name: Upload runtime libs
+        uses: actions/upload-artifact@v4
+        with:
+          name: fastedge-runtime-libs
+          path: lib/
+          # v4 artifacts are immutable, so a rerun of this same run would hit
+          # a name conflict without this.
+          overwrite: true
+          retention-days: 1
+          if-no-files-found: error
