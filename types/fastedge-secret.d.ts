@@ -34,6 +34,7 @@ declare module 'fastedge::secret' {
    *
    * @param {string} name - The name of the secret variable.
    * @param {number} effectiveAt - The slot index of the secret. (effectiveAt >= secret_slots.slot)
+   *   Converted to a 32-bit integer; negative values are treated as `0`.
    * @returns {string | null} The value of the secret variable, or `null` if not set.
    *
    * @example

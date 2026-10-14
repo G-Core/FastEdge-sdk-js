@@ -6,12 +6,13 @@ WebAssembly components that run across global edge data centers.
 
 ## Package
 
-| Field       | Value                       |
-| ----------- | --------------------------- |
-| **npm**     | `@gcoredev/fastedge-sdk-js` |
-| **Version** | `2.6.0`                     |
-| **Node**    | `>=22`                      |
-| **License** | `Apache-2.0`                |
+| Field       | Value                                                                                  |
+| ----------- | -------------------------------------------------------------------------------------- |
+| **npm**     | [`@gcoredev/fastedge-sdk-js`](https://www.npmjs.com/package/@gcoredev/fastedge-sdk-js) |
+| **License** | `Apache-2.0`                                                                           |
+
+The current version is listed on the npm page. The minimum supported Node.js version is declared in
+the package's `engines` field.
 
 ## CLI Tools
 
@@ -23,20 +24,25 @@ WebAssembly components that run across global edge data centers.
 
 ## Documentation
 
-| Document                             | Description                                         |
-| ------------------------------------ | --------------------------------------------------- |
-| [Quickstart](quickstart.md)          | Installation and first build                        |
-| [fastedge-build CLI](BUILD_CLI.md)   | Compile JavaScript to WebAssembly                   |
-| [fastedge-init CLI](INIT_CLI.md)     | Scaffold a new FastEdge project                     |
-| [fastedge-assets CLI](ASSETS_CLI.md) | Generate static asset manifests                     |
-| [Static Sites](STATIC_SITES.md)      | Serve static websites from WASM                     |
-| [SDK Runtime API](SDK_API.md)        | Environment, KV Store, Cache, Secrets, and Web APIs |
+| Document                                      | Description                                         |
+| --------------------------------------------- | --------------------------------------------------- |
+| [Quickstart](quickstart.md)                   | Installation and first build                        |
+| [SDK Runtime API](SDK_API.md)                 | Environment, KV Store, Cache, Secrets, and Web APIs |
+| [fastedge-build CLI](BUILD_CLI.md)            | Compile JavaScript to WebAssembly                   |
+| [fastedge-init CLI](INIT_CLI.md)              | Scaffold a new FastEdge project                     |
+| [fastedge-assets CLI](ASSETS_CLI.md)          | Generate static asset manifests                     |
+| [Static Sites](STATIC_SITES.md)               | Serve static websites from WASM                     |
+| [Runtime Constraints](RUNTIME_CONSTRAINTS.md) | What the runtime cannot do and what to use instead  |
+| [Authentication Patterns](AUTH_PATTERNS.md)   | Authentication patterns                             |
+| [Hono Patterns](HONO_PATTERNS.md)             | Using the Hono framework                            |
+| [Proxy Patterns](PROXY_PATTERNS.md)           | Proxying and modifying upstream requests            |
 
 ## Application Model
 
-FastEdge apps use the Service Worker API pattern. The `addEventListener('fetch', ...)` call must be
-at the top level. The callback must synchronously call `event.respondWith()` with a handler that
-returns a `Response` (or `Promise<Response>`).
+FastEdge apps use the Service Worker API pattern. Register a listener for the `"fetch"` event with
+`addEventListener`. The listener passes a `Response` or `Promise<Response>` to `event.respondWith()`.
+Use `event.waitUntil()` to keep the service alive for additional asynchronous work after the
+response is sent.
 
 ```js
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -72,7 +78,6 @@ imports are resolved at compile time by the SDK.
 | `fastedge::secret` | `getSecretEffectiveAt` | `(name: string, effectiveAt: number): string \| null` |
 | `fastedge::kv`     | `KvStore.open`         | `(name: string): KvStoreInstance`                     |
 | `fastedge::cache`  | `Cache`                | static class — see Cache Methods                      |
-| `fastedge::fs`     | `readFileSync`         | `(path: string): Uint8Array` — build-time only        |
 
 ### KvStoreInstance Methods
 
@@ -116,7 +121,7 @@ async function app(event) {
   if (count === 1) await Cache.expire(`rl:${ip}`, { ttl: 60 });
   if (count > 100) return new Response('Too Many Requests', { status: 429 });
 
-  const entry = await Cache.getOrSet('result', async () => JSON.stringify(await compute()), {
+  const entry = await Cache.getOrSet('result', async () => JSON.stringify({ at: Date.now() }), {
     ttl: 300,
   });
   return new Response(await entry.text(), {
@@ -193,6 +198,8 @@ Standard Web APIs available globally:
 
 ## See Also
 
+- [SDK_API.md](SDK_API.md) — Full runtime API reference
+- [RUNTIME_CONSTRAINTS.md](RUNTIME_CONSTRAINTS.md) — Runtime limitations and alternatives
 - [GitHub Repository](https://github.com/G-Core/FastEdge-sdk-js)
 - [npm Package](https://www.npmjs.com/package/@gcoredev/fastedge-sdk-js)
 - [FastEdge Platform](https://gcore.com/fastedge)

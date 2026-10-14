@@ -303,7 +303,7 @@ describe('createStaticAssetsManifest', () => {
         ignoreWellKnown: 'booleanFalsy',
         ignorePaths: 'pathsArray',
         publicDir: 'path',
-        contentTypes: 'stringArray',
+        contentTypes: 'array',
         assetManifestPath: 'path',
       }),
     );

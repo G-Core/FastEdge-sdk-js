@@ -1,6 +1,7 @@
 import type { AssetCacheConfig, StaticAssetManifest } from './types.ts';
 
 import { colorLog } from '~utils/color-log.ts';
+import { normalizePath } from '~utils/config-helpers.ts';
 import { getKnownContentTypes, testFileContentType } from '~utils/content-types.ts';
 import { createFileInfo } from '~utils/file-info.ts';
 import { getFilesRecursively, resolveOsPath } from '~utils/file-system.ts';
@@ -40,8 +41,9 @@ function createManifestFileMap(asssetCacheConfig: AssetCacheConfig): StaticAsset
 
   colorLog('info', `Using ${publicDirPath} as public directory`);
 
+  // Legacy alias: fastedge-init before 2.6.0 wrote ignoreDirs instead of ignorePaths
   const ignoreDirPaths = [
-    ...(Array.isArray(ignoreDirs) ? ignoreDirs : []),
+    ...(Array.isArray(ignoreDirs) ? ignoreDirs.map((p) => normalizePath(p)) : []),
     ...(Array.isArray(ignorePaths) ? ignorePaths : []),
   ];
 
@@ -53,7 +55,7 @@ function createManifestFileMap(asssetCacheConfig: AssetCacheConfig): StaticAsset
   }
 
   const files = getFilesRecursively(publicDirPath, {
-    ignoreDirs: ignorePaths,
+    ignoreDirs: ignoreDirPaths,
     ignoreDotFiles,
     ignoreWellKnown,
   });

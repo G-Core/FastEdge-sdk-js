@@ -72,11 +72,19 @@ async function setupStaticApp(): Promise<void> {
   let spaEntrypoint: string | null = null;
   if (isSpa) {
     const entrypoint = await inputPrompt('Enter the path to your SPA entrypoint:', './index.html');
-    const spaEntrypointExists = await isFile(
-      path.resolve(path.join(publicDirectory, './index.html')),
-    );
+    const publicRoot = path.resolve(publicDirectory);
+    const entrypointPath = path.join(publicRoot, entrypoint);
+    // Must be inside the public directory, or it won't be in the asset manifest
+    const relativePath = path.relative(publicRoot, entrypointPath);
+    const insidePublicDir =
+      relativePath !== '' &&
+      relativePath !== '..' &&
+      !relativePath.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relativePath);
+    const spaEntrypointExists = insidePublicDir && (await isFile(entrypointPath));
     if (spaEntrypointExists) {
-      spaEntrypoint = normalizePath(entrypoint);
+      // Canonical asset key, e.g. 'dist/../index.html' -> '/index.html'
+      spaEntrypoint = normalizePath(relativePath.split(path.sep).join('/'));
     } else {
       colorLog(
         'warning',

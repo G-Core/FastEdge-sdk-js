@@ -21,7 +21,7 @@ interface ConfigTypeObject {
   static: {
     entryPoint?: string;
     ignoreDotFiles?: boolean;
-    ignoreDirs?: string[];
+    ignorePaths?: string[];
     ignoreWellKnown?: boolean;
     extendedCache?: string[];
     publicDirPrefix?: string;
@@ -47,7 +47,7 @@ const defaultConfig: DefaultConfig = {
     static: {
       entryPoint: '.fastedge/static-index.js',
       ignoreDotFiles: true,
-      ignoreDirs: ['./node_modules'],
+      ignorePaths: ['./node_modules'],
       ignoreWellKnown: false,
       tsConfigPath: './tsconfig.json',
     },

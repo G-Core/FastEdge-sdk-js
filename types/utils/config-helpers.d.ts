@@ -18,18 +18,26 @@ declare function normalizeString(value?: string | null): string;
  */
 declare function normalizeStringArray(arr?: Array<string>): Array<string>;
 /**
+ * Ensure there is always an array, keeping its entries as they are (e.g. objects).
+ * @param arr - The array to normalize.
+ * @returns The array, or an empty array if not set.
+ */
+declare function normalizeArray<T>(arr?: T[] | null): T[];
+/**
  * Normalize path on an array of string paths.
  * @param pathsArray - The array of paths to normalize.
  * @returns The normalized array of paths.
  */
 declare function normalizeArrayOfPaths(pathsArray?: Array<string>): Array<string>;
 /**
- * Normalize path or convert to regex from string array.
+ * Normalize path or convert to regex from an array of strings and RegExps.
+ * RegExp entries pass through. A trailing `/` is kept, so the entry still matches as a prefix.
  * @param inputsArray - The array of inputs to normalize.
  * @returns The normalized array of paths or regexes.
  */
-declare function normalizePathsOrRegex(inputsArray?: string[]): Array<string | RegExp>;
+declare function normalizePathsOrRegex(inputsArray?: Array<string | RegExp>): Array<string | RegExp>;
 declare const normalizeFns: {
+    array: typeof normalizeArray;
     booleanTruthy: (value?: boolean) => boolean;
     booleanFalsy: (value?: boolean) => boolean;
     path: typeof normalizePath;

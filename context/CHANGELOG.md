@@ -5,6 +5,27 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-14] — Generated docs verified against the code; static-site config bugs fixed
+
+### Overview
+Every claim in the seven generated `docs/` files was checked against the source (three read-only passes). The errors were fixed upstream: in code, JSDoc, the generator's source sets and `.generation-config.md`, never by editing the docs. All docs were then regenerated.
+
+### Changes
+**Code fixes (static sites)**
+- Custom `contentTypes` never applied: `normalizeAssetCacheConfig` used `'stringArray'`, turning each rule object into `''`. A new `'array'` normalizer (`config-helpers.ts`) passes entries through; `getKnownContentTypes` still validates them.
+- `fastedge-init` wrote `ignoreDirs`, which was only logged. It now writes `ignorePaths`; `createManifestFileMap` also applies a legacy `ignoreDirs` (normalized) so existing configs get the exclusion they asked for.
+- `extendedCache`: `normalizePathsOrRegex` stripped trailing slashes, so the prefix branch in `testExtendedCache` only ever matched `'/'`, and `RegExp` entries (allowed by `ServerConfig`) crashed on `.startsWith`. A trailing `/` is now kept and `RegExp` entries pass through.
+- `fastedge-init` checked `./index.html` instead of the SPA entrypoint the user entered.
+
+**JSDoc and README**
+- `types/fastedge-cache.d.ts`: validation errors are `Error`, not `TypeError`. The JSDoc now gives the full TTL rules (past `expiresAt`, the `MAX_SAFE_INTEGER` bound, `null` = no options), says which errors throw and which reject, and says that `expire` requires an expiry.
+- `types/globals.d.ts`: `location` documented. `types/fastedge-secret.d.ts`: `effectiveAt` is converted to int32 and clamped at 0.
+- README: Node v22 (matches `engines`).
+
+**Generator (`fastedge-plugin-source/`)**
+- `SOURCE_FILES` now includes the files that implement each documented behaviour (loader, validation, normalizers, static server, inline assets, init writers), not just the CLI entry points.
+- `.generation-config.md` gets global rules (correct any baseline claim the sources do not support; describe CLI behaviour from the CLI path; show generated files verbatim; examples define every identifier) and per-doc accuracy rules for each verified finding. The crypto matrix moves `getRandomValues()` off `crypto.subtle`, `GeoData` becomes `GeoInfo`, and INDEX lists every doc (including the hand-written ones) and drops the hardcoded version.
+
 ## [2026-10-14] — Platform-neutral fastedge-build (no native bindings except wizer)
 
 ### Overview

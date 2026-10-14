@@ -4,9 +4,9 @@ Generates a static asset manifest file that maps a directory of static files for
 
 ## Overview
 
-`fastedge-assets` scans a source directory and produces a JavaScript/TypeScript module exporting a `staticAssetManifest` object. This manifest is consumed at compile time by `fastedge-build` to embed file contents directly into the WASM binary via Wizer processing. The embedded assets are available at runtime without a file system.
+`fastedge-assets` scans a source directory and produces a JavaScript/TypeScript module exporting a `staticAssetManifest` object. When an app that imports this manifest is built with `fastedge-build`, the file contents are embedded into the WASM binary via Wizer processing. The embedded assets are available at runtime without a file system.
 
-Run `fastedge-assets` as a pre-build step, before invoking `fastedge-build`.
+`fastedge-assets` is needed when an app embeds a manifest outside a static build, for example an HTTP app that serves files with `createStaticServer`. A `fastedge-build` run with `type: 'static'` generates the manifest itself, so `fastedge-assets` is not a required pre-build step for every build.
 
 ## Usage
 
@@ -19,20 +19,23 @@ npx fastedge-assets ./public ./src/manifest.ts
 npx fastedge-assets --input ./public --output ./src/manifest.ts
 
 # Config-driven
-npx fastedge-assets --config .fastedge/asset-config.js
+npx fastedge-assets --config .fastedge/asset-config.mjs
+
+# Config file with a command-line override of the input directory
+npx fastedge-assets --config .fastedge/asset-config.mjs --input ./public
 
 # Help and version
 npx fastedge-assets --help
 npx fastedge-assets --version
 ```
 
-Running `fastedge-assets` with no arguments prints the usage information.
+Running `fastedge-assets` with no arguments prints the usage information and exits with status 0.
 
 ## Flags
 
 | Flag              | Alias | Type      | Description                                                                  |
 | ----------------- | ----- | --------- | ---------------------------------------------------------------------------- |
-| `--input <path>`  | `-i`  | `string`  | Path to the directory of source assets (e.g. `./public`)                     |
+| `--input <path>`  | `-i`  | `string`  | Path to the non-empty directory of source assets (e.g. `./public`)           |
 | `--output <file>` | `-o`  | `string`  | Output file path for the generated manifest (e.g. `./src/asset-manifest.ts`) |
 | `--config <file>` | `-c`  | `string`  | Path to an asset config file containing `AssetCacheConfig` fields            |
 | `--version`       | `-v`  | `boolean` | Print the package version                                                    |
@@ -40,17 +43,18 @@ Running `fastedge-assets` with no arguments prints the usage information.
 
 **Notes:**
 
-- `--input` must resolve to an existing directory.
+- `--input` must be an existing, non-empty directory.
 - `--output` must resolve to a file path (not a directory). The output file does not need to pre-exist; parent directories are created automatically.
 - Two positional arguments are interpreted as `<input-directory> <output-file>` and take precedence over `--input` and `--output`.
-- When `--config` is provided, `publicDir` and `assetManifestPath` from the config file serve as defaults if `--input` or `--output` are not specified on the command line.
-- If the config file cannot be loaded or contains no fields, usage information is printed and the process exits with a non-zero status.
+- When `--config` is provided, `publicDir` and `assetManifestPath` from the config file serve as defaults if `--input` or `--output` are not specified on the command line (or as positional arguments).
+- If the `--config` file does not exist, or the config contains no fields, usage information is printed and the process exits with status 1. If the config file exists but fails to import, the error is thrown and usage information is not printed.
 - If the output path does not end with `.js`, `.ts`, `.cjs`, or `.mjs`, a warning is printed and a `.js` extension is appended automatically.
-- If the input is not a directory or the output is not a file, an error is printed, followed by usage information, and the process exits with a non-zero status.
+- If the input is not an existing non-empty directory or the output is not a file path, an error is printed, followed by usage information, and the process exits with status 1.
+- All other settings (`contentTypes`, `ignoreDotFiles`, `ignorePaths`, `ignoreWellKnown`) can only be set through the config file.
 
 ## Config File
 
-When using `--config`, the config file must export an object conforming to `AssetCacheConfig`:
+When using `--config`, the config file must export an object named `config`, conforming to `AssetCacheConfig`. Use a named export (`export { config }` or `export const config = ...`). A default export is not read.
 
 ```ts
 interface AssetCacheConfig extends Record<string, unknown> {
@@ -63,15 +67,15 @@ interface AssetCacheConfig extends Record<string, unknown> {
 }
 ```
 
-Example config (`.fastedge/asset-config.js`):
+Example config (`.fastedge/asset-config.mjs`):
 
 ```js
-export default {
+const config = {
   publicDir: './public',
   assetManifestPath: './.fastedge/build/static-asset-manifest.js',
   ignoreDotFiles: true,
   ignoreWellKnown: false,
-  ignorePaths: ['./public/drafts'],
+  ignorePaths: ['/drafts'],
   contentTypes: [
     {
       test: /\.webp$/u,
@@ -80,18 +84,24 @@ export default {
     },
   ],
 };
+
+export { config };
 ```
 
 ### Config Fields
 
-| Field               | Type                      | Description                                                            |
-| ------------------- | ------------------------- | ---------------------------------------------------------------------- |
-| `publicDir`         | `string`                  | Directory to scan for static files                                     |
-| `assetManifestPath` | `string`                  | Output manifest file path                                              |
-| `contentTypes`      | `ContentTypeDefinition[]` | Custom content type matchers prepended before built-in defaults        |
-| `ignoreDotFiles`    | `boolean`                 | When `true`, excludes files and directories whose names begin with `.` |
-| `ignorePaths`       | `string[]`                | Additional paths to exclude from the manifest                          |
-| `ignoreWellKnown`   | `boolean`                 | When `true`, excludes the `.well-known` directory                      |
+| Field               | Type                      | Default | Description                                                                        |
+| ------------------- | ------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `publicDir`         | `string`                  | none    | Directory to scan for static files. Used when `--input` is not given               |
+| `assetManifestPath` | `string`                  | none    | Output manifest file path. Used when `--output` is not given                       |
+| `contentTypes`      | `ContentTypeDefinition[]` | `[]`    | Custom content type matchers checked before the built-in types                     |
+| `ignoreDotFiles`    | `boolean`                 | `true`  | When `true`, excludes dot files and directories (except `.well-known`)             |
+| `ignorePaths`       | `string[]`                | `[]`    | Paths to exclude, relative to `publicDir`, e.g. `'/drafts'`. Exact match, no globs |
+| `ignoreWellKnown`   | `boolean`                 | `false` | When `true`, excludes the `.well-known` directory                                  |
+
+`ignorePaths` entries are relative to `publicDir`. Each entry is normalized to start with a single `/` (a leading `./` and trailing slashes are removed) and is compared exactly against the path of each file or directory under `publicDir`. Glob patterns are not supported. A matching directory is excluded together with everything inside it. For example, with `publicDir: './public'`, use `'/drafts'` to exclude `./public/drafts`.
+
+A legacy `ignoreDirs` array is still read as an alias for `ignorePaths`; new configs should use `ignorePaths`.
 
 ### ContentTypeDefinition
 
@@ -105,11 +115,11 @@ interface ContentTypeDefinition {
 
 | Field         | Type                                        | Description                                                             |
 | ------------- | ------------------------------------------- | ----------------------------------------------------------------------- |
-| `test`        | `RegExp \| ((assetKey: string) => boolean)` | Pattern or function matched against each asset's URL path               |
+| `test`        | `RegExp \| ((assetKey: string) => boolean)` | Pattern or function matched against each asset's lowercased URL path    |
 | `contentType` | `string`                                    | MIME type assigned to matched assets (e.g. `"image/webp"`)              |
 | `isText`      | `boolean`                                   | Whether the file should be treated as text (`true`) or binary (`false`) |
 
-Custom content types are evaluated before built-in defaults. The first matching entry wins.
+Custom content types are evaluated before built-in defaults. The first matching entry wins. If `isText` is omitted it is treated as `false`. An entry is skipped with a warning if `test` is not a function or regular expression, or if `contentType` is not a string containing a `/`. If `contentTypes` is not an array, it is treated as an empty array and ignored without a warning.
 
 ## Manifest Structure
 
@@ -119,11 +129,12 @@ The generated file exports a `staticAssetManifest` constant:
 type StaticAssetManifest = Record<string, StaticAssetMetadata>;
 
 interface StaticAssetMetadata {
-  type:        string;
-  assetKey:    string;
-  contentType: string;
-  isText:      boolean;
-  fileInfo:    FileInfo;
+  type:             string;
+  assetKey:         string;
+  contentType:      string;
+  isText:           boolean;
+  fileInfo:         FileInfo;
+  lastModifiedTime: number;
 }
 
 interface FileInfo {
@@ -134,18 +145,21 @@ interface FileInfo {
 }
 ```
 
-| Field                       | Type      | Description                                               |
-| --------------------------- | --------- | --------------------------------------------------------- |
-| `type`                      | `string`  | Always `"wasm-inline"` for assets generated by this tool  |
-| `assetKey`                  | `string`  | URL path key used to look up the asset at runtime         |
-| `contentType`               | `string`  | MIME type (e.g. `"text/css"`, `"image/png"`)              |
-| `isText`                    | `boolean` | Whether the content is text or binary                     |
-| `fileInfo.hash`             | `string`  | SHA-256 hex hash of the file contents                     |
-| `fileInfo.size`             | `number`  | File size in bytes                                        |
-| `fileInfo.assetPath`        | `string`  | Original file path at the time the manifest was generated |
-| `fileInfo.lastModifiedTime` | `number`  | File last-modified timestamp (Unix seconds)               |
+| Field                       | Type      | Description                                              |
+| --------------------------- | --------- | -------------------------------------------------------- |
+| `type`                      | `string`  | Always `"wasm-inline"` for assets generated by this tool |
+| `assetKey`                  | `string`  | URL path key used to look up the asset at runtime        |
+| `contentType`               | `string`  | MIME type (e.g. `"text/css"`, `"image/png"`)             |
+| `isText`                    | `boolean` | Whether the content is text or binary                    |
+| `fileInfo.hash`             | `string`  | SHA-256 hex hash of the file contents                    |
+| `fileInfo.size`             | `number`  | File size in bytes                                       |
+| `fileInfo.assetPath`        | `string`  | Source file path relative to the working directory       |
+| `fileInfo.lastModifiedTime` | `number`  | File last-modified timestamp (Unix seconds)              |
+| `lastModifiedTime`          | `number`  | Same value as `fileInfo.lastModifiedTime`                |
 
-Example generated output:
+Each manifest entry is keyed by its `assetKey`, the file's path relative to `publicDir` with a leading `/`.
+
+Example generated output (each entry is written on a single line):
 
 ```js
 /*
@@ -155,18 +169,7 @@ Example generated output:
  */
 
 const staticAssetManifest = {
-  '/index.css': {
-    assetKey: '/index.css',
-    contentType: 'text/css',
-    isText: true,
-    fileInfo: {
-      size: 466,
-      hash: 'e17878bc37ca054789c91f5c24e6044a077e172d2c65454a71269a82e61ee686',
-      lastModifiedTime: 1768985591,
-      assetPath: './styles/index.css',
-    },
-    type: 'wasm-inline',
-  },
+  '/index.css': { assetKey: '/index.css', contentType: 'text/css', isText: true, fileInfo: { size: 466, hash: 'e17878bc37ca054789c91f5c24e6044a077e172d2c65454a71269a82e61ee686', lastModifiedTime: 1768985591, assetPath: './styles/index.css' }, lastModifiedTime: 1768985591, type: 'wasm-inline' },
 };
 
 export { staticAssetManifest };
@@ -209,17 +212,19 @@ The following MIME types are detected automatically by file extension. Custom `c
 | `.woff2`        | `font/woff2`                    | no   |
 | (no match)      | `application/octet-stream`      | no   |
 
+Extensions are matched against the lowercased asset path.
+
 ## When to Use
 
 **Use `fastedge-assets` directly when:**
 
-- You are building an HTTP app and need to embed specific asset directories individually.
+- You are building an HTTP app (for example one using `createStaticServer`) and need to embed a manifest outside a static build.
 - You want separate manifests per asset group (e.g. one manifest for images, another for templates).
 - You need control over which directories are scanned and what the output file is named.
 
 **You do not need to run `fastedge-assets` directly when:**
 
-- You are using `fastedge-build` with a `static` build type configured in a `build-config.js`. In that mode, `fastedge-build` invokes the manifest generator automatically as part of the build pipeline.
+- You are using `fastedge-build` with a `static` build type configured in a `build-config.js`. In that mode, `fastedge-build` generates the manifest itself as part of the build pipeline.
 
 ## Example: Multiple Manifests in One Project
 

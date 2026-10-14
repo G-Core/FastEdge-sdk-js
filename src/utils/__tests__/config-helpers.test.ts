@@ -369,6 +369,32 @@ describe('config-helpers', () => {
     });
   });
 
+  describe('array normalization', () => {
+    interface ObjectArrayConfig extends Record<string, unknown> {
+      items: Array<{ test: RegExp; contentType: string }>;
+    }
+
+    it('should keep object entries unchanged', () => {
+      expect.assertions(1);
+      const items = [{ test: /\.foo$/u, contentType: 'application/x-foo' }];
+      const normalize = { items: 'array' as const };
+
+      const result = normalizeConfig<ObjectArrayConfig>({ items }, normalize);
+
+      expect(result.items).toStrictEqual(items);
+    });
+
+    it('should default a missing or non-array value to an empty array', () => {
+      expect.assertions(2);
+      const normalize = { items: 'array' as const };
+
+      expect(normalizeConfig<ObjectArrayConfig>({}, normalize).items).toStrictEqual([]);
+      expect(
+        normalizeConfig<ObjectArrayConfig>({ items: 'nope' as any }, normalize).items,
+      ).toStrictEqual([]);
+    });
+  });
+
   describe('paths or regex array normalization', () => {
     interface PathsOrRegexConfig extends Record<string, unknown> {
       patterns: Array<string | RegExp>;
@@ -383,10 +409,23 @@ describe('config-helpers', () => {
       const result = normalizeConfig<PathsOrRegexConfig>(config, normalize);
 
       expect(result.patterns).toHaveLength(4);
-      expect(result.patterns[0]).toBe('/path1');
+      expect(result.patterns[0]).toBe('/path1/');
       expect(result.patterns[1]).toBeInstanceOf(RegExp);
       expect(result.patterns[2]).toBe('/path2');
       expect(result.patterns[3]).toBeInstanceOf(RegExp);
+    });
+
+    it('should pass RegExp entries through and keep "/" as-is', () => {
+      expect.assertions(3);
+      const woff = /\.woff2$/iu;
+      const config = { patterns: [woff, '/', 'assets/'] };
+      const normalize = { patterns: 'pathsOrRegexArray' as const };
+
+      const result = normalizeConfig<PathsOrRegexConfig>(config, normalize);
+
+      expect(result.patterns[0]).toBe(woff);
+      expect(result.patterns[1]).toBe('/');
+      expect(result.patterns[2]).toBe('/assets/');
     });
 
     it('should handle invalid regex patterns', () => {
@@ -400,7 +439,7 @@ describe('config-helpers', () => {
 
       // Invalid regex should be filtered out
       expect(result.patterns).toHaveLength(2);
-      expect(result.patterns[0]).toBe('/valid/path');
+      expect(result.patterns[0]).toBe('/valid/path/');
       expect(result.patterns[1]).toBeInstanceOf(RegExp);
 
       // Should have logged a warning

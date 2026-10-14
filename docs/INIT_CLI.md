@@ -1,7 +1,6 @@
 # fastedge-init CLI
 
-Interactive scaffolding tool that generates build configuration and starter files for a new FastEdge
-application.
+Interactive scaffolding tool that generates build configuration and starter files for a new FastEdge application.
 
 ## Usage
 
@@ -9,11 +8,11 @@ application.
 npx fastedge-init
 ```
 
-`fastedge-init` has no flags. All configuration is collected interactively. Run it from the root of
-your project directory.
+`fastedge-init` has no flags. All configuration is collected interactively. Run it from the root of your project directory.
 
-If `.fastedge/build-config.js` already exists, the tool warns you and asks whether to overwrite it
-before proceeding. Answering `N` or pressing Enter exits without making changes.
+If `.fastedge/build-config.js` already exists, the tool warns you and asks whether to overwrite it before proceeding. The confirmation defaults to `No`: answering `N` or pressing Enter exits without making changes.
+
+When a prompt receives invalid input (see the validation columns below), the tool prints an error and exits with a non-zero status. The one exception is the SPA entrypoint prompt, which prints a warning and continues.
 
 ## Application Types
 
@@ -28,10 +27,10 @@ The first prompt asks what you are building:
 
 ### Prompts
 
-| Prompt                   | Default                    | Validation            |
-| ------------------------ | -------------------------- | --------------------- |
-| Path to your entry file  | `src/index.js`             | File must exist       |
-| Path to your output file | `.fastedge/dist/main.wasm` | Must end with `.wasm` |
+| Prompt                   | Default                    | Validation               |
+| ------------------------ | -------------------------- | ------------------------ |
+| Path to your entry file  | `src/index.js`             | Must be an existing file |
+| Path to your output file | `.fastedge/dist/main.wasm` | Must end with `.wasm`    |
 
 ### Files Created
 
@@ -41,22 +40,31 @@ The first prompt asks what you are building:
 
 ### Generated Config
 
-`.fastedge/build-config.js` exports two named objects using the values from the prompts:
+`.fastedge/build-config.js` exports two named objects using the values from the prompts. The objects are written as JSON, so keys and string values are double-quoted:
 
 ```js
 const config = {
-  type: 'http',
-  tsConfigPath: './tsconfig.json',
-  entryPoint: 'src/index.js',
-  wasmOutput: '.fastedge/dist/main.wasm',
+  "type": "http",
+  "tsConfigPath": "./tsconfig.json",
+  "entryPoint": "src/index.js",
+  "wasmOutput": ".fastedge/dist/main.wasm"
 };
 
 const serverConfig = {
-  type: 'http',
+  "type": "http"
 };
 
 export { config, serverConfig };
 ```
+
+#### Build Config (`config`)
+
+| Field          | Type     | Default                    | Description                            |
+| -------------- | -------- | -------------------------- | -------------------------------------- |
+| `type`         | `string` | `"http"`                   | Build type identifier                  |
+| `tsConfigPath` | `string` | `./tsconfig.json`          | Path to TypeScript configuration       |
+| `entryPoint`   | `string` | `src/index.js`             | Path to your entry file                |
+| `wasmOutput`   | `string` | `.fastedge/dist/main.wasm` | Output path for the compiled WASM file |
 
 ### Entry File
 
@@ -84,14 +92,18 @@ npx fastedge-build --config .fastedge/build-config.js
 
 ## Static Website Setup
 
+`.fastedge/static-index.js` is written before the prompts are shown. The remaining files are written after all prompts are answered.
+
 ### Prompts
 
-| Prompt                                   | Default                        | Validation                                                 |
-| ---------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
-| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                      |
-| Path to your public directory            | `./build`                      | Directory must exist                                       |
-| Is your site a single page application?  | `No`                           | —                                                          |
-| Path to your SPA entrypoint _(SPA only)_ | `./index.html`                 | Warns if `index.html` is not found in the public directory |
+| Prompt                                   | Default                        | Validation                                             |
+| ---------------------------------------- | ------------------------------ | ------------------------------------------------------ |
+| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                  |
+| Path to your public directory            | `./build`                      | Directory must exist and not be empty                  |
+| Is your site a single page application?  | `No`                           | —                                                      |
+| Path to your SPA entrypoint _(SPA only)_ | `./index.html`                 | Warns if the file is not found in the public directory |
+
+For a single page application, the existence check looks for the entered path inside the public directory. If the file is not found, a warning is printed and `spaEntrypoint` is left unset (written as `null`). Otherwise `spaEntrypoint` is set to the normalized form of the path entered at the prompt.
 
 ### Files Created
 
@@ -129,82 +141,137 @@ async function handleRequest(event) {
 addEventListener("fetch", (event) => event.respondWith(handleRequest(event)));
 ```
 
+The asset manifest imported by this file is generated by `fastedge-build` during the build.
+
+### Generated Project Files
+
+`.fastedge/package.json`:
+
+```json
+{
+  "name": "fastedge-build",
+  "version": "1.0.0",
+  "description": "fastedge-build project folder (ES2023)",
+  "type": "module"
+}
+```
+
+`.fastedge/jsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2023"
+  }
+}
+```
+
 ### Generated Config
 
-`.fastedge/build-config.js` exports two named objects using the values from the prompts:
+`.fastedge/build-config.js` exports two named objects using the values from the prompts. The objects are written as JSON, so keys and string values are double-quoted:
 
 ```js
 const config = {
-  type: 'static',
-  entryPoint: '.fastedge/static-index.js',
-  ignoreDotFiles: true,
-  ignoreDirs: ['./node_modules'],
-  ignoreWellKnown: false,
-  tsConfigPath: './tsconfig.json',
-  wasmOutput: '.fastedge/dist/fastedge.wasm',
-  publicDir: './build',
+  "type": "static",
+  "entryPoint": ".fastedge/static-index.js",
+  "ignoreDotFiles": true,
+  "ignorePaths": [
+    "./node_modules"
+  ],
+  "ignoreWellKnown": false,
+  "tsConfigPath": "./tsconfig.json",
+  "wasmOutput": ".fastedge/dist/fastedge.wasm",
+  "publicDir": "./build"
 };
 
 const serverConfig = {
-  type: 'static',
-  extendedCache: [],
-  publicDirPrefix: '',
-  compression: [],
-  notFoundPage: '/404.html',
-  autoExt: [],
-  autoIndex: ['index.html', 'index.htm'],
-  spaEntrypoint: null,
+  "type": "static",
+  "extendedCache": [],
+  "publicDirPrefix": "",
+  "compression": [],
+  "notFoundPage": "/404.html",
+  "autoExt": [],
+  "autoIndex": [
+    "index.html",
+    "index.htm"
+  ],
+  "spaEntrypoint": null
 };
 
 export { config, serverConfig };
 ```
 
-For a SPA, `spaEntrypoint` is set to the normalized path entered at the prompt (e.g.,
-`"/index.html"`).
+For a SPA whose entrypoint exists in the public directory, `spaEntrypoint` is set to the normalized path entered at the prompt instead of `null`.
 
 ### Config Fields
 
 #### Build Config (`config`)
 
-| Field             | Type       | Default                        | Description                                            |
-| ----------------- | ---------- | ------------------------------ | ------------------------------------------------------ |
-| `type`            | `string`   | `"static"`                     | Build type identifier                                  |
-| `entryPoint`      | `string`   | `.fastedge/static-index.js`    | Path to the generated entry file                       |
-| `wasmOutput`      | `string`   | `.fastedge/dist/fastedge.wasm` | Output path for the compiled WASM file                 |
-| `publicDir`       | `string`   | —                              | Directory containing static assets to embed            |
-| `tsConfigPath`    | `string`   | `./tsconfig.json`              | Path to TypeScript configuration                       |
-| `ignoreDotFiles`  | `boolean`  | `true`                         | Exclude files beginning with `.` from the asset bundle |
-| `ignoreDirs`      | `string[]` | `["./node_modules"]`           | Directories to exclude from the asset bundle           |
-| `ignoreWellKnown` | `boolean`  | `false`                        | When `true`, excludes the `.well-known/` directory     |
+| Field             | Type       | Default                        | Description                                               |
+| ----------------- | ---------- | ------------------------------ | --------------------------------------------------------- |
+| `type`            | `string`   | `"static"`                     | Build type identifier                                     |
+| `entryPoint`      | `string`   | `.fastedge/static-index.js`    | Path to the generated entry file                          |
+| `wasmOutput`      | `string`   | `.fastedge/dist/fastedge.wasm` | Output path for the compiled WASM file                    |
+| `publicDir`       | `string`   | `./build`                      | Directory containing static assets to embed               |
+| `tsConfigPath`    | `string`   | `./tsconfig.json`              | Path to TypeScript configuration                          |
+| `ignoreDotFiles`  | `boolean`  | `true`                         | Exclude dot files and directories (except `.well-known`)  |
+| `ignorePaths`     | `string[]` | `["./node_modules"]`           | Paths relative to `publicDir` to exclude; matched exactly |
+| `ignoreWellKnown` | `boolean`  | `false`                        | When `true`, excludes the `.well-known/` directory        |
+
+`ignorePaths` entries are relative to `publicDir` and are matched exactly against the path of a file or directory, written with a leading `/` (for example, `/drafts`). Patterns are not supported.
 
 #### Server Config (`serverConfig`)
 
-| Field             | Type             | Default                       | Description                                           |
-| ----------------- | ---------------- | ----------------------------- | ----------------------------------------------------- |
-| `type`            | `string`         | `"static"`                    | Server type identifier                                |
-| `extendedCache`   | `string[]`       | `[]`                          | Additional paths to serve with long cache TTLs        |
-| `publicDirPrefix` | `string`         | `""`                          | URL prefix stripped before resolving asset paths      |
-| `compression`     | `string[]`       | `[]`                          | Compression formats (reserved for future use)         |
-| `notFoundPage`    | `string`         | `"/404.html"`                 | Asset path served on 404                              |
-| `autoExt`         | `string[]`       | `[]`                          | Extensions appended when a path has no extension      |
-| `autoIndex`       | `string[]`       | `["index.html", "index.htm"]` | Index filenames tried when resolving a directory path |
-| `spaEntrypoint`   | `string \| null` | `null`                        | Fallback asset path for unmatched routes in SPA mode  |
+| Field             | Type                      | Default                       | Description                                                     |
+| ----------------- | ------------------------- | ----------------------------- | --------------------------------------------------------------- |
+| `type`            | `string`                  | `"static"`                    | Server type identifier                                          |
+| `extendedCache`   | `Array<string \| RegExp>` | `[]`                          | Paths or patterns served with extended caching                  |
+| `publicDirPrefix` | `string`                  | `""`                          | Prepended to the asset key after `routePrefix` is stripped      |
+| `routePrefix`     | `string`                  | —                             | Stripped from the request path; not written by init             |
+| `compression`     | `string[]`                | `[]`                          | Accepted but has no effect; content encoding is not implemented |
+| `notFoundPage`    | `string \| null`          | `"/404.html"`                 | Asset path served with status 404                               |
+| `autoExt`         | `string[]`                | `[]`                          | Extensions tried after a direct miss                            |
+| `autoIndex`       | `string[]`                | `["index.html", "index.htm"]` | Index filenames tried when resolving a directory path           |
+| `spaEntrypoint`   | `string \| null`          | `null`                        | Asset path served for unmatched HTML requests                   |
+
+`fastedge-init` does not write `routePrefix`; add it to `serverConfig` manually if needed. The generated file is plain JSON, so `extendedCache` entries written by hand in `build-config.js` can also be `RegExp` objects.
+
+#### Server Config Behaviour
+
+For each `GET` or `HEAD` request, the server resolves the asset key from the request path in this order:
+
+1. `routePrefix`, if set, is stripped from the request path.
+2. `publicDirPrefix`, if non-empty, is prepended to the result.
+3. A leading `/` is added if missing.
+
+The server then looks for a matching asset:
+
+- A path that does not end in `/` is looked up directly. If there is no direct match, each `autoExt` extension is appended in turn and the result is looked up. `autoExt` applies to any path not ending in `/`, whether or not the path already has an extension.
+- If no asset has matched, the path is treated as a directory and each `autoIndex` filename is tried in order.
+
+Other behaviour:
+
+- `extendedCache` entries are matched against the request path. An entry is one of:
+  - an exact path, such as `'/logo.png'`
+  - a path prefix: an entry ending in `/`, such as `'/assets/'`, matches any path that starts with it, and `'/'` matches every path
+  - a `RegExp` object
+  - a `regex:/pattern/flags` string, such as `'regex:/\\.(js|css)$/i'`; other `regex:` forms are dropped with a warning
+
+  Matching assets are served with `Cache-Control: max-age=31536000`.
+- `compression` is accepted but has no effect. Content encoding is not implemented, so assets are always served unencoded regardless of the `Accept-Encoding` header.
+- When no asset matches and the request accepts `text/html`, the server serves `spaEntrypoint` (status 200, `Cache-Control: no-store`) if it is set and the asset exists. Otherwise it serves `notFoundPage` (status 404, `Cache-Control: no-store`) if it is set and the asset exists. Both values are asset keys, not paths relative to the public directory.
+- An unset `notFoundPage` or `spaEntrypoint` normalizes to `'/'`, which matches no asset, so the feature is effectively off.
+- Requests that the server does not handle, such as non-`GET`/`HEAD` methods or unmatched requests that do not accept `text/html`, fall through to the `Not found` 404 response in the generated entry file.
 
 ### Build Command
 
-Static sites require two build steps. First, generate the asset manifest from your public directory:
-
-```bash
-npx fastedge-assets ./build .fastedge/build/static-asset-manifest.js
-```
-
-Then compile to WASM:
+A static site is built with a single command. `fastedge-build` generates the asset manifest from the public directory and then compiles to WASM:
 
 ```bash
 npx fastedge-build --config .fastedge/build-config.js
 ```
 
-Run `fastedge-assets` again whenever your static assets change.
+Run the same command again whenever your static assets change.
 
 ## See Also
 
