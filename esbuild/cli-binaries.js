@@ -18,8 +18,8 @@ async function buildAll() {
       format: "esm",
       external: [
         "@bytecodealliance/wizer",
-        "@bytecodealliance/jco",
-        "esbuild",
+        "@bytecodealliance/jco-transpile",
+        "esbuild-wasm",
         "enquirer",
         "regexpu-core",
         "acorn",

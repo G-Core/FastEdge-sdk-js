@@ -46,6 +46,8 @@ The componentize pipeline is the core of `fastedge-build`. It converts a JavaScr
 
 Bundles the user's JS/TS source into a single file using esbuild. This resolves all imports and produces a self-contained script ready for WASM embedding.
 
+The SDK uses `esbuild-wasm`, not native `esbuild`, so bundling has no per-platform binary (see Platform-neutral build below).
+
 - Controlled by `preBundleJSInput` option (default: `true`)
 - If `false`, reads the file directly without bundling
 
@@ -65,7 +67,7 @@ Bundles the user's JS/TS source into a single file using esbuild. This resolves 
 
 ### Stage 3: Wizer Pre-initialization
 
-**Tool:** `@bytecodealliance/wizer`
+**Tool:** `@bytecodealliance/wizer`, or the binary named by `FASTEDGE_WIZER_PATH` when set
 **Input:** `lib/fastedge-runtime.wasm` (StarlingMonkey engine) + bundled JS
 **Output:** Pre-initialized core WASM module
 
@@ -83,12 +85,20 @@ Wizer creates a snapshot of the StarlingMonkey runtime with the user's JavaScrip
 
 ### Stage 4: JCO Component Composition
 
-**Tool:** `@bytecodealliance/jco` → `componentNew()`
+**Tool:** `@bytecodealliance/jco-transpile/wasm-tools` → `componentNew()`
 **Adapter:** `lib/preview1-adapter.wasm`
 
 Wraps the Wizer output (a core WASM module) into a WASM Component Model component by attaching the WASI preview1 adapter. This makes the module compatible with any WASM Component Model host (including the FastEdge CDN's Wasmtime runtime).
 
 After composition, `addWasmMetadata()` (`src/componentize/add-wasm-metadata.ts`) stamps the component with package metadata from `package.json`.
+
+## Platform-neutral build
+
+`fastedge-build` must work from a `node_modules` installed on a different OS, e.g. a project installed on macOS and built in the FastEdge MCP server's Linux container. Only wizer is a native binary:
+
+- Bundling uses `esbuild-wasm`. Native `esbuild` needs a binary whose version exactly matches the JS package, so a build host can't supply one.
+- `componentNew()` and `metadataAdd()` come from `@bytecodealliance/jco-transpile/wasm-tools`, which is wasm. The `@bytecodealliance/jco` root entry loads native napi modules (oxc-minify, rolldown, jco-node-fs) at import time even though the build never calls them.
+- `@bytecodealliance/wizer` is imported lazily, only when `FASTEDGE_WIZER_PATH` is unset, because the package throws at load time when this platform's binary is missing.
 
 ## Build Types
 

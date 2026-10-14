@@ -48,7 +48,7 @@ Builds 3 CLI tools from TypeScript source to bundled ESM:
 **Settings:** `platform: "node"`, `format: "esm"`, `bundle: true`
 
 **External packages** (not bundled — resolved at runtime):
-`@bytecodealliance/wizer`, `@bytecodealliance/jco`, `esbuild`, `enquirer`, `regexpu-core`, `acorn`, `magic-string`, `acorn-walk`
+`@bytecodealliance/wizer`, `@bytecodealliance/jco-transpile`, `esbuild-wasm`, `enquirer`, `regexpu-core`, `acorn`, `magic-string`, `acorn-walk`
 
 After bundling, prepends `#!/usr/bin/env node` shebang to each output file.
 

@@ -5,6 +5,17 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-14] — Platform-neutral fastedge-build (no native bindings except wizer)
+
+### Overview
+`fastedge-build` now runs from a `node_modules` installed on another OS, so the FastEdge MCP server can build a macOS- or Windows-installed project in its Linux container without reinstalling (and corrupting) the host's `node_modules` (G-Core/FastEdge-mcp-server#61).
+
+### Changes
+- `componentNew` / `metadataAdd` import from `@bytecodealliance/jco-transpile/wasm-tools` instead of `@bytecodealliance/jco`. jco's root entry statically loads native napi modules (oxc-minify, rolldown, jco-node-fs) and failed with "Cannot find native binding" on a foreign-OS tree. Dependency swapped to `@bytecodealliance/jco-transpile`.
+- Bundling uses `esbuild-wasm` instead of `esbuild`. A host can't substitute its own esbuild binary because esbuild requires the binary version to match the JS package exactly. Measured: ~0.5s vs ~0.05s to bundle a ~930KB hono + react app; small next to wizer. Native `esbuild` stays as a devDependency for the SDK's own build scripts.
+- `FASTEDGE_WIZER_PATH` overrides the wizer binary. `@bytecodealliance/wizer` is now imported lazily, only when the variable is unset, since the package throws at load time when this platform's binary is missing.
+- Verified: with every Linux native package deleted from an install of the packed SDK, `fastedge-build` with `FASTEDGE_WIZER_PATH` set builds a hono app that serves 200 under `@gcoredev/fastedge-test`.
+
 ## [2026-09-15] — Shell-free child processes, TypeScript 5/6/7 compatibility, cross-platform CI
 
 ### Overview
