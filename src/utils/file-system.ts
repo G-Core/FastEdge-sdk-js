@@ -102,6 +102,23 @@ function resolveTmpDir(filePath: string): string {
 }
 
 /**
+ * Checks that `target` is strictly inside `root` (both already resolved). Works when `root` is
+ * a filesystem or drive root.
+ * @param root - The containing directory.
+ * @param target - The path to check.
+ * @returns `true` if `target` is a descendant of `root`.
+ */
+function isPathInside(root: string, target: string): boolean {
+  const relative = path.relative(root, target);
+  return (
+    relative !== '' &&
+    relative !== '..' &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+  );
+}
+
+/**
  * Recursively retrieves files from a directory.
  * @param inputPath - The path to the directory.
  * @param opts - Options for filtering files.
@@ -150,13 +167,7 @@ function getFilesRecursively(
         } catch {
           // Broken link: handled by the check below
         }
-        const relativeTarget = target ? path.relative(root, target) : '';
-        const insideRoot =
-          relativeTarget !== '' &&
-          relativeTarget !== '..' &&
-          !relativeTarget.startsWith(`..${path.sep}`) &&
-          !path.isAbsolute(relativeTarget);
-        if (insideRoot && statSync(target).isFile()) {
+        if (target && isPathInside(root, target) && statSync(target).isFile()) {
           files.push(res);
         } else {
           colorLog(
@@ -178,6 +189,7 @@ export {
   getTmpDir,
   isDirectory,
   isFile,
+  isPathInside,
   resolveOsPath,
   resolveTmpDir,
   useUnixPath,

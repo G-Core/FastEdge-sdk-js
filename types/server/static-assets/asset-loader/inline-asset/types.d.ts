@@ -26,6 +26,7 @@ interface StaticAssetMetadata {
     contentType: string;
     fileInfo: FileInfo;
     isText: boolean;
+    lastModifiedTime?: number;
 }
 /**
  * Represents an inlined static asset.

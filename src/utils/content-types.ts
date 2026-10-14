@@ -1,4 +1,5 @@
 import { colorLog } from '~utils/color-log.ts';
+import { statelessRegex } from '~utils/config-helpers.ts';
 
 /**
  * Represents a content type definition.
@@ -100,7 +101,11 @@ function getKnownContentTypes(
 
       if (!invalid) {
         finalContentTypes.push({
-          test: contentType.test,
+          // A stateless copy: /g or /y would make test() skip every other match
+          test:
+            contentType.test instanceof RegExp
+              ? statelessRegex(contentType.test)
+              : contentType.test,
           contentType: contentType.contentType,
           isText: Boolean(contentType.isText),
         });

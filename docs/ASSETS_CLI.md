@@ -29,7 +29,7 @@ npx fastedge-assets --help
 npx fastedge-assets --version
 ```
 
-Running `fastedge-assets` with no arguments prints the usage information and exits with status 0.
+Running `fastedge-assets` with no arguments prints the usage information and exits with status 0. On success, the CLI prints the path of the generated manifest and exits with status 0.
 
 ## Flags
 
@@ -169,7 +169,7 @@ interface FileInfo {
 
 Each manifest entry is keyed by its `assetKey`, the file's path relative to `publicDir` with a leading `/`.
 
-Keys and values are written with `JSON.stringify`, so keys are double-quoted and each entry is written on a single line without spaces. Example generated output:
+Keys and values are written with `JSON.stringify`, so keys are double-quoted and each entry's value is written as a single-line JSON object. Example generated output:
 
 ```js
 /*

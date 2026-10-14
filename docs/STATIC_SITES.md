@@ -145,14 +145,14 @@ export { config, serverConfig };
 
 The following fields apply when `type` is `'static'`. All other `BuildConfig` fields are documented in [BUILD_CLI.md](BUILD_CLI.md).
 
-| Field               | Type                           | Required | Description                                                                                             |
-| ------------------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------- |
-| `publicDir`         | `string`                       | No       | Directory to scan for static files to embed; defaults to the current directory                          |
+| Field               | Type                           | Required | Description                                                                                            |
+| ------------------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------ |
+| `publicDir`         | `string`                       | No       | Directory to scan for static files to embed; defaults to the current directory                         |
 | `assetManifestPath` | `string`                       | No       | Output path for the generated manifest module; defaults to `.fastedge/build/static-asset-manifest.js`  |
-| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content-type definitions                                                                         |
+| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content-type definitions                                                                        |
 | `ignoreDotFiles`    | `boolean`                      | No       | When `true` (default), excludes files and directories whose names begin with `.`, except `.well-known` |
-| `ignorePaths`       | `string[]`                     | No       | Paths to exclude, relative to `publicDir` and matched exactly (e.g. `'/drafts'`)                        |
-| `ignoreWellKnown`   | `boolean`                      | No       | When `true`, excludes the `.well-known/` directory; default `false`                                     |
+| `ignorePaths`       | `string[]`                     | No       | Paths to exclude, relative to `publicDir` and matched exactly (e.g. `'/drafts'`)                       |
+| `ignoreWellKnown`   | `boolean`                      | No       | When `true`, excludes the `.well-known/` directory; default `false`                                    |
 
 `fastedge-build` does not check `publicDir` beforehand. A missing directory fails the build, and an empty directory produces an empty manifest.
 

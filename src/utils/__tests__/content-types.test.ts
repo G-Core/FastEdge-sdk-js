@@ -384,6 +384,22 @@ describe('content-types', () => {
     afterEach(() => {
       consoleSpy.mockRestore();
     });
+
+    it('should make /g and /y regexes stateless without mutating the caller\'s regex', () => {
+      expect.assertions(3);
+      const custom = /\.foo$/gu;
+      const known = getKnownContentTypes([
+        { test: custom, contentType: 'application/x-foo', isText: false },
+      ]);
+
+      const first = testFileContentType(known, '/a.foo');
+      const second = testFileContentType(known, '/b.foo');
+
+      expect(first?.contentType).toBe('application/x-foo');
+      expect(second?.contentType).toBe('application/x-foo');
+      expect(custom.flags).toBe('gu');
+    });
+
     it('should return default content types when no custom types provided', () => {
       expect.assertions(3);
       const types = getKnownContentTypes([]);

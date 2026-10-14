@@ -111,6 +111,16 @@ function convertToRegex(pattern: string): string | RegExp {
 }
 
 /**
+ * Drops the `g` and `y` flags: they make `test()` stateful (`lastIndex`), so a reused regex
+ * would match on alternate calls.
+ * @param regex - The regex to make stateless.
+ * @returns The same regex, or a copy without `g`/`y`.
+ */
+function statelessRegex(regex: RegExp): RegExp {
+  return /[gy]/u.test(regex.flags) ? new RegExp(regex.source, regex.flags.replace(/[gy]/gu, '')) : regex;
+}
+
+/**
  * Normalize path or convert to regex from an array of strings and RegExps.
  * RegExp entries pass through. A trailing `/` is kept, so the entry still matches as a prefix.
  * @param inputsArray - The array of inputs to normalize.
@@ -120,7 +130,7 @@ function normalizePathsOrRegex(inputsArray: Array<string | RegExp> = []): Array<
   return inputsArray
     .map((strInput) => {
       if (strInput instanceof RegExp) {
-        return strInput;
+        return statelessRegex(strInput);
       }
       if (strInput.startsWith('regex:')) {
         const regexp = convertToRegex(strInput.slice(6));
@@ -129,7 +139,7 @@ function normalizePathsOrRegex(inputsArray: Array<string | RegExp> = []): Array<
           console.warn('caution', `Invalid regex pattern: ${strInput}`);
           return '';
         }
-        return regexp;
+        return statelessRegex(regexp);
       }
       const normalized = normalizePath(strInput);
       return strInput.endsWith('/') && normalized !== '/' ? `${normalized}/` : normalized;
@@ -175,4 +185,4 @@ function normalizeConfig<T extends Record<string, unknown>>(
   return result;
 }
 
-export { normalizeConfig, normalizePath };
+export { normalizeConfig, normalizePath, statelessRegex };

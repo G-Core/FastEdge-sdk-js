@@ -96,14 +96,14 @@ npx fastedge-build --config .fastedge/build-config.js
 
 ### Prompts
 
-| Prompt                                   | Default                        | Validation                                             |
-| ---------------------------------------- | ------------------------------ | ------------------------------------------------------ |
-| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                  |
-| Path to your public directory            | `./build`                      | Directory must exist and not be empty                  |
-| Is your site a single page application?  | `No`                           | —                                                      |
-| Path to your SPA entrypoint _(SPA only)_ | `./index.html`                 | Warns if the file is not found in the public directory |
+| Prompt                                   | Default                        | Validation                                                                    |
+| ---------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------- |
+| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                                         |
+| Path to your public directory            | `./build`                      | Directory must exist and not be empty                                         |
+| Is your site a single page application?  | `No`                           | —                                                                             |
+| Path to your SPA entrypoint _(SPA only)_ | `./index.html`                 | Warns if the file is not found in, or resolves outside, the public directory |
 
-For a single page application, the existence check looks for the entered path inside the public directory. If the file is not found, a warning is printed and `spaEntrypoint` is left unset (written as `null`). Otherwise `spaEntrypoint` is set to the normalized form of the path entered at the prompt.
+For a single page application, the entered path is resolved against the public directory. The file must exist and must lie inside the public directory, both as typed and after symbolic links are resolved. If it does not, a warning is printed and `spaEntrypoint` is left unset (written as `null`). Otherwise `spaEntrypoint` is set to the asset key of the file: its path relative to the public directory, normalized with a leading `/` (for example, `./index.html` becomes `/index.html`).
 
 ### Files Created
 
@@ -201,7 +201,7 @@ const serverConfig = {
 export { config, serverConfig };
 ```
 
-For a SPA whose entrypoint exists in the public directory, `spaEntrypoint` is set to the normalized path entered at the prompt instead of `null`.
+For a SPA whose entrypoint exists in the public directory, `spaEntrypoint` is set to the asset key of that file (for example, `"/index.html"`) instead of `null`.
 
 ### Config Fields
 
@@ -234,7 +234,7 @@ For a SPA whose entrypoint exists in the public directory, `spaEntrypoint` is se
 | `autoIndex`       | `string[]`                | `["index.html", "index.htm"]` | Index filenames tried when resolving a directory path           |
 | `spaEntrypoint`   | `string \| null`          | `null`                        | Asset path served for unmatched HTML requests                   |
 
-`fastedge-init` does not write `routePrefix`; add it to `serverConfig` manually if needed. The generated file is plain JSON, so `extendedCache` entries written by hand in `build-config.js` can also be `RegExp` objects.
+`fastedge-init` does not write `routePrefix`; add it to `serverConfig` manually if needed. The generated file is plain JavaScript, so `extendedCache` entries written by hand in `build-config.js` can also be `RegExp` objects.
 
 #### Server Config Behaviour
 
@@ -261,7 +261,7 @@ Other behaviour:
 - `compression` is accepted but has no effect. Content encoding is not implemented, so assets are always served unencoded regardless of the `Accept-Encoding` header.
 - When no asset matches and the request accepts `text/html`, the server serves `spaEntrypoint` (status 200, `Cache-Control: no-store`) if it is set and the asset exists. Otherwise it serves `notFoundPage` (status 404, `Cache-Control: no-store`) if it is set and the asset exists. Both values are asset keys, not paths relative to the public directory.
 - An unset `notFoundPage` or `spaEntrypoint` normalizes to `'/'`, which matches no asset, so the feature is effectively off.
-- Requests that the server does not handle, such as non-`GET`/`HEAD` methods or unmatched requests that do not accept `text/html`, fall through to the `Not found` 404 response in the generated entry file.
+- Requests that the server does not handle, such as non-`GET`/`HEAD` methods, unmatched requests that do not accept `text/html`, or unmatched HTML requests when neither `spaEntrypoint` nor `notFoundPage` resolves to an asset, fall through to the `Not found` 404 response in the generated entry file.
 
 ### Build Command
 

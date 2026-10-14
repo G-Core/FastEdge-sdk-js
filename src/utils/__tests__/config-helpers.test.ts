@@ -428,6 +428,21 @@ describe('config-helpers', () => {
       expect(result.patterns[2]).toBe('/assets/');
     });
 
+    it('should drop the stateful g and y flags so repeated tests stay consistent', () => {
+      expect.assertions(3);
+      const normalize = { patterns: 'pathsOrRegexArray' as const };
+
+      const result = normalizeConfig<PathsOrRegexConfig>(
+        { patterns: [/\/assets/gu, 'regex:/img/yi'] },
+        normalize,
+      );
+      const [assets, img] = result.patterns as RegExp[];
+
+      expect([assets.test('/assets/a'), assets.test('/assets/a')]).toStrictEqual([true, true]);
+      expect(assets.flags).toBe('u');
+      expect(img.flags).toBe('i');
+    });
+
     it('should handle invalid regex patterns', () => {
       expect.assertions(4);
       const config = {
@@ -558,7 +573,8 @@ describe('config-helpers', () => {
 
       expect(result.patterns[0]).toBeInstanceOf(RegExp);
       const regex = result.patterns[0] as RegExp;
-      expect(regex.flags).toBe('gims');
+      // The g flag is dropped: it would make test() stateful across requests
+      expect(regex.flags).toBe('ims');
     });
 
     it('should reject invalid regex syntax', () => {

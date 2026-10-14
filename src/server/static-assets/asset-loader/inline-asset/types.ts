@@ -30,6 +30,7 @@ interface StaticAssetMetadata {
   contentType: string; // Content type of the asset
   fileInfo: FileInfo; // Information about the file
   isText: boolean; // Indicates if the asset is text
+  lastModifiedTime?: number; // Written by the manifest generator; same as fileInfo.lastModifiedTime
 }
 
 /**
