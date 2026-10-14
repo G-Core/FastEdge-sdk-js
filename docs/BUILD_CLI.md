@@ -210,8 +210,8 @@ If `type` is absent or does not match `'http'` or `'static'`, the CLI prints `Er
 
 ## Environment Variables
 
-| Variable              | Type     | Default | Description                                                                         |
-| --------------------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+| Variable              | Type     | Default | Description                                                                                 |
+| --------------------- | -------- | ------- | ------------------------------------------------------------------------------------------- |
 | `FASTEDGE_WIZER_PATH` | `string` | unset   | Path to a wizer binary to use instead of the one from the `@bytecodealliance/wizer` package |
 
 When `FASTEDGE_WIZER_PATH` is unset, `fastedge-build` uses the binary from the `@bytecodealliance/wizer` package for the current platform. When it is set, that package is not loaded and the binary at the given path is run instead.
@@ -239,7 +239,7 @@ In config-driven mode, on success the CLI prints one line per config file:
 Success: Built <wasmOutput>
 ```
 
-If a build step fails, the CLI prints an error message and no output file is written for that build.
+If a build step fails, the CLI prints an error and exits non-zero.
 
 ## See Also
 

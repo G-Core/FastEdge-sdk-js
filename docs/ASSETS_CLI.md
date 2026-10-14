@@ -45,8 +45,7 @@ Running `fastedge-assets` with no arguments prints the usage information.
 - Two positional arguments are interpreted as `<input-directory> <output-file>` and take precedence over `--input` and `--output`.
 - When `--config` is provided, `publicDir` and `assetManifestPath` from the config file serve as defaults if `--input` or `--output` are not specified on the command line.
 - If the config file cannot be loaded or contains no fields, usage information is printed and the process exits with a non-zero status.
-- If the output path does not end with `.js`, `.ts`, `.cjs`, or `.mjs`, a `.js` extension is appended automatically.
-- If the resolved output path is not a valid file path, a warning is printed and the manifest is written to the default path `./.fastedge/build/static-asset-manifest.js`.
+- If the output path does not end with `.js`, `.ts`, `.cjs`, or `.mjs`, a warning is printed and a `.js` extension is appended automatically.
 - If the input is not a directory or the output is not a file, an error is printed, followed by usage information, and the process exits with a non-zero status.
 
 ## Config File
