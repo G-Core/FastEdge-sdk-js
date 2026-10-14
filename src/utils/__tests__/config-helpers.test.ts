@@ -428,19 +428,21 @@ describe('config-helpers', () => {
       expect(result.patterns[2]).toBe('/assets/');
     });
 
-    it('should drop the stateful g and y flags so repeated tests stay consistent', () => {
-      expect.assertions(3);
+    it('should give g and y regexes a private copy with the flags kept', () => {
+      expect.assertions(4);
+      const assets = /\/assets/gu;
       const normalize = { patterns: 'pathsOrRegexArray' as const };
 
       const result = normalizeConfig<PathsOrRegexConfig>(
-        { patterns: [/\/assets/gu, 'regex:/img/yi'] },
+        { patterns: [assets, 'regex:/img/yi'] },
         normalize,
       );
-      const [assets, img] = result.patterns as RegExp[];
+      const [assetsCopy, img] = result.patterns as RegExp[];
 
-      expect([assets.test('/assets/a'), assets.test('/assets/a')]).toStrictEqual([true, true]);
-      expect(assets.flags).toBe('u');
-      expect(img.flags).toBe('i');
+      expect(assetsCopy).not.toBe(assets);
+      expect(assetsCopy.flags).toBe('gu');
+      expect(img.flags).toBe('iy');
+      expect(img.sticky).toBe(true);
     });
 
     it('should handle invalid regex patterns', () => {
@@ -573,8 +575,7 @@ describe('config-helpers', () => {
 
       expect(result.patterns[0]).toBeInstanceOf(RegExp);
       const regex = result.patterns[0] as RegExp;
-      // The g flag is dropped: it would make test() stateful across requests
-      expect(regex.flags).toBe('ims');
+      expect(regex.flags).toBe('gims');
     });
 
     it('should reject invalid regex syntax', () => {

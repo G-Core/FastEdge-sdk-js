@@ -30,12 +30,13 @@ declare function normalizeArray<T>(arr?: T[] | null): T[];
  */
 declare function normalizeArrayOfPaths(pathsArray?: Array<string>): Array<string>;
 /**
- * Drops the `g` and `y` flags: they make `test()` stateful (`lastIndex`), so a reused regex
- * would match on alternate calls.
- * @param regex - The regex to make stateless.
- * @returns The same regex, or a copy without `g`/`y`.
+ * A `g` or `y` regex is stateful (`test()` advances `lastIndex`). Returns a private copy, flags
+ * kept, so callers can reset its `lastIndex` before each test without touching the caller's
+ * object. Flags are not dropped: removing `y` would turn an anchored match into a search.
+ * @param regex - The regex to copy.
+ * @returns A copy if `regex` is stateful, otherwise `regex` itself.
  */
-declare function statelessRegex(regex: RegExp): RegExp;
+declare function privateRegex(regex: RegExp): RegExp;
 /**
  * Normalize path or convert to regex from an array of strings and RegExps.
  * RegExp entries pass through. A trailing `/` is kept, so the entry still matches as a prefix.
@@ -61,4 +62,4 @@ declare const normalizeFns: {
  * @returns The normalized configuration object.
  */
 declare function normalizeConfig<T extends Record<string, unknown>>(config: Partial<T>, normalize: Record<keyof T, keyof typeof normalizeFns>): T;
-export { normalizeConfig, normalizePath, statelessRegex };
+export { normalizeConfig, normalizePath, privateRegex };

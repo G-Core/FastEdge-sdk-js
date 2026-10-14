@@ -111,13 +111,14 @@ function convertToRegex(pattern: string): string | RegExp {
 }
 
 /**
- * Drops the `g` and `y` flags: they make `test()` stateful (`lastIndex`), so a reused regex
- * would match on alternate calls.
- * @param regex - The regex to make stateless.
- * @returns The same regex, or a copy without `g`/`y`.
+ * A `g` or `y` regex is stateful (`test()` advances `lastIndex`). Returns a private copy, flags
+ * kept, so callers can reset its `lastIndex` before each test without touching the caller's
+ * object. Flags are not dropped: removing `y` would turn an anchored match into a search.
+ * @param regex - The regex to copy.
+ * @returns A copy if `regex` is stateful, otherwise `regex` itself.
  */
-function statelessRegex(regex: RegExp): RegExp {
-  return /[gy]/u.test(regex.flags) ? new RegExp(regex.source, regex.flags.replace(/[gy]/gu, '')) : regex;
+function privateRegex(regex: RegExp): RegExp {
+  return regex.global || regex.sticky ? new RegExp(regex.source, regex.flags) : regex;
 }
 
 /**
@@ -130,7 +131,7 @@ function normalizePathsOrRegex(inputsArray: Array<string | RegExp> = []): Array<
   return inputsArray
     .map((strInput) => {
       if (strInput instanceof RegExp) {
-        return statelessRegex(strInput);
+        return privateRegex(strInput);
       }
       if (strInput.startsWith('regex:')) {
         const regexp = convertToRegex(strInput.slice(6));
@@ -139,7 +140,7 @@ function normalizePathsOrRegex(inputsArray: Array<string | RegExp> = []): Array<
           console.warn('caution', `Invalid regex pattern: ${strInput}`);
           return '';
         }
-        return statelessRegex(regexp);
+        return privateRegex(regexp);
       }
       const normalized = normalizePath(strInput);
       return strInput.endsWith('/') && normalized !== '/' ? `${normalized}/` : normalized;
@@ -185,4 +186,4 @@ function normalizeConfig<T extends Record<string, unknown>>(
   return result;
 }
 
-export { normalizeConfig, normalizePath, statelessRegex };
+export { normalizeConfig, normalizePath, privateRegex };
