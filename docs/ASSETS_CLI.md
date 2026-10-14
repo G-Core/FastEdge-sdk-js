@@ -26,6 +26,8 @@ npx fastedge-assets --help
 npx fastedge-assets --version
 ```
 
+Running `fastedge-assets` with no arguments prints the usage information.
+
 ## Flags
 
 | Flag              | Alias | Type      | Description                                                                  |
@@ -33,15 +35,19 @@ npx fastedge-assets --version
 | `--input <path>`  | `-i`  | `string`  | Path to the directory of source assets (e.g. `./public`)                     |
 | `--output <file>` | `-o`  | `string`  | Output file path for the generated manifest (e.g. `./src/asset-manifest.ts`) |
 | `--config <file>` | `-c`  | `string`  | Path to an asset config file containing `AssetCacheConfig` fields            |
-| `--version`       | `-v`  | `boolean` | Print the package version                                                     |
-| `--help`          | `-h`  | `boolean` | Print usage information                                                       |
+| `--version`       | `-v`  | `boolean` | Print the package version                                                    |
+| `--help`          | `-h`  | `boolean` | Print usage information                                                      |
 
 **Notes:**
 
 - `--input` must resolve to an existing directory.
 - `--output` must resolve to a file path (not a directory). The output file does not need to pre-exist; parent directories are created automatically.
+- Two positional arguments are interpreted as `<input-directory> <output-file>` and take precedence over `--input` and `--output`.
 - When `--config` is provided, `publicDir` and `assetManifestPath` from the config file serve as defaults if `--input` or `--output` are not specified on the command line.
+- If the config file cannot be loaded or contains no fields, usage information is printed and the process exits with a non-zero status.
 - If the output path does not end with `.js`, `.ts`, `.cjs`, or `.mjs`, a `.js` extension is appended automatically.
+- If the resolved output path is not a valid file path, a warning is printed and the manifest is written to the default path `./.fastedge/build/static-asset-manifest.js`.
+- If the input is not a directory or the output is not a file, an error is printed, followed by usage information, and the process exits with a non-zero status.
 
 ## Config File
 

@@ -4,7 +4,7 @@ Get a FastEdge JavaScript application built and ready for deployment.
 
 ## Prerequisites
 
-- Node.js `>=22` (see `engines.node` in `package.json`)
+- Node.js at or above the minimum version in the `engines.node` field of the package's `package.json`
 - npm, yarn, or pnpm
 
 ## Installation
@@ -26,6 +26,8 @@ This interactive wizard will:
 1. Ask what you're building: **HTTP event handler** or **Static website**
 2. Create a `.fastedge/` directory with build configuration
 3. Generate a `build-config.js` file
+
+If a `.fastedge/build-config.js` file already exists, the wizard asks whether to overwrite it.
 
 Then build:
 
@@ -240,11 +242,14 @@ addEventListener('fetch', (event) => {
 });
 ```
 
+When `populate` resolves with `null`, nothing is written to the cache and `getOrSet` resolves with `null`.
+
 **Key signatures:**
 
 - `Cache.get(key: string): Promise<CacheEntry | null>`
 - `Cache.set(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`
 - `Cache.getOrSet(key: string, populate: () => CacheValue | Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`
+- `Cache.getOrSet(key: string, populate: () => CacheValue | null | Promise<CacheValue | null>, options?: WriteOptions): Promise<CacheEntry | null>`
 - `Cache.incr(key: string, delta?: number): Promise<number>`
 - `Cache.expire(key: string, options: WriteOptions): Promise<boolean>`
 
@@ -261,4 +266,5 @@ See [SDK Runtime API](SDK_API.md) for the complete `Cache` method reference, `Ca
 ## See Also
 
 - [INDEX](INDEX.md) — documentation overview
+- [SDK Runtime API](SDK_API.md) — complete `Cache`, `KvStore`, env, and secret reference
 - [Examples](https://github.com/G-Core/FastEdge-sdk-js/tree/main/examples) — real-world patterns

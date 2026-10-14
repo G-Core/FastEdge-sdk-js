@@ -122,22 +122,37 @@ import { createStaticServer } from '@gcoredev/fastedge-sdk-js';
 
 ### ServerConfig Fields
 
-All fields are optional. Pass only the fields you need.
+```typescript
+interface ServerConfig extends Record<string, unknown> {
+  extendedCache:   Array<string | RegExp>;
+  publicDirPrefix: string;
+  routePrefix?:    string;
+  compression:     string[];
+  notFoundPage:    string | null;
+  autoExt:         string[];
+  autoIndex:       string[];
+  spaEntrypoint:   string | null;
+}
+```
 
-| Field             | Type                      | Default | Description                                                                                               |
-| ----------------- | ------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
-| `publicDirPrefix` | `string`                  | `''`    | Prefix stripped from asset keys before matching request paths                                             |
-| `routePrefix`     | `string`                  | `'/'`   | URL prefix stripped from incoming request paths before looking up asset keys                              |
-| `extendedCache`   | `Array<string \| RegExp>` | `[]`    | Paths or patterns that receive a `Cache-Control: max-age=31536000` response header                        |
-| `compression`     | `string[]`                | `[]`    | Content encodings to serve (e.g. `['br', 'gzip']`); matched against the request `Accept-Encoding` header |
-| `notFoundPage`    | `string \| null`          | `null`  | Asset path to serve when no match is found (e.g. `'/404.html'`); only served for HTML-accepting requests  |
-| `autoExt`         | `string[]`                | `[]`    | Extensions to append when no exact path match is found (e.g. `['.html']`)                                 |
-| `autoIndex`       | `string[]`                | `[]`    | Index file names to try for directory requests (e.g. `['index.html']`)                                    |
-| `spaEntrypoint`   | `string \| null`          | `null`  | Asset path served as the SPA fallback for unmatched routes; only served for HTML-accepting requests        |
+All fields are optional when passed to `createStaticServer`. Pass only the fields you need.
+
+| Field             | Type                      | Default         | Description                                                                                              |
+| ----------------- | ------------------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
+| `publicDirPrefix` | `string`                  | `''`            | Prefix prepended to the request path (after `routePrefix` is removed) to form the asset key              |
+| `routePrefix`     | `string`                  | `'/'`           | URL prefix removed from incoming request paths before looking up asset keys                              |
+| `extendedCache`   | `Array<string \| RegExp>` | `[]`            | Paths or patterns that receive a `Cache-Control: max-age=31536000` response header                       |
+| `compression`     | `string[]`                | `[]`            | Content encodings to serve (e.g. `['br', 'gzip']`); matched against the request `Accept-Encoding` header |
+| `notFoundPage`    | `string \| null`          | `'/'` (not set) | Asset path to serve when no match is found (e.g. `'/404.html'`); only served for HTML-accepting requests |
+| `autoExt`         | `string[]`                | `[]`            | Extensions to append when no exact path match is found (e.g. `['.html']`)                                |
+| `autoIndex`       | `string[]`                | `[]`            | Index file names to try for directory requests (e.g. `['index.html']`)                                   |
+| `spaEntrypoint`   | `string \| null`          | `'/'` (not set) | Asset path served as the SPA fallback for unmatched routes; only served for HTML-accepting requests      |
+
+When `notFoundPage` or `spaEntrypoint` is not set, the value normalizes to `'/'`. No fallback response is produced unless an asset exists at that key.
 
 #### routePrefix
 
-Use `routePrefix` when mounting a static server under a URL subpath. The prefix is stripped from the request path before the server looks up an asset key.
+Use `routePrefix` when mounting a static server under a URL subpath. The prefix is removed from the request path before the server looks up an asset key.
 
 ```ts
 // Assets have keys like '/logo.png', '/style.css'
@@ -145,9 +160,19 @@ Use `routePrefix` when mounting a static server under a URL subpath. The prefix 
 const server = createStaticServer(manifest, { routePrefix: '/static' });
 ```
 
+#### publicDirPrefix
+
+Use `publicDirPrefix` when asset keys in the manifest include a directory prefix that request paths do not. The prefix is prepended to the request path to form the asset key.
+
+```ts
+// Assets have keys like '/public/logo.png'
+// Requests arrive as '/logo.png'
+const server = createStaticServer(manifest, { publicDirPrefix: '/public' });
+```
+
 #### extendedCache
 
-Entries are path strings or regex-style strings prefixed with `regex:`. Regex strings use the format `regex:/pattern/flags` and are converted to `RegExp` objects during normalization.
+Entries are path strings or regex-style strings prefixed with `regex:`. Regex strings use the format `regex:/pattern/flags` and are converted to `RegExp` objects during normalization. Path strings are normalized to a single leading slash with no trailing slash and are matched exactly against the request pathname.
 
 ```ts
 const server = createStaticServer(manifest, {
@@ -160,7 +185,7 @@ const server = createStaticServer(manifest, {
 
 #### autoExt and autoIndex
 
-`autoExt` appends extensions to the path when no exact match is found. `autoIndex` appends index file names when the request path ends with `/`.
+`autoExt` appends extensions to the path when no exact match is found. `autoIndex` appends index file names when the request path ends with `/`, or when no other match is found.
 
 ```ts
 // Request: /about   → tries /about.html
@@ -173,7 +198,9 @@ const server = createStaticServer(manifest, {
 
 #### notFoundPage and spaEntrypoint
 
-Both `notFoundPage` and `spaEntrypoint` are only served for requests that include `text/html` or `*/*` in their `Accept` header. Non-HTML requests (e.g. API calls, asset fetches) that match no asset receive a void response regardless of these settings.
+Both `notFoundPage` and `spaEntrypoint` are only served for requests that include `text/html`, `*/*`, or `*` in their `Accept` header. Non-HTML requests (e.g. API calls, asset fetches) that match no asset receive a void response regardless of these settings.
+
+The values are raw asset keys. `routePrefix` and `publicDirPrefix` are not applied to them.
 
 `spaEntrypoint` is checked first. If it resolves to an asset, it is returned with `Cache-Control: no-store`. If not, `notFoundPage` is checked and returned with `status: 404` and `Cache-Control: no-store`.
 
@@ -226,13 +253,10 @@ addEventListener('fetch', (event: FetchEvent) => {
 readFileString(path: string): Promise<string>
 ```
 
-Returns the text content of the embedded asset at `path`. The asset must have been classified as a text type (`isText: true`) in the manifest at build time. Throws an error if no asset is found at the given path. Use this to read embedded HTML templates or other text files for further processing at runtime.
+Returns the text content of the embedded asset at `path`. The path is resolved with the same rules as request paths (`routePrefix`, `publicDirPrefix`, `autoExt`, `autoIndex`). The asset must have been classified as a text type (`isText: true`) in the manifest at build time. Throws an `Error` with the message `Asset not found` if no asset is found at the given path. Use this to read embedded HTML templates or other text files for further processing at runtime.
 
 ```ts
-app.get('/template', async (c) => {
-  const html = await server.readFileString('/template.html');
-  return c.html(html);
-});
+const html = await server.readFileString('/template.html');
 ```
 
 ## Wizer Constraint

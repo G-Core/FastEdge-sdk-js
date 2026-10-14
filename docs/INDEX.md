@@ -9,7 +9,7 @@ WebAssembly components that run across global edge data centers.
 | Field       | Value                       |
 | ----------- | --------------------------- |
 | **npm**     | `@gcoredev/fastedge-sdk-js` |
-| **Version** | `2.4.0`                     |
+| **Version** | `2.6.0`                     |
 | **Node**    | `>=22`                      |
 | **License** | `Apache-2.0`                |
 
@@ -76,16 +76,16 @@ imports are resolved at compile time by the SDK.
 
 ### KvStoreInstance Methods
 
-| Method                 | Signature                                                                         | Description                                            |
-| ---------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `get`                  | `(key: string): ArrayBuffer \| null`                                              | Retrieve a value by key                                |
-| `getEntry`             | `(key: string): Promise<KvStoreEntry \| null>`                                    | Retrieve a value as a `KvStoreEntry`                   |
-| `scan`                 | `(pattern: string): Array<string>`                                                | Retrieve keys matching a prefix pattern (e.g. `foo*`)  |
-| `zrangeByScore`        | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`           | Retrieve sorted set entries by score range             |
-| `zrangeByScoreEntries` | `(key: string, min: number, max: number): Promise<Array<[KvStoreEntry, number]>>` | `zrangeByScore` returning `KvStoreEntry` wrappers      |
-| `zscan`                | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`                    | Retrieve sorted set entries matching a prefix pattern  |
-| `zscanEntries`         | `(key: string, pattern: string): Promise<Array<[KvStoreEntry, number]>>`          | `zscan` returning `KvStoreEntry` wrappers              |
-| `bfExists`             | `(key: string, value: string): boolean`                                           | Check if a value exists in a Bloom Filter              |
+| Method                 | Signature                                                                         | Description                                           |
+| ---------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `get`                  | `(key: string): ArrayBuffer \| null`                                              | Retrieve a value by key                               |
+| `getEntry`             | `(key: string): Promise<KvStoreEntry \| null>`                                    | Retrieve a value as a `KvStoreEntry`                  |
+| `scan`                 | `(pattern: string): Array<string>`                                                | Retrieve keys matching a prefix pattern (e.g. `foo*`) |
+| `zrangeByScore`        | `(key: string, min: number, max: number): Array<[ArrayBuffer, number]>`           | Retrieve sorted set entries by score range            |
+| `zrangeByScoreEntries` | `(key: string, min: number, max: number): Promise<Array<[KvStoreEntry, number]>>` | `zrangeByScore` returning `KvStoreEntry` wrappers     |
+| `zscan`                | `(key: string, pattern: string): Array<[ArrayBuffer, number]>`                    | Retrieve sorted set entries matching a prefix pattern |
+| `zscanEntries`         | `(key: string, pattern: string): Promise<Array<[KvStoreEntry, number]>>`          | `zscan` returning `KvStoreEntry` wrappers             |
+| `bfExists`             | `(key: string, value: string): boolean`                                           | Check if a value exists in a Bloom Filter             |
 
 ### KvStoreEntry Methods
 
@@ -179,11 +179,13 @@ Standard Web APIs available globally:
 - `fetch`, `Request`, `Response`, `Headers`
 - `URL`, `URLSearchParams`
 - `ReadableStream`, `WritableStream`, `TransformStream`
+- `ByteLengthQueuingStrategy`, `CountQueuingStrategy`
 - `CompressionStream`, `DecompressionStream`
 - `TextEncoder`, `TextDecoder`
 - `Blob`, `File`, `FormData`
 - `crypto` (SubtleCrypto: `digest`, `importKey`, `sign`, `verify`; also `getRandomValues`, `randomUUID`)
 - `AbortController`, `AbortSignal`
+- `Event`, `EventTarget`, `CustomEvent`
 - `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`
 - `queueMicrotask`, `structuredClone`
 - `performance`, `location`, `console`

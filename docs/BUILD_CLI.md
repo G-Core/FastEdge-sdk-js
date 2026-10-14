@@ -36,6 +36,22 @@ npx fastedge-build --version
 | `--help`     | `-h`  | `Boolean`  | Show help                        |
 | `--version`  | `-v`  | `Boolean`  | Show version                     |
 
+`--config` can be repeated to build several config files in one invocation.
+
+### Argument Rules
+
+The CLI accepts one of the following argument forms:
+
+| Form                                       | Interpretation                           |
+| ------------------------------------------ | ---------------------------------------- |
+| One positional argument                    | Config file path                         |
+| Two positional arguments                   | `<input> <output>` (direct mode)         |
+| Options only, no positional arguments      | Direct mode or config-driven mode        |
+| Positional arguments combined with options | Invalid; help is printed and exit code 1 |
+| No arguments                               | Invalid; help is printed and exit code 1 |
+
+Unrecognized flags are collected as positional arguments and are subject to the rules above. If an option that requires a value is given without one (other than `-c`, which falls back to the default config path), the help text is printed. In direct mode, both an input and an output path must be supplied; otherwise help is printed and the exit code is 1.
+
 ## Build Modes
 
 ### Direct Build
@@ -190,7 +206,21 @@ const config = {
 export { config };
 ```
 
-If `type` is absent or does not match `'http'` or `'static'`, the build exits with an error.
+If `type` is absent or does not match `'http'` or `'static'`, the CLI prints `Error: Invalid config type. Must be one of: static, http.` and no `.wasm` file is produced for that config.
+
+## Environment Variables
+
+| Variable              | Type     | Default | Description                                                                         |
+| --------------------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+| `FASTEDGE_WIZER_PATH` | `string` | unset   | Path to a wizer binary to use instead of the one from the `@bytecodealliance/wizer` package |
+
+When `FASTEDGE_WIZER_PATH` is unset, `fastedge-build` uses the binary from the `@bytecodealliance/wizer` package for the current platform. When it is set, that package is not loaded and the binary at the given path is run instead.
+
+Set `FASTEDGE_WIZER_PATH` when building a `node_modules` directory that was installed on a different operating system. For example, a project installed on macOS and built inside a Linux container does not contain the Linux wizer package, so the default lookup fails. Point the variable at a wizer binary that runs on the build host:
+
+```bash
+FASTEDGE_WIZER_PATH=/usr/local/bin/wizer npx fastedge-build src/index.js app.wasm
+```
 
 ## Output
 
@@ -203,13 +233,13 @@ Build success!!
 "<input>" -> "<output>"
 ```
 
-In config-driven mode, on success the CLI prints:
+In config-driven mode, on success the CLI prints one line per config file:
 
 ```
 Success: Built <wasmOutput>
 ```
 
-On failure the CLI exits with a non-zero status code and prints an error message.
+If a build step fails, the CLI prints an error message and no output file is written for that build.
 
 ## See Also
 

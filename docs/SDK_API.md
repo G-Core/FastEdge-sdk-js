@@ -304,7 +304,7 @@ import { Cache } from "fastedge::cache";
 | Consistency scope | Strong within a POP; independent across POPs | Eventual; globally replicated             |
 | Atomic operations | `incr`, `decr`, `getOrSet` coalescing        | Not available                             |
 | Typical use cases | Rate limits, counters, request coalescing    | Configuration, lookup tables, sorted sets |
-| Data persistence  | Evicted; no durability guarantee             | Durable; persists across deployments      |
+| Data persistence  | Transient; subject to host eviction          | Replicated across data centers            |
 
 Strong per-POP consistency makes `Cache.incr` / `Cache.decr` reliable for per-POP rate limits and `Cache.getOrSet` coalescing reliable for deduplicating concurrent origin fetches within a single POP. For globally-shared data that must be visible across all POPs, use `fastedge::kv`.
 
@@ -441,7 +441,7 @@ await Cache.expire("rl:1.2.3.4", { ttl: 60 });
 
 Atomically increment or decrement an integer stored at `key`. If the key does not exist, it is initialised to `0` before the operation. Resolves to the new value after the operation. Rejects if the stored value is not an integer.
 
-`delta` defaults to `1`. `Cache.decr` is sugar for `Cache.incr(key, -(delta ?? 1))`. `delta` may be any integer; prefer `decr` when subtracting for readability.
+`delta` defaults to `1`. `Cache.decr` is sugar for `Cache.incr(key, -(delta ?? 1))`. `delta` may be any integer; prefer `decr` when subtracting for readability. Integer values larger than `Number.MAX_SAFE_INTEGER` (2^53 − 1) are not represented exactly.
 
 Strong per-POP consistency makes these operations reliable for per-POP rate limits and hit counters. Set the TTL on the first increment to establish the window:
 
@@ -599,7 +599,7 @@ Information about the downstream client that made the request, available as `eve
 | ----------- | --------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `address`   | `string`  | IPv4 or IPv6 address of the downstream client. Empty string if unavailable.                                                  |
 | `tlsJA3MD5` | `string`  | JA3 TLS-handshake fingerprint as an MD5 hex string. Empty string for non-TLS requests or when fingerprinting is unavailable. |
-| `protocol`  | `string`  | Protocol family — `"https"` or `"http"`. Not the TLS version string.                                                        |
+| `protocol`  | `string`  | Protocol family — `"https"` or `"http"`. Not the TLS version string.                                                         |
 | `geo`       | `GeoInfo` | Client geographic information. Populated lazily on first access.                                                             |
 
 ### GeoInfo
@@ -612,7 +612,7 @@ Geographic information about the downstream client, available as `event.client.g
 | `latitude`    | `number \| null` | Latitude in decimal degrees, or `null` if unavailable.                       |
 | `longitude`   | `number \| null` | Longitude in decimal degrees, or `null` if unavailable.                      |
 | `region`      | `string`         | Region or state code (subdivision). Empty string if unavailable.             |
-| `continent`   | `string`         | Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable.          |
+| `continent`   | `string`         | Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable.           |
 | `countryCode` | `string`         | ISO 3166-1 alpha-2 country code (e.g. `"PT"`). Empty string if unavailable. |
 | `countryName` | `string`         | Country name (e.g. `"Portugal"`). Empty string if unavailable.               |
 | `city`        | `string`         | City name. Empty string when geo lookup did not resolve a city.              |
@@ -741,6 +741,7 @@ Response.json(data: any, init?: ResponseInit): Response
 | `headers`                    | `Headers`                            | Response headers.                           |
 | `body`                       | `ReadableStream<Uint8Array> \| null` | Response body stream.                       |
 | `bodyUsed`                   | `boolean`                            | Whether the body has already been consumed. |
+| `clone()`                    | `() => Response`                     | Creates a copy of the response.             |
 | `text()`                     | `() => Promise<string>`              | Reads body as a string.                     |
 | `json()`                     | `() => Promise<any>`                 | Reads body and parses as JSON.              |
 | `arrayBuffer()`              | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.             |
@@ -808,6 +809,8 @@ Parses and manipulates URLs per the [WHATWG URL specification](https://url.spec.
 | `searchParams` | `URLSearchParams` | no      |
 | `hash`         | `string`          | yes     |
 
+`URL` also provides `toJSON(): string`.
+
 ```javascript
 const url = new URL(event.request.url);
 const id  = url.searchParams.get("id");
@@ -834,6 +837,8 @@ new URLSearchParams(
 | `keys()`              | `() => IterableIterator<string>`                                                           |
 | `values()`            | `() => IterableIterator<string>`                                                           |
 | `forEach(callback)`   | `(callback: (value: string, name: string, searchParams: URLSearchParams) => void) => void` |
+
+`URLSearchParams` also exposes a read-only `size: number` property containing the number of search parameter entries.
 
 ---
 
@@ -863,6 +868,8 @@ new ReadableStream<R>(underlyingSource?: UnderlyingSource<R>, strategy?: Queuing
 | `tee()`                            | `() => [ReadableStream<R>, ReadableStream<R>]`                                              |
 | `cancel(reason?)`                  | `(reason?: any) => Promise<void>`                                                           |
 
+`ReadableStream` also exposes a read-only `locked: boolean` property.
+
 To read a byte stream with a caller-supplied buffer, call `getReader({ mode: 'byob' })` which returns a `ReadableStreamBYOBReader`. The BYOB reader's `read(view)` method fills the provided `ArrayBufferView` in-place.
 
 ```javascript
@@ -877,6 +884,24 @@ const stream = new ReadableStream({
 return new Response(stream, { status: 200 });
 ```
 
+##### Readers and controllers
+
+| Type                                  | Members                                                                                                                     |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `ReadableStreamDefaultReader<R>`      | `read(): Promise<ReadableStreamDefaultReadResult<R>>`, `releaseLock(): void`, `cancel(reason?): Promise<void>`, `closed`    |
+| `ReadableStreamBYOBReader`            | `read(view, options?: { min?: number }): Promise<ReadableStreamDefaultReadResult<T>>`, `releaseLock()`, `cancel()`, `closed` |
+| `ReadableStreamDefaultController<R>`  | `desiredSize`, `close()`, `enqueue(chunk)`, `error(e?)`                                                                     |
+| `ReadableByteStreamController`        | `byobRequest`, `desiredSize`, `close()`, `enqueue(chunk: ArrayBufferView)`, `error(e?)`                                     |
+| `ReadableStreamBYOBRequest`           | `view`, `respond(bytesWritten)`, `respondWithNewView(view)`                                                                 |
+
+```javascript
+const reader = stream.getReader();
+for (let r = await reader.read(); !r.done; r = await reader.read()) {
+  console.log(r.value);
+}
+reader.releaseLock();
+```
+
 #### `WritableStream`
 
 ```typescript
@@ -887,6 +912,27 @@ new WritableStream<W>(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStra
 | ----------------------- | -------------------------------------- |
 | `getWriter()`           | `() => WritableStreamDefaultWriter<W>` |
 | `abort(reason?)`        | `(reason?: any) => Promise<void>`      |
+
+`WritableStream` also exposes a read-only `locked: boolean` property.
+
+| `UnderlyingSink` field | Type                                                                             |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| `start`                | `(controller: WritableStreamDefaultController) => any`                           |
+| `write`                | `(chunk: W, controller: WritableStreamDefaultController) => void \| PromiseLike<void>` |
+| `close`                | `() => void \| PromiseLike<void>`                                                |
+| `abort`                | `(reason?: any) => void \| PromiseLike<void>`                                    |
+
+| `WritableStreamDefaultWriter<W>` member | Type / Signature                  |
+| --------------------------------------- | --------------------------------- |
+| `write(chunk)`                          | `(chunk: W) => Promise<void>`     |
+| `close()`                               | `() => Promise<void>`             |
+| `abort(reason?)`                        | `(reason?: any) => Promise<void>` |
+| `releaseLock()`                         | `() => void`                      |
+| `closed`                                | `Promise<undefined>`              |
+| `ready`                                 | `Promise<undefined>`              |
+| `desiredSize`                           | `number \| null`                  |
+
+`WritableStreamDefaultController` provides `error(e?: any): void`.
 
 #### `TransformStream`
 
@@ -902,6 +948,14 @@ new TransformStream<I, O>(
 | ---------- | ------------------- | ----------------------------------- |
 | `readable` | `ReadableStream<O>` | The readable side of the transform. |
 | `writable` | `WritableStream<I>` | The writable side of the transform. |
+
+| `Transformer` field | Type                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------- |
+| `start`             | `(controller: TransformStreamDefaultController<O>) => void \| PromiseLike<void>`          |
+| `transform`         | `(chunk: I, controller: TransformStreamDefaultController<O>) => void \| PromiseLike<void>` |
+| `flush`             | `(controller: TransformStreamDefaultController<O>) => void \| PromiseLike<void>`          |
+
+`TransformStreamDefaultController<O>` exposes `desiredSize`, `enqueue(chunk?)`, `error(reason?)`, and `terminate()`.
 
 #### Queuing Strategies
 
@@ -1139,10 +1193,10 @@ subtle.importKey(
 
 Supported `(algorithm, format)` combinations:
 
-| Algorithm           | Supported formats                      |
-| ------------------- | -------------------------------------- |
-| `HMAC`              | `'raw'`, `'jwk'`                       |
-| `RSASSA-PKCS1-v1_5` | `'jwk'`, `'spki'`, `'pkcs8'`           |
+| Algorithm           | Supported formats                     |
+| ------------------- | ------------------------------------- |
+| `HMAC`              | `'raw'`, `'jwk'`                      |
+| `RSASSA-PKCS1-v1_5` | `'jwk'`, `'spki'`, `'pkcs8'`          |
 | `ECDSA`             | `'jwk'`, `'raw'`, `'spki'`, `'pkcs8'` |
 
 `ECDSA` requires `EcdsaParams` (`{ name: 'ECDSA', hash: AlgorithmIdentifier }`) for `sign` and `verify` so that the hash function can be specified.
@@ -1181,24 +1235,27 @@ clearInterval(intervalID?: number): void
 
 The global `console` object writes to stdout. Unlike browser or Node.js implementations, this version does not perform string substitution in format strings — all arguments are stringified and concatenated.
 
-| Method               | Description                              |
-| -------------------- | ---------------------------------------- |
-| `console.log`        | General output.                          |
-| `console.info`       | Informational output.                    |
-| `console.warn`       | Warning output.                          |
-| `console.error`      | Error output.                            |
-| `console.debug`      | Debug output.                            |
-| `console.assert`     | Logs if condition is falsy.              |
-| `console.trace`      | Outputs a stack trace.                   |
-| `console.time`       | Starts a named timer.                    |
-| `console.timeEnd`    | Stops a named timer and logs elapsed ms. |
-| `console.timeLog`    | Logs current elapsed time for a timer.   |
-| `console.count`      | Logs call count for a label.             |
-| `console.countReset` | Resets call count for a label.           |
-| `console.group`      | Starts an indented group.                |
-| `console.groupEnd`   | Ends an indented group.                  |
-| `console.dir`        | Logs object representation.              |
-| `console.table`      | Logs tabular data.                       |
+| Method                   | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `console.log`            | General output.                          |
+| `console.info`           | Informational output.                    |
+| `console.warn`           | Warning output.                          |
+| `console.error`          | Error output.                            |
+| `console.debug`          | Debug output.                            |
+| `console.assert`         | Logs if condition is falsy.              |
+| `console.trace`          | Outputs a stack trace.                   |
+| `console.time`           | Starts a named timer.                    |
+| `console.timeEnd`        | Stops a named timer and logs elapsed ms. |
+| `console.timeLog`        | Logs current elapsed time for a timer.   |
+| `console.count`          | Logs call count for a label.             |
+| `console.countReset`     | Resets call count for a label.           |
+| `console.group`          | Starts an indented group.                |
+| `console.groupCollapsed` | Starts a collapsed indented group.       |
+| `console.groupEnd`       | Ends an indented group.                  |
+| `console.dir`            | Logs object representation.              |
+| `console.dirxml`         | Logs an XML/HTML-style representation.   |
+| `console.table`          | Logs tabular data.                       |
+| `console.clear`          | Clears the console.                      |
 
 ---
 
