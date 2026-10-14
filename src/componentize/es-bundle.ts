@@ -1,4 +1,4 @@
-import { build, BuildResult, Plugin } from 'esbuild';
+import { build, BuildResult, Plugin } from 'esbuild-wasm';
 
 /**
  * A custom esbuild plugin for handling `fastedge::` imports.

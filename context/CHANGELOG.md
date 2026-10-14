@@ -5,6 +5,51 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-14] — Security review fixes: release-workflow injection, manifest escaping, symlinks
+
+### Overview
+Fixes from a pre-release security review. The remaining low-severity items are tracked for a follow-up PR (outside this repo, in the coordinator's `context/tasks/fastedge-sdk-js-security-review.md`).
+
+### Changes
+- **Release workflow:** the `dry_run` dispatch input was a free string interpolated into bash in the publishing job (`release.yaml`), so a dispatch could run commands with `contents`/`id-token` write. It is now a boolean, read through `env`. Pushes still always dry-run.
+- **Manifest escaping:** the generated asset manifest wrote publicDir file names inside `'...'` with no escaping (`prettierObjectString`), so a `'`, `\` or newline in a file name broke out of the string. That broke the build for names like `John's photo.jpg`, and could inject code that runs at Wizer init. Entries are now written with `JSON.stringify` and `prettierObjectString` is removed. A test evaluates the generated module for a hostile file name.
+- **Stateful regexes:** `extendedCache` and custom `contentTypes` regexes with `g` or `y` kept `lastIndex` between `test()` calls, so alternate requests or files didn't match. The normalizer now gives each one a private copy with its flags kept (`privateRegex`; dropping `y` would turn an anchored match into a search), and the test sites reset `lastIndex` before each test. The caller's RegExp is never mutated.
+- **Symlinks:** `getFilesRecursively` treated symlinks as files and `readFileSync` followed them, so a link such as `public/robots.txt -> ../.env` embedded that file and published it. Symlinks are now followed only when they resolve to a regular file inside the input directory. Other links are skipped with a warning, and links to directories previously crashed the build with `EISDIR`. Only regular files are collected, so FIFOs and sockets are not picked up. The `.generation-config.md` rule is added and ASSETS_CLI / STATIC_SITES are regenerated.
+
+## [2026-10-14] — Generated docs verified against the code; static-site config bugs fixed
+
+### Overview
+Every claim in the seven generated `docs/` files was checked against the source (three read-only passes). The errors were fixed upstream: in code, JSDoc, the generator's source sets and `.generation-config.md`, never by editing the docs. All docs were then regenerated.
+
+### Changes
+**Code fixes (static sites)**
+- Custom `contentTypes` never applied: `normalizeAssetCacheConfig` used `'stringArray'`, turning each rule object into `''`. A new `'array'` normalizer (`config-helpers.ts`) passes entries through; `getKnownContentTypes` still validates them.
+- `fastedge-init` wrote `ignoreDirs`, which was only logged. It now writes `ignorePaths`; `createManifestFileMap` also applies a legacy `ignoreDirs` (normalized) so existing configs get the exclusion they asked for.
+- `extendedCache`: `normalizePathsOrRegex` stripped trailing slashes, so the prefix branch in `testExtendedCache` only ever matched `'/'`, and `RegExp` entries (allowed by `ServerConfig`) crashed on `.startsWith`. A trailing `/` is now kept and `RegExp` entries pass through.
+- `fastedge-init` checked `./index.html` instead of the SPA entrypoint the user entered.
+
+**JSDoc and README**
+- `types/fastedge-cache.d.ts`: validation errors are `Error`, not `TypeError`. The JSDoc now gives the full TTL rules (past `expiresAt`, the `MAX_SAFE_INTEGER` bound, `null` = no options), says which errors throw and which reject, and says that `expire` requires an expiry.
+- `types/globals.d.ts`: `location` documented. `types/fastedge-secret.d.ts`: `effectiveAt` is converted to int32 and clamped at 0.
+- README: Node v22 (matches `engines`).
+
+**Generator (`fastedge-plugin-source/`)**
+- `SOURCE_FILES` now includes the files that implement each documented behaviour (loader, validation, normalizers, static server, inline assets, init writers), not just the CLI entry points.
+- `.generation-config.md` gets global rules (correct any baseline claim the sources do not support; describe CLI behaviour from the CLI path; show generated files verbatim; examples define every identifier) and per-doc accuracy rules for each verified finding. The crypto matrix moves `getRandomValues()` off `crypto.subtle`, `GeoData` becomes `GeoInfo`, and INDEX lists every doc (including the hand-written ones) and drops the hardcoded version.
+
+## [2026-10-14] — Platform-neutral fastedge-build (no native bindings except wizer)
+
+### Overview
+`fastedge-build` now runs from a `node_modules` installed on another OS, so the FastEdge MCP server can build a macOS- or Windows-installed project in its Linux container without reinstalling (and corrupting) the host's `node_modules` (G-Core/FastEdge-mcp-server#61).
+
+### Changes
+- `componentNew` / `metadataAdd` import from `@bytecodealliance/jco-transpile/wasm-tools` instead of `@bytecodealliance/jco`. jco's root entry statically loads native napi modules (oxc-minify, rolldown, jco-node-fs) and failed with "Cannot find native binding" on a foreign-OS tree. Dependency swapped to `@bytecodealliance/jco-transpile`.
+- Bundling uses `esbuild-wasm` instead of `esbuild`. A host can't substitute its own esbuild binary because esbuild requires the binary version to match the JS package exactly. Measured: ~0.5s vs ~0.05s to bundle a ~930KB hono + react app; small next to wizer. Native `esbuild` stays as a devDependency for the SDK's own build scripts.
+- `FASTEDGE_WIZER_PATH` overrides the wizer binary. `@bytecodealliance/wizer` is now imported lazily, only when the variable is unset, since the package throws at load time when this platform's binary is missing.
+- CI guard (`integration-tests/cross-platform-build.test.js`, runs on the Ubuntu/Windows/macOS matrix): builds under a `node --import` preload (`integration-tests/test-files/no-native/`) that makes `process.dlopen` throw and rejects resolving `esbuild`, `@esbuild/*`, the `@bytecodealliance/jco` root and `@bytecodealliance/wizer*`, with `FASTEDGE_WIZER_PATH` set. Each runner otherwise has its own native packages, so without it a dependency bump that reintroduced one would stay green. Checked: reverting to native `esbuild`, or to a static wizer import, fails only this test.
+- Audit: `npm-run-all2` moved to devDependencies. It only runs this repo's package scripts, and nothing shipped references it, but as a dependency it brought `shell-quote@1.9.0` (critical, GHSA-pqg4-j6r4-53mv) into every consumer install. `shell-quote` → 1.12.0 and the `brace-expansion` override → `^5.0.12` in the lockfile. A clean consumer install of the packed SDK now audits at 0 vulnerabilities. The remaining `pnpm audit` findings are in `github-pages/`, `examples/` and root dev tooling, none of which is published.
+- Verified: with every Linux native package deleted from an install of the packed SDK, `fastedge-build` with `FASTEDGE_WIZER_PATH` set builds a hono app that serves 200 under `@gcoredev/fastedge-test`.
+
 ## [2026-09-15] — Shell-free child processes, TypeScript 5/6/7 compatibility, cross-platform CI
 
 ### Overview

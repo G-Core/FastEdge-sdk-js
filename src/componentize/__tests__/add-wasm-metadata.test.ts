@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-import { metadataAdd } from '@bytecodealliance/jco';
+import { metadataAdd } from '@bytecodealliance/jco-transpile/wasm-tools';
 
 import { addWasmMetadata } from '~componentize/add-wasm-metadata.ts';
 
@@ -18,7 +18,7 @@ jest.mock('node:fs/promises', () => ({
     .mockReturnValueOnce('input_wasm_file_contents'),
 }));
 
-jest.mock('@bytecodealliance/jco', () => ({
+jest.mock('@bytecodealliance/jco-transpile/wasm-tools', () => ({
   metadataAdd: jest.fn().mockReturnValueOnce('new_wasm_file'),
 }));
 

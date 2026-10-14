@@ -18,18 +18,34 @@ declare function normalizeString(value?: string | null): string;
  */
 declare function normalizeStringArray(arr?: Array<string>): Array<string>;
 /**
+ * Ensure there is always an array, keeping its entries as they are (e.g. objects).
+ * @param arr - The array to normalize.
+ * @returns The array, or an empty array if not set.
+ */
+declare function normalizeArray<T>(arr?: T[] | null): T[];
+/**
  * Normalize path on an array of string paths.
  * @param pathsArray - The array of paths to normalize.
  * @returns The normalized array of paths.
  */
 declare function normalizeArrayOfPaths(pathsArray?: Array<string>): Array<string>;
 /**
- * Normalize path or convert to regex from string array.
+ * A `g` or `y` regex is stateful (`test()` advances `lastIndex`). Returns a private copy, flags
+ * kept, so callers can reset its `lastIndex` before each test without touching the caller's
+ * object. Flags are not dropped: removing `y` would turn an anchored match into a search.
+ * @param regex - The regex to copy.
+ * @returns A copy if `regex` is stateful, otherwise `regex` itself.
+ */
+declare function privateRegex(regex: RegExp): RegExp;
+/**
+ * Normalize path or convert to regex from an array of strings and RegExps.
+ * RegExp entries pass through. A trailing `/` is kept, so the entry still matches as a prefix.
  * @param inputsArray - The array of inputs to normalize.
  * @returns The normalized array of paths or regexes.
  */
-declare function normalizePathsOrRegex(inputsArray?: string[]): Array<string | RegExp>;
+declare function normalizePathsOrRegex(inputsArray?: Array<string | RegExp>): Array<string | RegExp>;
 declare const normalizeFns: {
+    array: typeof normalizeArray;
     booleanTruthy: (value?: boolean) => boolean;
     booleanFalsy: (value?: boolean) => boolean;
     path: typeof normalizePath;
@@ -46,4 +62,4 @@ declare const normalizeFns: {
  * @returns The normalized configuration object.
  */
 declare function normalizeConfig<T extends Record<string, unknown>>(config: Partial<T>, normalize: Record<keyof T, keyof typeof normalizeFns>): T;
-export { normalizeConfig, normalizePath };
+export { normalizeConfig, normalizePath, privateRegex };

@@ -3,8 +3,7 @@ import { rmSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
-import { componentNew } from '@bytecodealliance/jco';
-import wizer from '@bytecodealliance/wizer';
+import { componentNew } from '@bytecodealliance/jco-transpile/wasm-tools';
 
 import { addWasmMetadata } from '~componentize/add-wasm-metadata.ts';
 import { getJsInputContents } from '~componentize/get-js-input.ts';
@@ -68,6 +67,13 @@ async function componentize(
   };
 
   try {
+    // FASTEDGE_WIZER_PATH lets a build host (e.g. a Linux container building a
+    // project installed on macOS) supply its own wizer binary. Import lazily:
+    // the package throws at load time when this platform's binary is missing.
+    let wizer = process.env.FASTEDGE_WIZER_PATH;
+    if (!wizer) {
+      ({ default: wizer } = await import(/* webpackChunkName: "wizer" */ '@bytecodealliance/wizer'));
+    }
     const wizerProcess: SpawnSyncReturns<string> = spawnSync(
       wizer,
       [

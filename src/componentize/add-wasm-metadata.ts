@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-import { metadataAdd } from '@bytecodealliance/jco';
+import { metadataAdd } from '@bytecodealliance/jco-transpile/wasm-tools';
 
 import { npxPackagePath } from '~utils/npx-path.ts';
 

@@ -1,4 +1,4 @@
-import { Dirent, readdirSync } from 'node:fs';
+import { Dirent, readdirSync, realpathSync, statSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -102,6 +102,23 @@ function resolveTmpDir(filePath: string): string {
 }
 
 /**
+ * Checks that `target` is strictly inside `root` (both already resolved). Works when `root` is
+ * a filesystem or drive root.
+ * @param root - The containing directory.
+ * @param target - The path to check.
+ * @returns `true` if `target` is a descendant of `root`.
+ */
+function isPathInside(root: string, target: string): boolean {
+  const relative = path.relative(root, target);
+  return (
+    relative !== '' &&
+    relative !== '..' &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+  );
+}
+
+/**
  * Recursively retrieves files from a directory.
  * @param inputPath - The path to the directory.
  * @param opts - Options for filtering files.
@@ -117,6 +134,7 @@ function getFilesRecursively(
 ): string[] {
   const { ignoreDirs = [], ignoreDotFiles = true, ignoreWellKnown = false } = opts;
   const files: string[] = [];
+  const root = realpathSync(inputPath);
 
   const readDir = (dir: string): void => {
     const entries: Dirent[] = readdirSync(dir, { withFileTypes: true });
@@ -138,8 +156,25 @@ function getFilesRecursively(
       const res = path.resolve(dir, name);
       if (entry.isDirectory()) {
         readDir(res);
-      } else {
+      } else if (entry.isFile()) {
         files.push(res);
+      } else if (entry.isSymbolicLink()) {
+        // Follow only links to files inside the public directory: a link out (e.g. to ../.env)
+        // would embed and publish that file. Links to directories are skipped (no cycles).
+        let target = '';
+        try {
+          target = realpathSync(res);
+        } catch {
+          // Broken link: handled by the check below
+        }
+        if (target && isPathInside(root, target) && statSync(target).isFile()) {
+          files.push(res);
+        } else {
+          colorLog(
+            'caution',
+            `Skipping symlink ${relative}: it is broken, or points to a directory or outside the public directory`,
+          );
+        }
       }
     }
   };
@@ -154,6 +189,7 @@ export {
   getTmpDir,
   isDirectory,
   isFile,
+  isPathInside,
   resolveOsPath,
   resolveTmpDir,
   useUnixPath,

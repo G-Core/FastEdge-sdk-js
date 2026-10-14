@@ -155,6 +155,31 @@ describe('createManifestFileMap', () => {
     expect(mockColorLog).toHaveBeenCalledWith('info', '    - /public/ignore2');
   });
 
+  it('should apply legacy ignoreDirs (normalized) alongside ignorePaths', () => {
+    expect.assertions(1);
+    const config: AssetCacheConfig = {
+      publicDir,
+      ignoreDirs: ['./node_modules'],
+      ignorePaths: ['/drafts'],
+      ignoreDotFiles: true,
+      ignoreWellKnown: false,
+      contentTypes: [],
+      assetManifestPath: 'unused/output/path',
+    };
+
+    mockGetFilesRecursively.mockReturnValue([]);
+    mockGetKnownContentTypes.mockReturnValue([]);
+    mockTestFileContentType.mockReturnValue(null);
+
+    createManifestFileMap(config);
+
+    expect(mockGetFilesRecursively).toHaveBeenCalledWith(path.resolve('./public'), {
+      ignoreDirs: ['/node_modules', '/drafts'],
+      ignoreDotFiles: true,
+      ignoreWellKnown: false,
+    });
+  });
+
   it('should handle empty files array', () => {
     expect.assertions(1);
     const config: AssetCacheConfig = {

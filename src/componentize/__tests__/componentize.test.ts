@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { rmSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 
-import { componentNew } from '@bytecodealliance/jco';
+import { componentNew } from '@bytecodealliance/jco-transpile/wasm-tools';
 
 import { addWasmMetadata } from '~componentize/add-wasm-metadata.ts';
 import { componentize } from '~componentize/componentize.ts';
@@ -41,9 +41,9 @@ jest.mock('~componentize/add-wasm-metadata', () => ({
   addWasmMetadata: jest.fn(),
 }));
 
-jest.mock('@bytecodealliance/wizer', () => 'wizer');
+jest.mock('@bytecodealliance/wizer', () => ({ __esModule: true, default: 'wizer' }));
 
-jest.mock('@bytecodealliance/jco', () => ({
+jest.mock('@bytecodealliance/jco-transpile/wasm-tools', () => ({
   componentNew: jest.fn().mockResolvedValue('complete_generated_component_wasm'),
 }));
 
@@ -113,5 +113,23 @@ describe('componentize', () => {
     expect(mockProcessExit).toHaveBeenCalledWith(1);
 
     mockProcessExit.mockRestore();
+  });
+
+  it('should use FASTEDGE_WIZER_PATH as the wizer binary when set', async () => {
+    expect.assertions(1);
+    const mockProcessExit = jest
+      .spyOn(process, 'exit')
+      .mockImplementation(
+        jest.fn() as unknown as (code?: string | number | null | undefined) => never,
+      );
+    process.env.FASTEDGE_WIZER_PATH = '/opt/wizer';
+    try {
+      await componentize('input.js', 'output.wasm');
+
+      expect(spawnSync).toHaveBeenCalledWith('/opt/wizer', expect.anything(), expect.anything());
+    } finally {
+      delete process.env.FASTEDGE_WIZER_PATH;
+      mockProcessExit.mockRestore();
+    }
   });
 });

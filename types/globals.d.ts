@@ -1281,6 +1281,10 @@ declare var WorkerLocation: {
 };
 
 /**
+ * During request handling, the URL of the incoming request. During Wizer
+ * pre-initialization it is the configured init location; reading it when no
+ * init location was set throws a `TypeError`.
+ *
  * @group Web APIs
  */
 declare var location: WorkerLocation;

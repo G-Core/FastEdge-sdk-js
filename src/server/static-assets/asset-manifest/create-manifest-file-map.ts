@@ -1,31 +1,10 @@
 import type { AssetCacheConfig, StaticAssetManifest } from './types.ts';
 
 import { colorLog } from '~utils/color-log.ts';
+import { normalizePath } from '~utils/config-helpers.ts';
 import { getKnownContentTypes, testFileContentType } from '~utils/content-types.ts';
 import { createFileInfo } from '~utils/file-info.ts';
 import { getFilesRecursively, resolveOsPath } from '~utils/file-system.ts';
-
-/**
- * Create a readable string from an object on a single line.
- * @param obj - The object to stringify.
- * @returns The stringified object.
- */
-function prettierObjectString(obj: object): string {
-  const contentsStr = Object.entries(obj).reduce((acc, [key, value]) => {
-    let strVal = value;
-    if (typeof value === 'string') {
-      strVal = `'${value}'`;
-    } else if (typeof value === 'object') {
-      if (Array.isArray(value)) {
-        // This is not implemented - at present we have no arrays
-      } else {
-        strVal = prettierObjectString(value as Record<string, unknown>);
-      }
-    }
-    return `${acc.length > 0 ? `${acc}, ` : ''}${key}: ${strVal}`;
-  }, '');
-  return `{ ${contentsStr} }`;
-}
 
 /**
  * Creates a manifest file map based on the provided configuration.
@@ -40,8 +19,9 @@ function createManifestFileMap(asssetCacheConfig: AssetCacheConfig): StaticAsset
 
   colorLog('info', `Using ${publicDirPath} as public directory`);
 
+  // Legacy alias: fastedge-init before 2.6.0 wrote ignoreDirs instead of ignorePaths
   const ignoreDirPaths = [
-    ...(Array.isArray(ignoreDirs) ? ignoreDirs : []),
+    ...(Array.isArray(ignoreDirs) ? ignoreDirs.map((p) => normalizePath(p)) : []),
     ...(Array.isArray(ignorePaths) ? ignorePaths : []),
   ];
 
@@ -53,7 +33,7 @@ function createManifestFileMap(asssetCacheConfig: AssetCacheConfig): StaticAsset
   }
 
   const files = getFilesRecursively(publicDirPath, {
-    ignoreDirs: ignorePaths,
+    ignoreDirs: ignoreDirPaths,
     ignoreDotFiles,
     ignoreWellKnown,
   });
@@ -107,4 +87,4 @@ function createManifestFileMap(asssetCacheConfig: AssetCacheConfig): StaticAsset
   return staticAssetManifest;
 }
 
-export { createManifestFileMap, prettierObjectString };
+export { createManifestFileMap };

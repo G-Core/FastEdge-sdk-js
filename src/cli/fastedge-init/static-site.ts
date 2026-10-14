@@ -1,3 +1,4 @@
+import { realpathSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -5,7 +6,7 @@ import { createConfigFile, createProjectFiles } from './create-config.ts';
 
 import { colorLog } from '~utils/color-log.ts';
 import { normalizePath } from '~utils/config-helpers.ts';
-import { createOutputDirectory, isDirectory, isFile } from '~utils/file-system.ts';
+import { createOutputDirectory, isDirectory, isFile, isPathInside } from '~utils/file-system.ts';
 import { confirmPrompt, inputPrompt } from '~utils/prompts.ts';
 
 /**
@@ -72,11 +73,25 @@ async function setupStaticApp(): Promise<void> {
   let spaEntrypoint: string | null = null;
   if (isSpa) {
     const entrypoint = await inputPrompt('Enter the path to your SPA entrypoint:', './index.html');
-    const spaEntrypointExists = await isFile(
-      path.resolve(path.join(publicDirectory, './index.html')),
-    );
+    const publicRoot = path.resolve(publicDirectory);
+    const entrypointPath = path.join(publicRoot, entrypoint);
+    const relativePath = path.relative(publicRoot, entrypointPath);
+    // Must be inside the public directory both as typed and after resolving symlinks, or the
+    // manifest scanner (getFilesRecursively) will not include it
+    let realEntrypoint = '';
+    try {
+      realEntrypoint = realpathSync(entrypointPath);
+    } catch {
+      // Missing: handled by the check below
+    }
+    const insidePublicDir =
+      isPathInside(publicRoot, entrypointPath) &&
+      realEntrypoint !== '' &&
+      isPathInside(realpathSync(publicRoot), realEntrypoint);
+    const spaEntrypointExists = insidePublicDir && (await isFile(entrypointPath));
     if (spaEntrypointExists) {
-      spaEntrypoint = normalizePath(entrypoint);
+      // Canonical asset key, e.g. 'dist/../index.html' -> '/index.html'
+      spaEntrypoint = normalizePath(relativePath.split(path.sep).join('/'));
     } else {
       colorLog(
         'warning',

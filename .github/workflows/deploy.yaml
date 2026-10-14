@@ -13,7 +13,8 @@ on:
       dry_run:
         description: 'NPM release dry-run'
         required: true
-        default: 'true'
+        type: boolean
+        default: true
 
 jobs:
   # Gihub Actions do not allow regex validation for numbers in *.*.x branch names
@@ -72,6 +73,7 @@ jobs:
     needs: [cross_platform_tests, test_prod_invocation]
     uses: ./.github/workflows/release.yaml
     with:
-      dry_run: ${{ github.event.inputs.dry_run || 'true' }}
+      # Pushes always dry-run; only a manual dispatch with dry_run unticked publishes.
+      dry_run: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run }}
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -16,7 +16,7 @@ import { getEnv } from "fastedge::env";
 | -------------- | ---------------------------------- | ---------------- |
 | `getEnv(name)` | `(name: string) => string \| null` | `string \| null` |
 
-Retrieves the value of a named environment variable, or `null` if not set. Environment variables are set on the application and injected at request time.
+Retrieves the value of a named environment variable, or `null` if not set.
 
 **Note:** Environment variables can only be read during request processing, not during build-time initialization.
 
@@ -54,7 +54,7 @@ import { getSecret, getSecretEffectiveAt } from "fastedge::secret";
 
 #### `getSecret`
 
-Retrieves the current value of a named secret variable.
+Retrieves the value of a named secret variable, or `null` if not set.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -75,7 +75,7 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 #### `getSecretEffectiveAt`
 
-Retrieves the value of a named secret from a specific slot. The `effectiveAt` parameter is a slot index; when secret rotation is based on time, this is a Unix timestamp. The slot returned is the most recent slot where `slot <= effectiveAt`.
+Retrieves the value of a named secret from a specific slot, or `null` if not set. The `effectiveAt` parameter is the slot index of the secret (`effectiveAt >= secret_slots.slot`). It is converted to a 32-bit integer; negative values are treated as `0`. Slot indices can also be Unix timestamps.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -83,10 +83,13 @@ Retrieves the value of a named secret from a specific slot. The `effectiveAt` pa
 import { getSecretEffectiveAt } from "fastedge::secret";
 
 async function app(event) {
-  // Retrieve the secret valid at a specific Unix timestamp
+  // Using a slot index
+  const password = getSecretEffectiveAt("PASSWORD", 1);
+
+  // Using a slot index that is a Unix timestamp
   const token = getSecretEffectiveAt("API_TOKEN", 1745698356);
 
-  return new Response("ok", { status: 200 });
+  return new Response(`${password !== null} ${token !== null}`, { status: 200 });
 }
 
 addEventListener("fetch", event => event.respondWith(app(event)));
@@ -102,9 +105,11 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 import { KvStore } from "fastedge::kv";
 ```
 
-The `KvStore` class provides access to key-value stores attached to the application. Open a store by name using the static `open` method, then use the returned instance to query data.
+The `KvStore` class provides access to key-value stores attached to the application. Open a store by name using the static `open` method, then use the returned instance to query data. The SDK provides read access only; there is no write API.
 
-`KvStore` is globally replicated with eventual consistency. Values written in one data center eventually become visible in others. It is suited to globally-shared configuration, lookup tables, and sorted sets. For strongly-consistent, POP-local storage with atomic counter primitives, see [Cache](#cache) below.
+`KvStore` is globally replicated with eventual consistency. It is suited to globally-shared configuration, lookup tables, and sorted sets. For strongly-consistent, POP-local storage with atomic counter primitives, see [Cache](#cache) below.
+
+Each read operation is available in two shapes: raw-bytes methods that return values synchronously as `ArrayBuffer`, and entry-style methods that return `KvStoreEntry` objects asynchronously. Both are supported APIs.
 
 #### `KvStore.open`
 
@@ -112,7 +117,7 @@ The `KvStore` class provides access to key-value stores attached to the applicat
 static open(name: string): KvStoreInstance
 ```
 
-Opens a named KV store and returns an instance. The `name` must match a store configured on the application. Throws if the store cannot be opened.
+Opens a named KV store and returns an instance. The `name` is the name of the KV store as defined on the application.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -165,18 +170,30 @@ A handle to a value retrieved from the KV store. The bytes are already in memory
 
 ##### `get`
 
-Retrieves the value for a key. Returns `null` if the key does not exist. The returned `ArrayBuffer` can be decoded with `TextDecoder` for string values.
+Retrieves the value for a key as an `ArrayBuffer`. Returns `null` if the key does not exist. The returned `ArrayBuffer` can be decoded with `TextDecoder` for string values.
 
 ```javascript
-const buf = kv.get("my-key");
-if (buf !== null) {
-  const text = new TextDecoder().decode(buf);
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv  = KvStore.open("my-store");
+  const buf = kv.get("my-key");
+
+  if (buf === null) {
+    return new Response("not found", { status: 404 });
+  }
+
+  return new Response(new TextDecoder().decode(buf), { status: 200 });
 }
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `getEntry`
 
-Retrieves the value for a key as a `KvStoreEntry` with `text()`, `json()`, and `arrayBuffer()` accessors. Use this instead of `get` when you want to decode the value as a string or JSON without manual `TextDecoder` work.
+Retrieves the value for a key as a `KvStoreEntry` with `text()`, `json()`, and `arrayBuffer()` accessors. Use this when you want to decode the value as a string or JSON without manual `TextDecoder` work. Resolves to `null` if the key is not present.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -203,20 +220,43 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 Returns all keys matching a prefix pattern. The pattern must include a wildcard character (e.g., `"prefix*"`). Returns an empty array if no keys match.
 
 ```javascript
-const keys = kv.scan("user:*");
-// keys: Array<string> — e.g. ["user:1", "user:2"]
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv   = KvStore.open("my-store");
+  const keys = kv.scan("user:*");
+  // keys: Array<string> — e.g. ["user:1", "user:2"]
+
+  return Response.json(keys, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `zrangeByScore`
 
-Returns all entries from a sorted set (ZSet) whose scores fall within `[min, max]`. Each entry is a `[value, score]` tuple where `value` is an `ArrayBuffer`. Returns an empty array if no entries fall in range.
+Returns all entries from a sorted set (ZSet) with scores between `min` and `max`. Each entry is a `[value, score]` tuple where `value` is an `ArrayBuffer`. Returns an empty array if no entries fall in range.
 
 ```javascript
-const entries = kv.zrangeByScore("leaderboard", 100, 500);
-for (const [buf, score] of entries) {
-  const name = new TextDecoder().decode(buf);
-  console.log(name, score);
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv      = KvStore.open("my-store");
+  const entries = kv.zrangeByScore("leaderboard", 100, 500);
+
+  const rows = entries.map(([buf, score]) => ({
+    name: new TextDecoder().decode(buf),
+    score,
+  }));
+
+  return Response.json(rows, { status: 200 });
 }
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `zrangeByScoreEntries`
@@ -247,11 +287,23 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 Returns all entries from a sorted set whose values match a prefix pattern. The pattern must include a wildcard (e.g., `"foo*"`). Each entry is a `[value, score]` tuple where `value` is an `ArrayBuffer`. Returns an empty array if no entries match.
 
 ```javascript
-const entries = kv.zscan("leaderboard", "user:*");
-for (const [buf, score] of entries) {
-  const name = new TextDecoder().decode(buf);
-  console.log(name, score);
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv      = KvStore.open("my-store");
+  const entries = kv.zscan("leaderboard", "user:*");
+
+  const rows = entries.map(([buf, score]) => ({
+    name: new TextDecoder().decode(buf),
+    score,
+  }));
+
+  return Response.json(rows, { status: 200 });
 }
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `zscanEntries`
@@ -279,10 +331,21 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 ##### `bfExists`
 
-Checks whether a value is present in a Bloom Filter stored under the given key. Returns `true` if the value likely exists, `false` if it definitely does not.
+Checks whether a value exists in the Bloom Filter stored under the given key. Returns `true` if the value exists, `false` otherwise.
 
 ```javascript
-const seen = kv.bfExists("visited-ips", event.client.address);
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvStore } from "fastedge::kv";
+
+async function app(event) {
+  const kv   = KvStore.open("my-store");
+  const seen = kv.bfExists("visited-ips", event.client.address);
+
+  return new Response(seen ? "seen" : "new", { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ---
@@ -295,7 +358,9 @@ const seen = kv.bfExists("visited-ips", event.client.address);
 import { Cache } from "fastedge::cache";
 ```
 
-`Cache` is a POP-local key/value store with TTL and atomic counter primitives. It is strongly consistent within a single point-of-presence and is designed for transient, request-time state: rate limiting, hit counters, response memoisation, and deduplicated origin fetches. A value written from one data center is not visible to another.
+`Cache` is a POP-local key/value store with TTL and atomic counter primitives. It is strongly consistent within a single point-of-presence and independent across POPs. It is intended for transient, request-time state: rate limiting, hit counters, response memoisation, and deduplicated work. A value written from one data center is not visible to another.
+
+Values are stored as raw bytes. The cache does not record what type was originally passed; on read, decode with whichever `CacheEntry` accessor you need (`text`, `json`, `arrayBuffer`).
 
 **`Cache` vs `KvStore` at a glance:**
 
@@ -304,9 +369,9 @@ import { Cache } from "fastedge::cache";
 | Consistency scope | Strong within a POP; independent across POPs | Eventual; globally replicated             |
 | Atomic operations | `incr`, `decr`, `getOrSet` coalescing        | Not available                             |
 | Typical use cases | Rate limits, counters, request coalescing    | Configuration, lookup tables, sorted sets |
-| Data persistence  | Evicted; no durability guarantee             | Durable; persists across deployments      |
+| Data persistence  | Transient; subject to host eviction          | Replicated across data centers            |
 
-Strong per-POP consistency makes `Cache.incr` / `Cache.decr` reliable for per-POP rate limits and `Cache.getOrSet` coalescing reliable for deduplicating concurrent origin fetches within a single POP. For globally-shared data that must be visible across all POPs, use `fastedge::kv`.
+Strong per-POP consistency makes `Cache.incr` / `Cache.decr` reliable for per-POP rate limits. `Cache.getOrSet` coalesces concurrent calls for the same key within a single WASM instance, so concurrent origin fetches are deduplicated at that scope. For globally-shared data that must be visible across all POPs, use `fastedge::kv`.
 
 #### CacheValue
 
@@ -316,16 +381,16 @@ Values accepted by `Cache.set` and the `populate` callback of `Cache.getOrSet`:
 type CacheValue = string | ArrayBuffer | ArrayBufferView | ReadableStream | Response;
 ```
 
-All forms are stored as raw bytes:
+All forms are coerced to raw bytes before storage:
 
 - `string` — encoded as UTF-8.
 - `ArrayBuffer` / `ArrayBufferView` — used directly.
-- `ReadableStream` — fully consumed before storage.
+- `ReadableStream` — fully consumed, then stored as a single byte buffer.
 - `Response` — `response.arrayBuffer()` is consumed; status and headers are discarded. The cache stores bytes only. To round-trip status or headers, encode them into the value (e.g., as a JSON envelope).
 
 #### WriteOptions
 
-Controls how long a cache entry lives. Pass exactly one of `ttl`, `ttlMs`, or `expiresAt`. Passing more than one, or a zero or negative value, throws `TypeError`. Omitting `options` entirely stores the entry with no expiry (subject to host eviction policy).
+Controls how long a cache entry lives. Pass exactly one of `ttl`, `ttlMs`, or `expiresAt`. Passing more than one, an options value that is not an object (`null` and `undefined` mean no options), or a value that resolves to a TTL that is not positive (zero, negative, non-finite, or an `expiresAt` in the past) or not below `Number.MAX_SAFE_INTEGER` ms throws an `Error`. For `set` and `getOrSet`, if the options bag is omitted or empty, the entry has no expiry and persists until explicitly deleted (subject to the host's eviction policy).
 
 | Field       | Type     | Description                                                                      |
 | ----------- | -------- | -------------------------------------------------------------------------------- |
@@ -347,7 +412,9 @@ A handle to a cached value. The bytes are already in memory when you receive a `
 
 #### Cache methods
 
-All methods are static; `Cache` is never constructed. All methods return `Promise`. Operational errors surface as Promise rejections. Argument validation errors (wrong types, conflicting `WriteOptions` fields) throw synchronously; both are caught the same way by `try`/`catch` around an `await`.
+All methods are static; `Cache` is never constructed. Every method returns a `Promise`.
+
+Operational errors from the host (access denied, internal error, implementation-specific I/O) surface as Promise rejections. Invalid `WriteOptions`, a non-function `populate`, and an invalid `delta` (non-finite, non-integer, or beyond ±`Number.MAX_SAFE_INTEGER`) throw an `Error` synchronously. A `set` value of an unsupported type rejects the returned Promise instead. Keys are converted with `String()`; ordinary values never cause an error. Both forms are caught the same way by `try`/`catch` around an `await`.
 
 | Method                              | Signature                                                                                                                                 | Returns                       |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
@@ -388,15 +455,25 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 ##### `exists`
 
-Returns `true` if `key` is present in the cache. Cheaper than `get` when you only need presence, as no value bytes are transferred.
+Returns `true` if `key` exists in the cache. Cheaper than `get` when you only need presence, as the value is not transferred.
 
 ```javascript
-const present = await Cache.exists("feature-flag:beta");
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  const present = await Cache.exists("feature-flag:beta");
+
+  return new Response(present ? "enabled" : "disabled", { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `set`
 
-Stores `value` under `key`, optionally with an expiry. Overwrites any existing value at `key`.
+Stores `value` under `key`, optionally with an expiry. Overwrites any existing value at `key`. Pass an empty options bag, or omit `options`, to store with no expiry.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -426,22 +503,42 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 Removes `key` from the cache. A no-op if the key does not exist.
 
 ```javascript
-await Cache.delete("session:abc");
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  await Cache.delete("session:abc");
+
+  return new Response("deleted", { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `expire`
 
-Updates the expiry of an existing key without changing its value. Resolves to `true` if the expiry was set, `false` if the key does not exist.
+Updates the expiry of an existing key. Resolves to `true` if the expiry was set, `false` if the key does not exist. `options` must set one of `ttl`, `ttlMs`, or `expiresAt`; omitting it, or passing an empty object, throws an `Error`.
 
 ```javascript
-await Cache.expire("rl:1.2.3.4", { ttl: 60 });
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { Cache } from "fastedge::cache";
+
+async function app(event) {
+  const updated = await Cache.expire("rl:1.2.3.4", { ttl: 60 });
+
+  return new Response(updated ? "expiry set" : "no such key", { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ##### `incr` and `decr`
 
-Atomically increment or decrement an integer stored at `key`. If the key does not exist, it is initialised to `0` before the operation. Resolves to the new value after the operation. Rejects if the stored value is not an integer.
+Atomically increment or decrement the integer at `key` by `delta` (default `1`). If the key does not exist, it is initialised to `0` before the operation. Resolves to the new value. Rejects if the stored value at `key` is not an integer.
 
-`delta` defaults to `1`. `Cache.decr` is sugar for `Cache.incr(key, -(delta ?? 1))`. `delta` may be any integer; prefer `decr` when subtracting for readability.
+`Cache.decr` is sugar for `Cache.incr(key, -(delta ?? 1))`. `delta` may be negative; prefer `decr` when subtracting for readability. Integer values larger than `Number.MAX_SAFE_INTEGER` (2^53 − 1) are not represented exactly.
 
 Strong per-POP consistency makes these operations reliable for per-POP rate limits and hit counters. Set the TTL on the first increment to establish the window:
 
@@ -472,11 +569,13 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 ##### `getOrSet`
 
-Returns the entry for `key`, or calls `populate` on a cache miss and stores the result. All concurrent callers for the same key within the same WASM instance share a single `populate` execution — the callback is not duplicated for joiners. Concurrent requests handled by other WASM instances race independently and may each call `populate`.
+Returns the entry for `key`, or calls `populate` on a cache miss and stores the resolved value under `key` with the supplied `options`. Concurrent callers for the same key in the same WASM instance share one `populate` execution; `populate` is not re-run for joiners.
 
-If `populate` throws or its Promise rejects, the rejection propagates to all current waiters. The next call after a failure retries `populate` (no negative caching).
+**Coalescing scope:** in-process only. Concurrent requests handled by other WASM instances, including other workers in the same POP, race independently and may each run `populate`.
 
-**Skip-cache signal:** if `populate` resolves with `null`, the value is _not_ written to the cache and `getOrSet` resolves with `null`. Use this to wrap fallible work and only pin successes — for example, caching only successful upstream responses so that a transient error response does not get stored for the duration of the TTL window. To also return the error response to the caller, use a manual `Cache.get` + conditional `Cache.set` instead.
+**Errors:** if `populate` throws or its Promise rejects, the rejection propagates to all current waiters. The next call after the rejection retries `populate` (no negative caching).
+
+**Skip-cache signal:** if `populate` resolves with `null`, the value is _not_ written to the cache and `getOrSet` resolves with `null`. Use this to wrap fallible work and only pin successes — for example, caching only `response.ok` upstream fetches so that a transient 5xx is not held for the rest of the TTL window. To also surface the original error response to the caller, use a manual `Cache.get` + conditional `Cache.set` instead.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -510,7 +609,7 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 ##### `purge`
 
-Deletes all cache entries available to this application. The host scans the key index, removes every cached key, and clears the index. Resolves with the number of keys deleted.
+Purges all cache entries available to this application. The host scans the key index, deletes every cached key, and removes the index itself. Resolves with the number of keys deleted.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -527,7 +626,7 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 ##### `purgePrefix`
 
-Deletes all cache entries whose keys begin with `prefix`. The host scans the key index for matching keys, removes them, and updates the index (the index itself is retained for any remaining keys). Resolves with the number of keys deleted.
+Purges all cache entries whose keys begin with `prefix`. The host scans the key index for keys that begin with the given prefix, deletes every matched key, and removes the matched entries from the index (the index itself is kept for any remaining keys). Resolves with the number of keys deleted.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -550,7 +649,7 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 Every FastEdge application handles incoming requests by registering a listener for the `"fetch"` event.
 
 ```typescript
-addEventListener("fetch", (event: FetchEvent) => void);
+addEventListener(type: "fetch", listener: (this: typeof globalThis, event: FetchEvent) => any): void
 ```
 
 ### FetchEvent
@@ -563,7 +662,9 @@ addEventListener("fetch", (event: FetchEvent) => void);
 | `respondWith`     | `(response: Response \| PromiseLike<Response>) => void` | Sends a response back to the client.                     |
 | `waitUntil`       | `(promise: Promise<any>) => void`                       | Extends the service lifetime until the promise settles.  |
 
-`respondWith` must be called synchronously within the event listener, but may be passed a `Promise<Response>`. The service is kept alive until the response is fully sent. Use `waitUntil` to perform work (e.g., logging, telemetry) after the response has been sent.
+`respondWith` accepts a `Response` or a `Promise<Response>`. The service is kept alive until the response has been fully sent. If the response contains a streaming body created by the service itself, the service is kept alive until that `ReadableStream` has closed or errored. If the body is a stream originating from a backend response (a backend `Response.body` passed to the `Response` constructor), the service is not kept alive until sending the body has finished.
+
+By default, the service shuts down as soon as the response passed to `respondWith` has been sent. Use `waitUntil` to keep the service alive until additional asynchronous work completes, such as sending telemetry after the response.
 
 ```javascript
 /// <reference types="@gcoredev/fastedge-sdk-js" />
@@ -593,14 +694,16 @@ async function logRequest(url, ip) {
 
 ### ClientInfo
 
-Information about the downstream client that made the request, available as `event.client`. All fields are derived from headers the FastEdge edge POP injects into the request. The `geo` namespace is populated lazily on first access.
+Information about the downstream client that made the request, available as `event.client`. All fields are derived from headers the FastEdge edge POP injects into the request. Direct fields are populated when the object is first accessed; the `geo` namespace is populated only if read.
 
 | Property    | Type      | Description                                                                                                                  |
 | ----------- | --------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `address`   | `string`  | IPv4 or IPv6 address of the downstream client. Empty string if unavailable.                                                  |
 | `tlsJA3MD5` | `string`  | JA3 TLS-handshake fingerprint as an MD5 hex string. Empty string for non-TLS requests or when fingerprinting is unavailable. |
-| `protocol`  | `string`  | Protocol family — `"https"` or `"http"`. Not the TLS version string.                                                        |
+| `protocol`  | `string`  | Protocol family — `"https"` or `"http"`. Not the TLS version string.                                                         |
 | `geo`       | `GeoInfo` | Client geographic information. Populated lazily on first access.                                                             |
+
+`address` is read from the platform-set `x-real-ip` header, falling back to `x-forwarded-for` if `x-real-ip` is absent. Both headers are set by the trusted edge POP and not by the client.
 
 ### GeoInfo
 
@@ -612,7 +715,7 @@ Geographic information about the downstream client, available as `event.client.g
 | `latitude`    | `number \| null` | Latitude in decimal degrees, or `null` if unavailable.                       |
 | `longitude`   | `number \| null` | Longitude in decimal degrees, or `null` if unavailable.                      |
 | `region`      | `string`         | Region or state code (subdivision). Empty string if unavailable.             |
-| `continent`   | `string`         | Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable.          |
+| `continent`   | `string`         | Continent code (e.g. `"EU"`, `"NA"`). Empty string if unavailable.           |
 | `countryCode` | `string`         | ISO 3166-1 alpha-2 country code (e.g. `"PT"`). Empty string if unavailable. |
 | `countryName` | `string`         | Country name (e.g. `"Portugal"`). Empty string if unavailable.               |
 | `city`        | `string`         | City name. Empty string when geo lookup did not resolve a city.              |
@@ -678,12 +781,20 @@ fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>
 Makes an outbound HTTP request. Follows the [WHATWG Fetch specification](https://fetch.spec.whatwg.org/).
 
 ```javascript
-const response = await fetch("https://api.example.com/data", {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ key: "value" }),
-});
-const data = await response.json();
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const response = await fetch("https://api.example.com/data", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ key: "value" }),
+  });
+  const data = await response.json();
+
+  return Response.json(data, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 #### `Request`
@@ -692,12 +803,16 @@ const data = await response.json();
 new Request(input: RequestInfo | URL, init?: RequestInit): Request
 ```
 
+**Note:** `Request` can only be used when processing requests, not during build-time initialization.
+
 | `RequestInit` field | Type                  | Description                       |
 | ------------------- | --------------------- | --------------------------------- |
 | `method`            | `string`              | HTTP method. Defaults to `"GET"`. |
 | `headers`           | `HeadersInit`         | Request headers.                  |
 | `body`              | `BodyInit \| null`    | Request body.                     |
 | `signal`            | `AbortSignal \| null` | Abort signal for the request.     |
+
+Other WHATWG `RequestInit` fields (`cache`, `credentials`, `integrity`, `keepalive`, `mode`, `redirect`, `referrer`, `referrerPolicy`, `window`) are not supported and are silently ignored if passed.
 
 | `Request` property / method | Type                                 | Description                                       |
 | --------------------------- | ------------------------------------ | ------------------------------------------------- |
@@ -714,7 +829,7 @@ new Request(input: RequestInfo | URL, init?: RequestInit): Request
 | `blob()`                    | `() => Promise<Blob>`                | Reads body as a `Blob`.                           |
 | `formData()`                | `() => Promise<FormData>`            | Reads body as `FormData`.                         |
 
-**Note:** The `headers` property on an incoming `request` object (from `event.request`) is immutable — calls to `append`, `set`, or `delete` will throw. Clone the request or construct a new `Headers` object to modify headers.
+**Note:** `event.request.headers` is immutable, and so are the headers of `event.request.clone()`. To modify headers, copy them into `new Headers(event.request.headers)`, or build a new `Request` with a new `Headers`.
 
 #### `Response`
 
@@ -723,6 +838,8 @@ new Response(body?: BodyInit | null, init?: ResponseInit): Response
 Response.redirect(url: string | URL, status?: number): Response
 Response.json(data: any, init?: ResponseInit): Response
 ```
+
+**Note:** `Response` can only be used when processing requests, not during build-time initialization. `Response.error()` is not implemented.
 
 | `ResponseInit` field | Type          | Description                          |
 | -------------------- | ------------- | ------------------------------------ |
@@ -741,6 +858,7 @@ Response.json(data: any, init?: ResponseInit): Response
 | `headers`                    | `Headers`                            | Response headers.                           |
 | `body`                       | `ReadableStream<Uint8Array> \| null` | Response body stream.                       |
 | `bodyUsed`                   | `boolean`                            | Whether the body has already been consumed. |
+| `clone()`                    | `() => Response`                     | Creates a copy of the response.             |
 | `text()`                     | `() => Promise<string>`              | Reads body as a string.                     |
 | `json()`                     | `() => Promise<any>`                 | Reads body and parses as JSON.              |
 | `arrayBuffer()`              | `() => Promise<ArrayBuffer>`         | Reads body as an `ArrayBuffer`.             |
@@ -768,17 +886,27 @@ new Headers(init?: HeadersInit): Headers
 | `keys()`              | `() => IterableIterator<string>`                                            |
 | `values()`            | `() => IterableIterator<string>`                                            |
 
-**Immutability note:** The `headers` object on an incoming `event.request` is read-only. Attempting to mutate it will throw a `TypeError`. To add or change headers, construct a new `Headers` object:
+`forEach` also accepts an optional second argument, `thisArg?: any`.
+
+**Immutability note:** `event.request.headers` is immutable, and so are the headers of `event.request.clone()`. To add or change headers, copy them into a new `Headers` object, or build a new `Request` with a new `Headers`:
 
 ```javascript
-const newHeaders = new Headers(event.request.headers);
-newHeaders.set("x-custom", "value");
+/// <reference types="@gcoredev/fastedge-sdk-js" />
 
-const proxied = new Request(event.request.url, {
-  method: event.request.method,
-  headers: newHeaders,
-  body: event.request.body,
-});
+async function app(event) {
+  const newHeaders = new Headers(event.request.headers);
+  newHeaders.set("x-custom", "value");
+
+  const proxied = new Request(event.request.url, {
+    method: event.request.method,
+    headers: newHeaders,
+    body: event.request.body,
+  });
+
+  return fetch(proxied);
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ---
@@ -808,9 +936,19 @@ Parses and manipulates URLs per the [WHATWG URL specification](https://url.spec.
 | `searchParams` | `URLSearchParams` | no      |
 | `hash`         | `string`          | yes     |
 
+`URL` also provides `toJSON(): string`.
+
 ```javascript
-const url = new URL(event.request.url);
-const id  = url.searchParams.get("id");
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const url = new URL(event.request.url);
+  const id  = url.searchParams.get("id");
+
+  return new Response(`id=${id}`, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 #### `URLSearchParams`
@@ -835,6 +973,8 @@ new URLSearchParams(
 | `values()`            | `() => IterableIterator<string>`                                                           |
 | `forEach(callback)`   | `(callback: (value: string, name: string, searchParams: URLSearchParams) => void) => void` |
 
+`forEach` also accepts an optional second argument, `thisArg`. `URLSearchParams` also exposes a read-only `size: number` property containing the number of search parameter entries.
+
 ---
 
 ### Streams API
@@ -847,13 +987,15 @@ The WHATWG Streams API is available for constructing and transforming streaming 
 new ReadableStream<R>(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>): ReadableStream<R>
 ```
 
-| `UnderlyingSource` field | Type                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------- |
-| `start`                  | `(controller: ReadableStreamDefaultController<R>) => any`                       |
-| `pull`                   | `(controller: ReadableStreamDefaultController<R>) => void \| PromiseLike<void>` |
-| `cancel`                 | `(reason?: any) => void \| PromiseLike<void>`                                   |
-| `type`                   | `"bytes" \| undefined`                                                          |
-| `autoAllocateChunkSize`  | `number`                                                                        |
+| `UnderlyingSource` field | Type                                                                     |
+| ------------------------ | ------------------------------------------------------------------------ |
+| `start`                  | `(controller: ReadableStreamController<R>) => any`                       |
+| `pull`                   | `(controller: ReadableStreamController<R>) => void \| PromiseLike<void>` |
+| `cancel`                 | `(reason?: any) => void \| PromiseLike<void>`                            |
+| `type`                   | `"bytes" \| undefined`                                                   |
+| `autoAllocateChunkSize`  | `number`                                                                 |
+
+`ReadableStreamController<R>` is `ReadableStreamDefaultController<R> | ReadableByteStreamController`.
 
 | `ReadableStream` method            | Signature                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -863,18 +1005,59 @@ new ReadableStream<R>(underlyingSource?: UnderlyingSource<R>, strategy?: Queuing
 | `tee()`                            | `() => [ReadableStream<R>, ReadableStream<R>]`                                              |
 | `cancel(reason?)`                  | `(reason?: any) => Promise<void>`                                                           |
 
+`ReadableStream` also exposes a read-only `locked: boolean` property.
+
 To read a byte stream with a caller-supplied buffer, call `getReader({ mode: 'byob' })` which returns a `ReadableStreamBYOBReader`. The BYOB reader's `read(view)` method fills the provided `ArrayBufferView` in-place.
 
-```javascript
-const stream = new ReadableStream({
-  start(controller) {
-    controller.enqueue(new TextEncoder().encode("hello "));
-    controller.enqueue(new TextEncoder().encode("world"));
-    controller.close();
-  },
-});
+`StreamPipeOptions` accepts `{ preventAbort?: boolean, preventCancel?: boolean, preventClose?: boolean, signal?: AbortSignal }`.
 
-return new Response(stream, { status: 200 });
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode("hello "));
+      controller.enqueue(new TextEncoder().encode("world"));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+##### Readers and controllers
+
+| Type                                 | Members                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `ReadableStreamDefaultReader<R>`     | `read()`, `releaseLock()`, `cancel(reason?)`, `closed`                 |
+| `ReadableStreamBYOBReader`           | `read(view, options?)`, `releaseLock()`, `cancel(reason?)`, `closed`   |
+| `ReadableStreamDefaultController<R>` | `desiredSize`, `close()`, `enqueue(chunk)`, `error(e?)`                |
+| `ReadableByteStreamController`       | `byobRequest`, `desiredSize`, `close()`, `enqueue(chunk)`, `error(e?)` |
+| `ReadableStreamBYOBRequest`          | `view`, `respond(bytesWritten)`, `respondWithNewView(view)`            |
+
+`ReadableStreamDefaultReader<R>.read()` returns `Promise<ReadableStreamDefaultReadResult<R>>`. `ReadableStreamBYOBReader.read(view, options?: { min?: number })` returns `Promise<ReadableStreamDefaultReadResult<T>>`. `ReadableByteStreamController.enqueue` accepts an `ArrayBufferView`.
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const upstream = await fetch("https://origin.example.com/data");
+  const reader   = upstream.body.getReader();
+  let total      = 0;
+
+  for (let r = await reader.read(); !r.done; r = await reader.read()) {
+    total += r.value.byteLength;
+  }
+  reader.releaseLock();
+
+  return new Response(`received ${total} bytes`, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 #### `WritableStream`
@@ -887,6 +1070,27 @@ new WritableStream<W>(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStra
 | ----------------------- | -------------------------------------- |
 | `getWriter()`           | `() => WritableStreamDefaultWriter<W>` |
 | `abort(reason?)`        | `(reason?: any) => Promise<void>`      |
+
+`WritableStream` also exposes a read-only `locked: boolean` property.
+
+| `UnderlyingSink` field | Type                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `start`                | `(controller: WritableStreamDefaultController) => any`                                 |
+| `write`                | `(chunk: W, controller: WritableStreamDefaultController) => void \| PromiseLike<void>` |
+| `close`                | `() => void \| PromiseLike<void>`                                                      |
+| `abort`                | `(reason?: any) => void \| PromiseLike<void>`                                          |
+
+| `WritableStreamDefaultWriter<W>` member | Type / Signature                  |
+| --------------------------------------- | --------------------------------- |
+| `write(chunk)`                          | `(chunk: W) => Promise<void>`     |
+| `close()`                               | `() => Promise<void>`             |
+| `abort(reason?)`                        | `(reason?: any) => Promise<void>` |
+| `releaseLock()`                         | `() => void`                      |
+| `closed`                                | `Promise<undefined>`              |
+| `ready`                                 | `Promise<undefined>`              |
+| `desiredSize`                           | `number \| null`                  |
+
+`WritableStreamDefaultController` provides `error(e?: any): void`.
 
 #### `TransformStream`
 
@@ -902,6 +1106,14 @@ new TransformStream<I, O>(
 | ---------- | ------------------- | ----------------------------------- |
 | `readable` | `ReadableStream<O>` | The readable side of the transform. |
 | `writable` | `WritableStream<I>` | The writable side of the transform. |
+
+| `Transformer` field | Type                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| `start`             | `(controller: TransformStreamDefaultController<O>) => void \| PromiseLike<void>`           |
+| `transform`         | `(chunk: I, controller: TransformStreamDefaultController<O>) => void \| PromiseLike<void>` |
+| `flush`             | `(controller: TransformStreamDefaultController<O>) => void \| PromiseLike<void>`           |
+
+`TransformStreamDefaultController<O>` exposes `desiredSize`, `enqueue(chunk?)`, `error(reason?)`, and `terminate()`.
 
 #### Queuing Strategies
 
@@ -953,11 +1165,19 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 Standard `TextEncoder` and `TextDecoder` are available as globals for converting between strings and `Uint8Array`.
 
 ```javascript
-const encoded = new TextEncoder().encode("hello");    // Uint8Array
-const decoded = new TextDecoder().decode(encoded);    // "hello"
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const encoded = new TextEncoder().encode("hello");    // Uint8Array
+  const decoded = new TextDecoder().decode(encoded);    // "hello"
+
+  return new Response(decoded, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
-`TextDecoder` accepts an optional encoding label (default `"utf-8"`) and options `{ fatal?: boolean, ignoreBOM?: boolean }`. `TextEncoder` always encodes as UTF-8 and additionally exposes `encodeInto(source, destination)` which writes into a pre-allocated `Uint8Array` and returns `{ read, written }`.
+`TextDecoder` accepts an optional encoding label (default `"utf-8"`) and options `{ fatal?: boolean, ignoreBOM?: boolean }`. Its `decode(input?, options?: { stream?: boolean })` method decodes a `BufferSource` to a string. `TextEncoder` always encodes as UTF-8 and additionally exposes `encodeInto(source, destination)` which writes into a pre-allocated `Uint8Array` and returns `{ read, written }`.
 
 #### Base64
 
@@ -972,8 +1192,16 @@ btoa(data: string): string
 | `atob`   | Decodes a Base64 ASCII string to a binary string. |
 
 ```javascript
-const encoded = btoa("hello world");    // "aGVsbG8gd29ybGQ="
-const decoded = atob(encoded);          // "hello world"
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const encoded = btoa("hello world");    // "aGVsbG8gd29ybGQ="
+  const decoded = atob(encoded);          // "hello world"
+
+  return new Response(`${encoded} ${decoded}`, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ---
@@ -1011,6 +1239,8 @@ new File(fileBits: BlobPart[], fileName: string, options?: FilePropertyBag): Fil
 | `name`         | `string` | File name as provided to the constructor. |
 | `lastModified` | `number` | Last modified timestamp in milliseconds.  |
 
+`FilePropertyBag` extends `BlobPropertyBag` with `lastModified?: number`.
+
 #### `FormData`
 
 ```typescript
@@ -1031,6 +1261,8 @@ new FormData(): FormData
 | `entries()`           | `() => IterableIterator<[string, FormDataEntryValue]>`                                   |
 | `keys()`              | `() => IterableIterator<string>`                                                         |
 | `values()`            | `() => IterableIterator<FormDataEntryValue>`                                             |
+
+`forEach` also accepts an optional second argument, `thisArg?: any`.
 
 ---
 
@@ -1092,7 +1324,7 @@ crypto.subtle: SubtleCrypto
 
 #### `SubtleCrypto`
 
-Available as `crypto.subtle`. Supported operations:
+Available as `crypto.subtle`. Supported methods:
 
 | Method      | Signature                                                                                                                          |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -1108,12 +1340,15 @@ Available as `crypto.subtle`. Supported operations:
 | `digest()`                                     | SHA-1, SHA-256, SHA-384, SHA-512, MD5 |
 | `sign()` / `verify()`                          | RSASSA-PKCS1-v1_5, ECDSA, HMAC        |
 | `importKey()`                                  | JWK, PKCS#8, SPKI, raw (HMAC)         |
-| `getRandomValues()`                            | ✓                                     |
 | `encrypt()` / `decrypt()`                      | **Not implemented**                   |
 | `generateKey()`, `deriveKey()`, `deriveBits()` | **Not implemented**                   |
 | `exportKey()`                                  | **Not implemented**                   |
 
+`crypto.getRandomValues()` (on `crypto`, not `crypto.subtle`) is also available.
+
 These operations support JWT verification (HMAC / ECDSA / RSASSA-PKCS1-v1_5), SAML assertion verification (SHA-256 digest + RSASSA-PKCS1-v1_5 + SPKI importKey), and general signature verification workflows. Encryption / key generation / key export are unavailable.
+
+Raw-format key import is supported for HMAC only; ECDSA raw import raises `NotSupportedError`.
 
 `importKey` overloads:
 
@@ -1137,24 +1372,37 @@ subtle.importKey(
 ): Promise<CryptoKey>
 ```
 
-Supported `(algorithm, format)` combinations:
-
-| Algorithm           | Supported formats                      |
-| ------------------- | -------------------------------------- |
-| `HMAC`              | `'raw'`, `'jwk'`                       |
-| `RSASSA-PKCS1-v1_5` | `'jwk'`, `'spki'`, `'pkcs8'`           |
-| `ECDSA`             | `'jwk'`, `'raw'`, `'spki'`, `'pkcs8'` |
+Import parameter dictionaries: `HmacImportParams` is `{ name, hash, length? }`, `RsaHashedImportParams` is `{ name, hash }`, and `EcKeyImportParams` is `{ name: 'ECDSA', namedCurve: 'P-256' | 'P-384' | 'P-521' }`.
 
 `ECDSA` requires `EcdsaParams` (`{ name: 'ECDSA', hash: AlgorithmIdentifier }`) for `sign` and `verify` so that the hash function can be specified.
 
 ```javascript
-// Compute SHA-256 digest
-const data    = new TextEncoder().encode("hello world");
-const hashBuf = await crypto.subtle.digest("SHA-256", data);
-const hashHex = Array.from(new Uint8Array(hashBuf))
-  .map(b => b.toString(16).padStart(2, "0"))
-  .join("");
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  // Compute SHA-256 digest
+  const data    = new TextEncoder().encode("hello world");
+  const hashBuf = await crypto.subtle.digest("SHA-256", data);
+  const hashHex = Array.from(new Uint8Array(hashBuf))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return new Response(hashHex, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
+
+#### `CryptoKey`
+
+Returned by `importKey`. Read-only properties:
+
+| Property      | Type           | Description                          |
+| ------------- | -------------- | ------------------------------------ |
+| `algorithm`   | `KeyAlgorithm` | Algorithm the key was imported with. |
+| `extractable` | `boolean`      | Whether the key is extractable.      |
+| `type`        | `KeyType`      | One of private, public, or secret.   |
+| `usages`      | `KeyUsage[]`   | Permitted operations for the key.    |
 
 ---
 
@@ -1181,24 +1429,27 @@ clearInterval(intervalID?: number): void
 
 The global `console` object writes to stdout. Unlike browser or Node.js implementations, this version does not perform string substitution in format strings — all arguments are stringified and concatenated.
 
-| Method               | Description                              |
-| -------------------- | ---------------------------------------- |
-| `console.log`        | General output.                          |
-| `console.info`       | Informational output.                    |
-| `console.warn`       | Warning output.                          |
-| `console.error`      | Error output.                            |
-| `console.debug`      | Debug output.                            |
-| `console.assert`     | Logs if condition is falsy.              |
-| `console.trace`      | Outputs a stack trace.                   |
-| `console.time`       | Starts a named timer.                    |
-| `console.timeEnd`    | Stops a named timer and logs elapsed ms. |
-| `console.timeLog`    | Logs current elapsed time for a timer.   |
-| `console.count`      | Logs call count for a label.             |
-| `console.countReset` | Resets call count for a label.           |
-| `console.group`      | Starts an indented group.                |
-| `console.groupEnd`   | Ends an indented group.                  |
-| `console.dir`        | Logs object representation.              |
-| `console.table`      | Logs tabular data.                       |
+| Method                   | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `console.log`            | General output.                          |
+| `console.info`           | Informational output.                    |
+| `console.warn`           | Warning output.                          |
+| `console.error`          | Error output.                            |
+| `console.debug`          | Debug output.                            |
+| `console.assert`         | Logs if condition is falsy.              |
+| `console.trace`          | Outputs a stack trace.                   |
+| `console.time`           | Starts a named timer.                    |
+| `console.timeEnd`        | Stops a named timer and logs elapsed ms. |
+| `console.timeLog`        | Logs current elapsed time for a timer.   |
+| `console.count`          | Logs call count for a label.             |
+| `console.countReset`     | Resets call count for a label.           |
+| `console.group`          | Starts an indented group.                |
+| `console.groupCollapsed` | Starts a collapsed indented group.       |
+| `console.groupEnd`       | Ends an indented group.                  |
+| `console.dir`            | Logs object representation.              |
+| `console.dirxml`         | Logs an XML/HTML-style representation.   |
+| `console.table`          | Logs tabular data.                       |
+| `console.clear`          | Clears the console.                      |
 
 ---
 
@@ -1212,17 +1463,25 @@ performance.timeOrigin: DOMHighResTimeStamp
 `performance.now()` returns a high-resolution timestamp in milliseconds relative to `performance.timeOrigin`.
 
 ```javascript
-const start   = performance.now();
-// ... work ...
-const elapsed = performance.now() - start;
-console.log(`elapsed: ${elapsed}ms`);
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+async function app(event) {
+  const start   = performance.now();
+  await fetch("https://api.example.com/data");
+  const elapsed = performance.now() - start;
+  console.log(`elapsed: ${elapsed}ms`);
+
+  return new Response(`elapsed: ${elapsed}ms`, { status: 200 });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
 ```
 
 ---
 
 ### DOM Events
 
-The standard `Event`, `EventTarget`, and `CustomEvent` interfaces are available as globals. These underpin the `FetchEvent` mechanism and can be used to implement custom event dispatch within an application.
+The standard `Event`, `EventTarget`, and `CustomEvent` interfaces are available as globals and can be used to implement custom event dispatch within an application.
 
 ```typescript
 new Event(type: string, eventInitDict?: EventInit): Event
@@ -1239,11 +1498,13 @@ new EventTarget(): EventTarget
 | Global                          | Type / Signature                                            | Description                                       |
 | ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- |
 | `self`                          | `typeof globalThis`                                         | Reference to the global object.                   |
-| `location`                      | `WorkerLocation`                                            | URL of the current worker script.                 |
-| `queueMicrotask(callback)`      | `(callback: () => void) => void`                            | Queues a microtask.                               |
+| `location`                      | `WorkerLocation`                                            | The incoming request URL during request handling. |
+| `queueMicrotask(callback)`      | `(callback: VoidFunction) => void`                          | Queues a microtask.                               |
 | `structuredClone(value, opts?)` | `(value: any, options?: StructuredSerializeOptions) => any` | Deep-clones a value. Transferable: `ArrayBuffer`. |
 
-`WorkerLocation` exposes `href`, `origin`, `protocol`, `host`, `hostname`, `port`, `pathname`, `search`, and `hash` as read-only string properties.
+`location` is the URL of the incoming request during request handling. During build-time initialization it is the configured init location; reading it when no init location was set throws a `TypeError`.
+
+`WorkerLocation` exposes `href`, `origin`, `protocol`, `host`, `hostname`, `port`, `pathname`, `search`, and `hash` as read-only string properties, and a `toString()` method.
 
 ---
 

@@ -1,10 +1,10 @@
 # Quickstart
 
-Get a FastEdge JavaScript application built and ready for deployment.
+Install the FastEdge JS SDK, build a JavaScript or TypeScript application to WebAssembly, and prepare it for deployment.
 
 ## Prerequisites
 
-- Node.js `>=22` (see `engines.node` in `package.json`)
+- Node.js 22 or higher (the `engines.node` value in the package's `package.json` is `>=22`)
 - npm, yarn, or pnpm
 
 ## Installation
@@ -15,23 +15,71 @@ npm install --save-dev @gcoredev/fastedge-sdk-js
 
 ## Option 1: Scaffold with fastedge-init
 
-The fastest way to start a new project:
+`fastedge-init` is an interactive wizard that writes build configuration. It does not create application source for HTTP apps: it asks for the path of an existing entry file and exits with an error if that file does not exist. Write the entry file first (see [Write Your First App](#write-your-first-app)), then run:
 
 ```bash
 npx fastedge-init
 ```
 
-This interactive wizard will:
+If `.fastedge/build-config.js` already exists, the wizard warns and asks whether to overwrite it. Declining exits without changes.
 
-1. Ask what you're building: **HTTP event handler** or **Static website**
-2. Create a `.fastedge/` directory with build configuration
-3. Generate a `build-config.js` file
+The wizard asks what you are building: **Http event-handler** or **Static website**.
 
-Then build:
+### HTTP event handler
+
+The wizard prompts for:
+
+| Prompt                             | Default                    |
+| ---------------------------------- | -------------------------- |
+| Path to your entry file            | `src/index.js`             |
+| Path to your output file (`.wasm`) | `.fastedge/dist/main.wasm` |
+
+It writes a single file, `.fastedge/build-config.js`. With the defaults, its contents are:
+
+```js
+const config = {
+  "type": "http",
+  "tsConfigPath": "./tsconfig.json",
+  "entryPoint": "src/index.js",
+  "wasmOutput": ".fastedge/dist/main.wasm"
+};
+
+const serverConfig = {
+  "type": "http"
+};
+
+export { config, serverConfig };
+```
+
+### Static website
+
+The wizard prompts for:
+
+| Prompt                                  | Default                        |
+| --------------------------------------- | ------------------------------ |
+| Path to your output file (`.wasm`)      | `.fastedge/dist/fastedge.wasm` |
+| Path to your public directory           | `./build`                      |
+| Is your site a single page application? | No                             |
+| Path to your SPA entrypoint (SPA only)  | `./index.html`                 |
+
+The public directory must exist and must not be empty; otherwise the wizard exits with an error. The wizard writes these files and does not touch the project's root `package.json`:
+
+| File                        | Purpose                                                    |
+| --------------------------- | ---------------------------------------------------------- |
+| `.fastedge/build-config.js` | Build configuration and static server configuration        |
+| `.fastedge/static-index.js` | Generated entry file that serves the static asset manifest |
+| `.fastedge/package.json`    | Marks the `.fastedge/` directory as an ES module project   |
+| `.fastedge/jsconfig.json`   | Sets the compile target to `ES2023`                        |
+
+See [Static Sites](STATIC_SITES.md) for configuration details.
+
+### Build from the generated config
 
 ```bash
 npx fastedge-build --config .fastedge/build-config.js
 ```
+
+Running `npx fastedge-build -c` with no path uses the default config file location.
 
 ## Option 2: Build Directly
 
@@ -47,6 +95,12 @@ Or using explicit flags:
 npx fastedge-build --input src/index.ts --output app.wasm --tsconfig tsconfig.json
 ```
 
+A single positional argument is treated as the path to a build config file:
+
+```bash
+npx fastedge-build .fastedge/build-config.js
+```
+
 ### fastedge-build CLI Flags
 
 | Flag         | Alias | Type       | Description                     |
@@ -60,7 +114,7 @@ npx fastedge-build --input src/index.ts --output app.wasm --tsconfig tsconfig.js
 
 ## TypeScript Configuration
 
-If you're using TypeScript, use a `tsconfig.json` that works with `fastedge-build`'s esbuild-based compilation pipeline. The following is the canonical template:
+If you are using TypeScript, use a `tsconfig.json` that works with `fastedge-build`'s esbuild-based compilation pipeline. The following is the canonical template:
 
 ```json
 {
@@ -201,9 +255,60 @@ addEventListener('fetch', (event) => {
 - `text(): Promise<string>`
 - `json(): Promise<unknown>`
 
+## Complete First App
+
+This example combines an environment variable, a secret, and a KV store lookup. Replace `src/index.js` with:
+
+```js
+import { getEnv } from 'fastedge::env';
+import { KvStore } from 'fastedge::kv';
+import { getSecret } from 'fastedge::secret';
+
+async function handler(event) {
+  const storeName = getEnv('STORE_NAME');
+  if (storeName === null) {
+    return new Response('STORE_NAME not configured', { status: 500 });
+  }
+
+  const token = getSecret('API_TOKEN');
+  if (token === null) {
+    return new Response('API_TOKEN not configured', { status: 500 });
+  }
+
+  const providedToken = event.request.headers.get('authorization');
+  if (providedToken !== `Bearer ${token}`) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const key = new URL(event.request.url).pathname.slice(1);
+  const store = KvStore.open(storeName);
+  const entry = await store.getEntry(key);
+
+  if (entry === null) {
+    return new Response('Key not found', { status: 404 });
+  }
+
+  return new Response(await entry.text(), {
+    headers: { 'Content-Type': 'text/plain' },
+  });
+}
+
+addEventListener('fetch', (event) => {
+  event.respondWith(handler(event));
+});
+```
+
+Build it:
+
+```bash
+npx fastedge-build src/index.js app.wasm
+```
+
+`STORE_NAME` is configured as an environment variable and `API_TOKEN` as a secret on the deployed application. The KV store named by `STORE_NAME` must exist in your account.
+
 ## Using Cache
 
-The `fastedge::cache` module provides a POP-local key/value store with TTL and atomic counter primitives. Unlike `fastedge::kv`, which is globally replicated across all data centers, the cache is strongly consistent within a single point of presence and invisible to other POPs — making it suited for request-time state such as rate limiting, hit counters, and response memoisation where low latency within a POP matters more than global durability.
+The `fastedge::cache` module provides a POP-local key/value store with TTL and atomic counter primitives. Unlike `fastedge::kv`, which is globally replicated across data centers, cache entries live in a single point of presence (POP) and are not shared with other POPs. This suits request-time state such as rate limiting, hit counters, and response memoisation, where low latency within a POP matters more than global availability.
 
 ```js
 import { Cache } from 'fastedge::cache';
@@ -240,11 +345,14 @@ addEventListener('fetch', (event) => {
 });
 ```
 
+When `populate` resolves with `null`, nothing is written to the cache and `getOrSet` resolves with `null`.
+
 **Key signatures:**
 
 - `Cache.get(key: string): Promise<CacheEntry | null>`
 - `Cache.set(key: string, value: CacheValue, options?: WriteOptions): Promise<void>`
 - `Cache.getOrSet(key: string, populate: () => CacheValue | Promise<CacheValue>, options?: WriteOptions): Promise<CacheEntry>`
+- `Cache.getOrSet(key: string, populate: () => CacheValue | null | Promise<CacheValue | null>, options?: WriteOptions): Promise<CacheEntry | null>`
 - `Cache.incr(key: string, delta?: number): Promise<number>`
 - `Cache.expire(key: string, options: WriteOptions): Promise<boolean>`
 
@@ -261,4 +369,5 @@ See [SDK Runtime API](SDK_API.md) for the complete `Cache` method reference, `Ca
 ## See Also
 
 - [INDEX](INDEX.md) — documentation overview
+- [SDK Runtime API](SDK_API.md) — complete `Cache`, `KvStore`, env, and secret reference
 - [Examples](https://github.com/G-Core/FastEdge-sdk-js/tree/main/examples) — real-world patterns

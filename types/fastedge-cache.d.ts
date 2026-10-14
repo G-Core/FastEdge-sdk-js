@@ -64,8 +64,11 @@ declare module 'fastedge::cache' {
    * Options controlling how long a cache entry lives.
    *
    * Pass exactly one of `ttl`, `ttlMs`, or `expiresAt`. Passing more than
-   * one — or passing zero or negative values — throws `TypeError`. If the
-   * options bag is omitted or empty, the entry has no expiry and persists
+   * one, an options value that is not an object (`null` and `undefined` mean
+   * no options), or a value that resolves to a TTL that is not positive (zero,
+   * negative, non-finite, or an `expiresAt` in the past) or not below
+   * `Number.MAX_SAFE_INTEGER` ms throws an `Error`. For `set` and `getOrSet`,
+   * if the options bag is omitted or empty, the entry has no expiry and persists
    * until explicitly deleted (subject to the host's eviction policy).
    *
    * - `ttl` — relative TTL, **seconds** from now. The conventional unit
@@ -130,8 +133,11 @@ declare module 'fastedge::cache' {
    *
    * Operational errors from the host (access denied, internal error,
    * implementation-specific I/O) surface as Promise rejections.
-   * Validation errors on call arguments (wrong types, conflicting
-   * `WriteOptions` fields) are thrown synchronously; both forms are
+   * Invalid `WriteOptions`, a non-function `populate`, and an invalid
+   * `delta` (non-finite, non-integer, or beyond ±`Number.MAX_SAFE_INTEGER`)
+   * throw synchronously. A `set` value of an unsupported type rejects the
+   * returned Promise instead. Keys are converted with `String()`; ordinary
+   * values never cause an error. Both forms are
    * caught the same way by `try`/`catch` around an `await`.
    */
   export class Cache {
@@ -181,7 +187,8 @@ declare module 'fastedge::cache' {
      * Update the expiry of an existing key.
      *
      * Resolves to `true` if the expiry was set, `false` if the key does
-     * not exist.
+     * not exist. `options` must set one of `ttl`, `ttlMs`, or `expiresAt`;
+     * omitting it, or passing an empty object, throws an `Error`.
      *
      * @example
      * ```js

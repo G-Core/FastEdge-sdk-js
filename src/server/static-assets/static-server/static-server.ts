@@ -224,6 +224,11 @@ const getStaticServer = <T = StaticServer>(
   const testExtendedCache = (pathname: string): boolean =>
     _extendedCache.some((x) => {
       if (x instanceof RegExp) {
+        // A /g or /y regex starts from lastIndex: reset so every request is tested from the start.
+        // Safe to mutate: createStaticServer, the only public entry, normalizes the config, which
+        // gives the server its own copy (privateRegex).
+        // eslint-disable-next-line no-param-reassign
+        x.lastIndex = 0;
         return x.test(pathname);
       }
       if (x.endsWith('/')) {

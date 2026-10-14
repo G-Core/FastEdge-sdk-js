@@ -384,6 +384,32 @@ describe('content-types', () => {
     afterEach(() => {
       consoleSpy.mockRestore();
     });
+
+    it('should match /g and /y regexes consistently without touching the caller\'s regex', () => {
+      expect.assertions(5);
+      const custom = /\.foo$/gu;
+      const known = getKnownContentTypes([
+        { test: custom, contentType: 'application/x-foo', isText: false },
+      ]);
+
+      const first = testFileContentType(known, '/a.foo');
+      const second = testFileContentType(known, '/b.foo');
+
+      expect(first?.contentType).toBe('application/x-foo');
+      expect(second?.contentType).toBe('application/x-foo');
+      expect(custom.flags).toBe('gu');
+      expect(custom.lastIndex).toBe(0);
+
+      // Sticky stays anchored at the start: '/b/a.bar' must not match /\/a/y
+      const sticky = getKnownContentTypes([
+        { test: /\/a/uy, contentType: 'application/x-bar', isText: false },
+      ]);
+      expect([
+        testFileContentType(sticky, '/a.bar')?.contentType,
+        testFileContentType(sticky, '/b/a.bar')?.contentType,
+      ]).toStrictEqual(['application/x-bar', undefined]);
+    });
+
     it('should return default content types when no custom types provided', () => {
       expect.assertions(3);
       const types = getKnownContentTypes([]);

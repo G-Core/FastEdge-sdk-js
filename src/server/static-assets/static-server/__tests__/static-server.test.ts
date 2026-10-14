@@ -138,6 +138,24 @@ describe('getStaticServer', () => {
       expect.assertions(1);
       expect(server.testExtendedCache('/public/regexcache/file.txt')).toBe(true);
     });
+
+    it('should match /g and /y extendedCache regexes on every request, keeping y anchored', () => {
+      expect.assertions(2);
+      const statefulServer = getStaticServer(
+        { ...serverConfig, extendedCache: [/\/assets\//gu, /\/fonts/uy] } as ServerConfig,
+        assetCache,
+      ) as InternalStaticServer;
+
+      expect([
+        statefulServer.testExtendedCache('/assets/a.js'),
+        statefulServer.testExtendedCache('/assets/b.js'),
+        statefulServer.testExtendedCache('/assets/c.js'),
+      ]).toStrictEqual([true, true, true]);
+      expect([
+        statefulServer.testExtendedCache('/fonts/a.woff2'),
+        statefulServer.testExtendedCache('/x/fonts/a.woff2'),
+      ]).toStrictEqual([true, false]);
+    });
     it('should not match unrelated path', () => {
       expect.assertions(1);
       expect(server.testExtendedCache('/public/other/file.txt')).toBe(false);

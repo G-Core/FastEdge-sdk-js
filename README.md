@@ -21,7 +21,7 @@ Please read through the documentation provided by Gcore.
 
 Required:
 
-- Node v20 or higher
+- Node v22 or higher
 
 Setup:
 

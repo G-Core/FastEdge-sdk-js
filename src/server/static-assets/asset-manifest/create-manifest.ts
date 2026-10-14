@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 
-import { createManifestFileMap, prettierObjectString } from './create-manifest-file-map.ts';
+import { createManifestFileMap } from './create-manifest-file-map.ts';
 
 import type { AssetCacheConfig, StaticAssetManifest } from './types.ts';
 
@@ -52,8 +52,10 @@ async function createStaticAssetsManifest(
   await createOutputDirectory(manifestBuildOutput);
   const inlineAssetManifest = await createManifestFileMap(config);
 
+  // JSON.stringify output is a valid JS literal: file names containing quotes, backslashes or
+  // newlines can't break out of the string (or corrupt it) in the generated module.
   const readableAssetLines = Object.entries(inlineAssetManifest).map(
-    ([key, value]) => `  '${key}': ${prettierObjectString(value)},`,
+    ([key, value]) => `  ${JSON.stringify(key)}: ${JSON.stringify(value)},`,
   );
 
   const manifestFileContents = [
@@ -80,7 +82,7 @@ function normalizeAssetCacheConfig(config: Partial<AssetCacheConfig>): AssetCach
   return normalizeConfig<AssetCacheConfig>(config, {
     publicDir: 'path',
     assetManifestPath: 'path',
-    contentTypes: 'stringArray',
+    contentTypes: 'array',
     ignoreDotFiles: 'booleanTruthy',
     ignorePaths: 'pathsArray',
     ignoreWellKnown: 'booleanFalsy',

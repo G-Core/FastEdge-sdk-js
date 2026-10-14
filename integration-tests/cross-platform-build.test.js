@@ -11,6 +11,8 @@
  *    with unquoted interpolated paths)
  *  - path-shaped arguments reach the child process as single literal argv
  *    entries and are never re-parsed as shell syntax
+ *  - the build loads no native module except wizer, via FASTEDGE_WIZER_PATH, so
+ *    it works from a node_modules installed by another OS
  *
  * Requires a built `lib/` (runtime wasm) and `bin/`. See
  * .github/workflows/cross-platform-tests.yaml.
@@ -19,6 +21,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const CLI = join(process.cwd(), 'bin', 'fastedge-build.js');
 const RUNTIME_WASM = join(process.cwd(), 'lib', 'fastedge-runtime.wasm');
@@ -35,6 +38,19 @@ const runBuild = (args) =>
     encoding: 'utf-8',
     env: { ...process.env, NODE_ENV: 'production' },
   });
+
+// Native modules blocked: see integration-tests/test-files/no-native/.
+const NO_NATIVE_PRELOAD = pathToFileURL(
+  join(process.cwd(), 'integration-tests', 'test-files', 'no-native', 'register.mjs'),
+).href;
+
+// This platform's wizer binary, resolved the way the SDK would without the override.
+const resolveWizerBinary = () =>
+  spawnSync(
+    process.execPath,
+    ['-e', 'import("@bytecodealliance/wizer").then((m) => process.stdout.write(m.default))'],
+    { encoding: 'utf-8' },
+  ).stdout;
 
 const isWasmComponent = (path) =>
   existsSync(path) && readFileSync(path).subarray(0, 4).equals(WASM_MAGIC);
@@ -114,6 +130,26 @@ describe(`fastedge-build on ${process.platform}`, () => {
 
     expect(result.status).not.toBe(0);
     expect(combined).toContain(oddPath);
+  });
+
+  it('should build with no native modules loadable except FASTEDGE_WIZER_PATH', () => {
+    expect.assertions(3);
+    const wizer = resolveWizerBinary();
+    const output = join(workDir, 'no-native.wasm');
+
+    expect(existsSync(wizer)).toBe(true);
+
+    const result = spawnSync(
+      process.execPath,
+      ['--import', NO_NATIVE_PRELOAD, CLI, join(workDir, 'app.js'), output],
+      {
+        encoding: 'utf-8',
+        env: { ...process.env, NODE_ENV: 'production', FASTEDGE_WIZER_PATH: wizer },
+      },
+    );
+
+    expect(result.status).toBe(0);
+    expect(isWasmComponent(output)).toBe(true);
   });
 
   it('should not execute shell metacharacters embedded in the output path', () => {

@@ -62,6 +62,15 @@ function normalizeStringArray(arr: Array<string> = []): Array<string> {
 }
 
 /**
+ * Ensure there is always an array, keeping its entries as they are (e.g. objects).
+ * @param arr - The array to normalize.
+ * @returns The array, or an empty array if not set.
+ */
+function normalizeArray<T>(arr?: T[] | null): T[] {
+  return Array.isArray(arr) ? arr : [];
+}
+
+/**
  * Normalize path on an array of string paths.
  * @param pathsArray - The array of paths to normalize.
  * @returns The normalized array of paths.
@@ -102,13 +111,28 @@ function convertToRegex(pattern: string): string | RegExp {
 }
 
 /**
- * Normalize path or convert to regex from string array.
+ * A `g` or `y` regex is stateful (`test()` advances `lastIndex`). Returns a private copy, flags
+ * kept, so callers can reset its `lastIndex` before each test without touching the caller's
+ * object. Flags are not dropped: removing `y` would turn an anchored match into a search.
+ * @param regex - The regex to copy.
+ * @returns A copy if `regex` is stateful, otherwise `regex` itself.
+ */
+function privateRegex(regex: RegExp): RegExp {
+  return regex.global || regex.sticky ? new RegExp(regex.source, regex.flags) : regex;
+}
+
+/**
+ * Normalize path or convert to regex from an array of strings and RegExps.
+ * RegExp entries pass through. A trailing `/` is kept, so the entry still matches as a prefix.
  * @param inputsArray - The array of inputs to normalize.
  * @returns The normalized array of paths or regexes.
  */
-function normalizePathsOrRegex(inputsArray: string[] = []): Array<string | RegExp> {
+function normalizePathsOrRegex(inputsArray: Array<string | RegExp> = []): Array<string | RegExp> {
   return inputsArray
     .map((strInput) => {
+      if (strInput instanceof RegExp) {
+        return privateRegex(strInput);
+      }
       if (strInput.startsWith('regex:')) {
         const regexp = convertToRegex(strInput.slice(6));
         if (typeof regexp === 'string') {
@@ -116,14 +140,16 @@ function normalizePathsOrRegex(inputsArray: string[] = []): Array<string | RegEx
           console.warn('caution', `Invalid regex pattern: ${strInput}`);
           return '';
         }
-        return regexp;
+        return privateRegex(regexp);
       }
-      return normalizePath(strInput);
+      const normalized = normalizePath(strInput);
+      return strInput.endsWith('/') && normalized !== '/' ? `${normalized}/` : normalized;
     })
     .filter((item): item is string | RegExp => Boolean(item));
 }
 
 const normalizeFns = {
+  array: normalizeArray,
   booleanTruthy: defaultedBoolean(true),
   booleanFalsy: defaultedBoolean(false),
   path: normalizePath,
@@ -160,4 +186,4 @@ function normalizeConfig<T extends Record<string, unknown>>(
   return result;
 }
 
-export { normalizeConfig, normalizePath };
+export { normalizeConfig, normalizePath, privateRegex };

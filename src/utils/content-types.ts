@@ -1,4 +1,5 @@
 import { colorLog } from '~utils/color-log.ts';
+import { privateRegex } from '~utils/config-helpers.ts';
 
 /**
  * Represents a content type definition.
@@ -100,7 +101,9 @@ function getKnownContentTypes(
 
       if (!invalid) {
         finalContentTypes.push({
-          test: contentType.test,
+          // A private copy, so resetting lastIndex below never touches the caller's RegExp
+          test:
+            contentType.test instanceof RegExp ? privateRegex(contentType.test) : contentType.test,
           contentType: contentType.contentType,
           isText: Boolean(contentType.isText),
         });
@@ -133,9 +136,13 @@ function testFileContentType(
   for (const contentType of contentTypes ?? defaultContentTypes) {
     const _assetKey = assetKey.toLowerCase();
     let matched = false;
-    contentType.test instanceof RegExp
-      ? (matched = contentType.test.test(_assetKey))
-      : (matched = contentType.test(_assetKey));
+    if (contentType.test instanceof RegExp) {
+      // A /g or /y regex starts from lastIndex: reset so every file is tested from the start
+      contentType.test.lastIndex = 0;
+      matched = contentType.test.test(_assetKey);
+    } else {
+      matched = contentType.test(_assetKey);
+    }
 
     if (matched) {
       return { contentType: contentType.contentType, isText: contentType.isText };
