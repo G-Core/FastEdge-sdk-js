@@ -77,6 +77,7 @@
     "hono": "^4.13.5",
     "husky": "^9.1.7",
     "jest": "^30.3.0",
+    "npm-run-all2": "^9.0.2",
     "semantic-release": "^25.0.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.1"
@@ -91,7 +92,6 @@
     "esbuild-wasm": "^0.28.2",
     "event-target-polyfill": "^0.0.4",
     "magic-string": "^0.30.21",
-    "npm-run-all2": "^9.0.2",
     "prompts": "^2.4.2",
     "regexpu-core": "^6.4.0"
   }
