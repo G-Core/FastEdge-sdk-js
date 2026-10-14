@@ -31,6 +31,8 @@ Select the static site type. `fastedge-init` prompts for:
 | Is your site a single page application?               | No                             | Answer yes to be prompted for an SPA entrypoint                  |
 | Path to your SPA entrypoint (only when answering yes) | `./index.html`                 | Must exist in the public directory, otherwise a warning is shown |
 
+The SPA entrypoint must be a file inside the public directory. If it is not, a warning is shown and no SPA entrypoint is set.
+
 It writes `.fastedge/static-index.js` (the entry point), `.fastedge/build-config.js` (build and server config), and a `package.json` and `jsconfig.json` in `.fastedge/`.
 
 The generated entry point:
@@ -143,18 +145,22 @@ export { config, serverConfig };
 
 The following fields apply when `type` is `'static'`. All other `BuildConfig` fields are documented in [BUILD_CLI.md](BUILD_CLI.md).
 
-| Field               | Type                           | Required | Description                                                                                            |
-| ------------------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------ |
-| `publicDir`         | `string`                       | No       | Directory to scan for static files to embed; defaults to the current directory                         |
-| `assetManifestPath` | `string`                       | No       | Output path for the generated manifest module; defaults to `.fastedge/build/static-asset-manifest.js` |
-| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content-type definitions                                                                        |
+| Field               | Type                           | Required | Description                                                                                             |
+| ------------------- | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------- |
+| `publicDir`         | `string`                       | No       | Directory to scan for static files to embed; defaults to the current directory                          |
+| `assetManifestPath` | `string`                       | No       | Output path for the generated manifest module; defaults to `.fastedge/build/static-asset-manifest.js`  |
+| `contentTypes`      | `Array<ContentTypeDefinition>` | No       | Custom content-type definitions                                                                         |
 | `ignoreDotFiles`    | `boolean`                      | No       | When `true` (default), excludes files and directories whose names begin with `.`, except `.well-known` |
-| `ignorePaths`       | `string[]`                     | No       | Paths to exclude, relative to `publicDir` and matched exactly (e.g. `'/drafts'`)                       |
-| `ignoreWellKnown`   | `boolean`                      | No       | When `true`, excludes the `.well-known/` directory; default `false`                                    |
+| `ignorePaths`       | `string[]`                     | No       | Paths to exclude, relative to `publicDir` and matched exactly (e.g. `'/drafts'`)                        |
+| `ignoreWellKnown`   | `boolean`                      | No       | When `true`, excludes the `.well-known/` directory; default `false`                                     |
 
 `fastedge-build` does not check `publicDir` beforehand. A missing directory fails the build, and an empty directory produces an empty manifest.
 
 If `assetManifestPath` does not end in `.js`, `.ts`, `.cjs`, or `.mjs`, a `.js` extension is appended. If the resulting path exists and is not a file, a warning is shown and the default path is used.
+
+#### Symlinks
+
+Symlinks in `publicDir` are followed only when they resolve to a regular file inside `publicDir`. Links to directories, links pointing outside `publicDir`, and broken links are skipped with a warning.
 
 ## createStaticServer
 
@@ -214,7 +220,7 @@ All fields are optional when passed to `createStaticServer`. Pass only the field
 
 The defaults are the values after the server config is normalized. An unset `notFoundPage` or `spaEntrypoint` (or one set to `null`) becomes `'/'`, which matches no asset, so the feature is effectively off.
 
-The server config written by `fastedge-init` sets `notFoundPage` to `'/404.html'` and `autoIndex` to `['index.html', 'index.htm']`. It sets `spaEntrypoint` to the SPA entrypoint you entered, or `null`.
+The server config written by `fastedge-init` sets `notFoundPage` to `'/404.html'` and `autoIndex` to `['index.html', 'index.htm']`. It sets `spaEntrypoint` to the asset key of the SPA entrypoint you entered (for example `'/index.html'`), or `null`.
 
 #### compression
 
@@ -485,17 +491,17 @@ const templateServer = createStaticServer(templatesManifest, {});
 
 addEventListener('fetch', (event: FetchEvent) => {
   const { pathname } = new URL(event.request.url);
+  let server = templateServer;
   if (pathname.startsWith('/images/')) {
-    event.respondWith(imageServer.serveRequest(event.request));
+    server = imageServer;
   } else if (pathname.startsWith('/styles/')) {
-    event.respondWith(styleServer.serveRequest(event.request));
-  } else {
-    event.respondWith(
-      templateServer
-        .serveRequest(event.request)
-        .then((r) => r ?? new Response('Not found', { status: 404 })),
-    );
+    server = styleServer;
   }
+  event.respondWith(
+    server
+      .serveRequest(event.request)
+      .then((r) => r ?? new Response('Not found', { status: 404 })),
+  );
 });
 ```
 

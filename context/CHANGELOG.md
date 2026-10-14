@@ -5,6 +5,16 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-14] — Security review fixes: release-workflow injection, manifest escaping, symlinks
+
+### Overview
+Fixes from a pre-release security review. The remaining low-severity items are tracked for a follow-up PR (outside this repo, in the coordinator's `context/tasks/fastedge-sdk-js-security-review.md`).
+
+### Changes
+- **Release workflow:** the `dry_run` dispatch input was a free string interpolated into bash in the publishing job (`release.yaml`), so a dispatch could run commands with `contents`/`id-token` write. It is now a boolean, read through `env`. Pushes still always dry-run.
+- **Manifest escaping:** the generated asset manifest wrote publicDir file names inside `'...'` with no escaping (`prettierObjectString`), so a `'`, `\` or newline in a file name broke out of the string. That broke the build for names like `John's photo.jpg`, and could inject code that runs at Wizer init. Entries are now written with `JSON.stringify` and `prettierObjectString` is removed. A test evaluates the generated module for a hostile file name.
+- **Symlinks:** `getFilesRecursively` treated symlinks as files and `readFileSync` followed them, so a link such as `public/robots.txt -> ../.env` embedded that file and published it. Symlinks are now followed only when they resolve to a regular file inside the input directory. Other links are skipped with a warning, and links to directories previously crashed the build with `EISDIR`. Only regular files are collected, so FIFOs and sockets are not picked up. The `.generation-config.md` rule is added and ASSETS_CLI / STATIC_SITES are regenerated.
+
 ## [2026-10-14] — Generated docs verified against the code; static-site config bugs fixed
 
 ### Overview

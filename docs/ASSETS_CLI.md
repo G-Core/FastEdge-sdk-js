@@ -45,6 +45,7 @@ Running `fastedge-assets` with no arguments prints the usage information and exi
 
 - `--input` must be an existing, non-empty directory.
 - `--output` must resolve to a file path (not a directory). The output file does not need to pre-exist; parent directories are created automatically.
+- Input and output paths are resolved relative to the current working directory. Use paths relative to the directory the command is run from.
 - Two positional arguments are interpreted as `<input-directory> <output-file>` and take precedence over `--input` and `--output`.
 - When `--config` is provided, `publicDir` and `assetManifestPath` from the config file serve as defaults if `--input` or `--output` are not specified on the command line (or as positional arguments).
 - If the `--config` file does not exist, or the config contains no fields, usage information is printed and the process exits with status 1. If the config file exists but fails to import, the error is thrown and usage information is not printed.
@@ -121,6 +122,15 @@ interface ContentTypeDefinition {
 
 Custom content types are evaluated before built-in defaults. The first matching entry wins. If `isText` is omitted it is treated as `false`. An entry is skipped with a warning if `test` is not a function or regular expression, or if `contentType` is not a string containing a `/`. If `contentTypes` is not an array, it is treated as an empty array and ignored without a warning.
 
+## Included Files
+
+All files under `publicDir` are included, subject to `ignoreDotFiles`, `ignoreWellKnown` and `ignorePaths`.
+
+Symlinks are handled as follows:
+
+- A symlink is followed only when it resolves to a regular file inside `publicDir`. The asset is keyed by the path of the link.
+- Symlinks to directories, symlinks pointing outside `publicDir`, and broken symlinks are skipped. A warning is printed for each skipped link.
+
 ## Manifest Structure
 
 The generated file exports a `staticAssetManifest` constant:
@@ -159,7 +169,7 @@ interface FileInfo {
 
 Each manifest entry is keyed by its `assetKey`, the file's path relative to `publicDir` with a leading `/`.
 
-Example generated output (each entry is written on a single line):
+Keys and values are written with `JSON.stringify`, so keys are double-quoted and each entry is written on a single line without spaces. Example generated output:
 
 ```js
 /*
@@ -169,7 +179,7 @@ Example generated output (each entry is written on a single line):
  */
 
 const staticAssetManifest = {
-  '/index.css': { assetKey: '/index.css', contentType: 'text/css', isText: true, fileInfo: { size: 466, hash: 'e17878bc37ca054789c91f5c24e6044a077e172d2c65454a71269a82e61ee686', lastModifiedTime: 1768985591, assetPath: './styles/index.css' }, lastModifiedTime: 1768985591, type: 'wasm-inline' },
+  "/index.css": {"assetKey":"/index.css","contentType":"text/css","isText":true,"fileInfo":{"size":466,"hash":"e17878bc37ca054789c91f5c24e6044a077e172d2c65454a71269a82e61ee686","lastModifiedTime":1768985591,"assetPath":"./styles/index.css"},"lastModifiedTime":1768985591,"type":"wasm-inline"},
 };
 
 export { staticAssetManifest };
@@ -177,7 +187,7 @@ export { staticAssetManifest };
 
 ## Default Content Types
 
-The following MIME types are detected automatically by file extension. Custom `contentTypes` entries are checked first.
+The following MIME types are detected automatically by file extension. Custom `contentTypes` entries are checked first. A file that matches no entry is assigned `application/octet-stream` and a warning is printed.
 
 | Extension(s)    | Content-Type                    | Text |
 | --------------- | ------------------------------- | ---- |

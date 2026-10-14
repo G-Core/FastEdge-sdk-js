@@ -10,14 +10,12 @@ const publicDir = '/public';
 // Mocks
 const mockCreateManifestFileMap = jest.fn();
 const mockIsFile = jest.fn();
-const mockPrettierObjectString = jest.fn();
 const mockCreateOutputDirectory = jest.fn();
 const mockColorLog = jest.fn();
 const mockNormalizeConfig = jest.fn();
 
 jest.mock('../create-manifest-file-map', () => ({
   createManifestFileMap: (...args: any[]) => mockCreateManifestFileMap(...args),
-  prettierObjectString: (...args: any[]) => mockPrettierObjectString(...args),
 }));
 jest.mock('~utils/file-system', () => {
   // eslint-disable-next-line unicorn/prefer-module, @typescript-eslint/no-require-imports
@@ -44,7 +42,6 @@ const DEFAULT_ASSET_MANIFEST_PATH = '/.fastedge/build/static-asset-manifest.js';
 describe('createStaticAssetsManifest', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPrettierObjectString.mockImplementation((obj) => JSON.stringify(obj));
   });
 
   it('should create manifest file and return manifest object', async () => {
@@ -197,8 +194,8 @@ describe('createStaticAssetsManifest', () => {
     expect(result).toBe(manifest);
   });
 
-  it('should format manifest entries with prettierObjectString', async () => {
-    expect.assertions(4);
+  it('should write a module that evaluates to the manifest, whatever the file names', async () => {
+    expect.assertions(1);
     const config: Partial<AssetCacheConfig> = { publicDir };
     const normalizedConfig: AssetCacheConfig = {
       publicDir,
@@ -208,9 +205,16 @@ describe('createStaticAssetsManifest', () => {
       contentTypes: [],
       assetManifestPath: '',
     };
+    // Quote, backslash, newline, template and comment syntax: none may break out of the literal
+    // eslint-disable-next-line no-template-curly-in-string -- a literal `${` is part of the test
+    const tricky = "/x'+globalThis.PWNED=1+'\\a\nb`${1}`*/.txt";
     const manifest: StaticAssetManifest = {
       '/foo.txt': { assetKey: '/foo.txt', contentType: 'text/plain' } as any,
-      '/bar.txt': { assetKey: '/bar.txt', contentType: 'text/plain' } as any,
+      [tricky]: {
+        assetKey: tricky,
+        contentType: 'text/plain',
+        fileInfo: { assetPath: `./public${tricky}`, size: 1 },
+      } as any,
     };
 
     mockNormalizeConfig.mockReturnValue(normalizedConfig);
@@ -218,16 +222,13 @@ describe('createStaticAssetsManifest', () => {
 
     await createStaticAssetsManifest(config);
 
-    expect(mockPrettierObjectString).toHaveBeenCalledWith(manifest['/foo.txt']);
-    expect(mockPrettierObjectString).toHaveBeenCalledWith(manifest['/bar.txt']);
-    expect(writeFileSync).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.stringContaining("'/foo.txt':"),
-    );
-    expect(writeFileSync).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.stringContaining("'/bar.txt':"),
-    );
+    const contents = (writeFileSync as jest.Mock).mock.calls[0][1] as string;
+    // eslint-disable-next-line no-new-func -- evaluating the generated module is the point of the test
+    const evaluated = new Function(
+      contents.replace('export { staticAssetManifest };', 'return staticAssetManifest;'),
+    )();
+
+    expect(evaluated).toStrictEqual(manifest);
   });
 
   it('should handle empty manifest gracefully', async () => {

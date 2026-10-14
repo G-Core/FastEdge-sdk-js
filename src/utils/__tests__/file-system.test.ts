@@ -379,6 +379,23 @@ describe('file-system utilities', () => {
       writeFileSync(path.join(testStructureDir, '.well-known', 'security.txt'), 'security info');
     });
 
+    it('should follow symlinks only to files inside the input directory', () => {
+      expect.assertions(4);
+      const outside = path.join(tempDir, 'outside-secret.env');
+      writeFileSync(outside, 'SECRET=1');
+      symlinkSync(path.join(testStructureDir, 'file1.txt'), path.join(testStructureDir, 'inside-link.txt'));
+      symlinkSync(outside, path.join(testStructureDir, 'leak.txt'));
+      symlinkSync(path.join(testStructureDir, 'subdir'), path.join(testStructureDir, 'dir-link'));
+      symlinkSync(path.join(testStructureDir, 'missing'), path.join(testStructureDir, 'broken-link'));
+
+      const files = getFilesRecursively(testStructureDir, {});
+
+      expect(files).toContain(path.join(testStructureDir, 'inside-link.txt'));
+      expect(files).not.toContain(path.join(testStructureDir, 'leak.txt'));
+      expect(files).not.toContain(path.join(testStructureDir, 'dir-link'));
+      expect(files).not.toContain(path.join(testStructureDir, 'broken-link'));
+    });
+
     it('should get all files recursively with default options', () => {
       expect.assertions(7);
       const files = getFilesRecursively(testStructureDir, {});

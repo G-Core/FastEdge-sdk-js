@@ -7,28 +7,6 @@ import { createFileInfo } from '~utils/file-info.ts';
 import { getFilesRecursively, resolveOsPath } from '~utils/file-system.ts';
 
 /**
- * Create a readable string from an object on a single line.
- * @param obj - The object to stringify.
- * @returns The stringified object.
- */
-function prettierObjectString(obj: object): string {
-  const contentsStr = Object.entries(obj).reduce((acc, [key, value]) => {
-    let strVal = value;
-    if (typeof value === 'string') {
-      strVal = `'${value}'`;
-    } else if (typeof value === 'object') {
-      if (Array.isArray(value)) {
-        // This is not implemented - at present we have no arrays
-      } else {
-        strVal = prettierObjectString(value as Record<string, unknown>);
-      }
-    }
-    return `${acc.length > 0 ? `${acc}, ` : ''}${key}: ${strVal}`;
-  }, '');
-  return `{ ${contentsStr} }`;
-}
-
-/**
  * Creates a manifest file map based on the provided configuration.
  * @param config - The configuration for creating the manifest file map.
  * @returns The static asset manifest.
@@ -109,4 +87,4 @@ function createManifestFileMap(asssetCacheConfig: AssetCacheConfig): StaticAsset
   return staticAssetManifest;
 }
 
-export { createManifestFileMap, prettierObjectString };
+export { createManifestFileMap };
