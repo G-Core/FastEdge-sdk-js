@@ -5,6 +5,16 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-21] — Engine: component-import hooks (ComponentizeJS embedding)
+
+### Overview
+Adds the ComponentizeJS `embedding` builtin to the engine so a later `fastedge-build` change can splice user-supplied Wasm component imports. No behaviour change for existing builds.
+
+### Changes
+- Vendored `runtime/fastedge/builtins/embedding/` from ComponentizeJS 0.23.0, registered as `componentize::embedding` in `runtime/fastedge/CMakeLists.txt`. The engine now exports 7 `coreabi_*` functions (+~14 KB).
+- Removed its `console.log` override (duplicate symbol with `console-override.cpp`); `install()` is inert unless `SOURCE_NAME` is set, so plain Wizer builds don't hit its unguarded `getenv`.
+- Verified on the new engine: unit 441/441, integration 67/67, all 22 examples × 60 fixtures identical to the stock engine (bar timestamp-dependent output), fastedge-test HTTP integration 81/81.
+
 ## [2026-10-14] — Security review fixes: release-workflow injection, manifest escaping, symlinks
 
 ### Overview
