@@ -36,7 +36,7 @@ src/
 
 ### 2. CLI Integration Tests — build tool correctness
 
-Located in `integration-tests/` (3 test files). Test that `fastedge-build` and `fastedge-assets` CLIs accept/reject the right inputs and produce output. `generates-output.test.js` verifies the build emits a `.wasm` file but **does not execute it**.
+Located in `integration-tests/`. Test that `fastedge-build` and `fastedge-assets` CLIs accept/reject the right inputs and produce output. `generates-output.test.js` verifies the build emits a `.wasm` file but **does not execute it**.
 
 ```
 integration-tests/

@@ -33,6 +33,7 @@ network using
 | [static-assets](./static-assets/)                             | Serve static assets (images, styles, templates) embedded in the wasm binary with Hono |
 | [streaming](./streaming/)                                     | Generate a streaming response body with `ReadableStream` and timed chunks             |
 | [mcp-server](./mcp-server/)                                   | MCP server running on FastEdge — weather alerts and forecast via NWS API              |
+| [component-imports](./component-imports/)                     | Import a Wasm component by its WIT interface — regexped URL attack scanner            |
 
 ## Usage
 

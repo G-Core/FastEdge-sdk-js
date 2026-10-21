@@ -162,10 +162,11 @@ types/              — TypeScript declarations
 bin/*.js            — 3 CLI tools
 lib/*.wasm          — fastedge-runtime.wasm + preview1-adapter.wasm
 lib/*.js            — create-static-server.js + index.js
+vendor/**           — splicer + component-tools (js, wasm, LICENSE, THIRD_PARTY_LICENSES.txt) for component imports
 README.md
 ```
 
-**Not shipped:** `src/`, `runtime/`, `config/`, `esbuild/`, `examples/`, `github-pages/`, `integration-tests/`
+**Not shipped:** `src/`, `runtime/`, `config/`, `esbuild/`, `examples/`, `github-pages/`, `integration-tests/`, `tools/` (sources/scripts that regenerate `vendor/`, see `VENDORED_TOOLS.md`)
 
 ## WIT Bindings & wit-bindgen Version
 

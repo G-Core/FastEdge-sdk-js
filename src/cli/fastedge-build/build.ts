@@ -17,12 +17,14 @@ interface ParsedArgs {
   '--output'?: string;
   '--tsconfig'?: string;
   '--config'?: string[];
+  '--component'?: string[];
 }
 
 let inputFileName = '';
 let outputFileName = '';
 let tsConfigPath = '';
 let configFiles: string[] = [];
+const components: Record<string, string> = {};
 let args: ParsedArgs;
 
 try {
@@ -35,6 +37,7 @@ try {
       '--output': String,
       '--tsconfig': String,
       '--config': [String],
+      '--component': [String],
 
       // Aliases
       '-v': '--version',
@@ -88,6 +91,15 @@ if (args['--tsconfig']) {
   tsConfigPath = args['--tsconfig'];
 }
 
+for (const spec of args['--component'] ?? []) {
+  const separator = spec.indexOf('=');
+  if (separator < 1) {
+    colorLog('error', `Error: --component expects <interface>=<path>, got "${spec}"`);
+    process.exit(1);
+  }
+  components[spec.slice(0, separator)] = spec.slice(separator + 1);
+}
+
 if (args._.length === 2) {
   [inputFileName, outputFileName] = args._;
 }
@@ -105,6 +117,7 @@ if (inputFileName && outputFileName) {
     entryPoint: inputFileName,
     wasmOutput: outputFileName,
     tsConfigPath,
+    components,
   });
   colorLog('success', `Build success!!`);
   colorLog('info', `"${inputFileName}" -> "${outputFileName}"`);

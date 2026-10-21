@@ -16,7 +16,7 @@ describe('get-js-input - get javascript input contents as a string', () => {
   it('should call our pre-bundling esbuild correctly', async () => {
     expect.assertions(3);
     const contents = await getJsInputContents('input.js', true);
-    expect(esBundle).toHaveBeenCalledWith('input.js');
+    expect(esBundle).toHaveBeenCalledWith('input.js', []);
     expect(readFile).not.toHaveBeenCalled();
     expect(contents).toBe('bundled_js_content');
   });

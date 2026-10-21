@@ -1,0 +1,11 @@
+package fastedge:component-tools;
+
+world component-tools {
+  /// `wac plug socket --plug p1 --plug p2 ...`, returning the composed component bytes.
+  export plug: func(socket: list<u8>, plugs: list<list<u8>>) -> result<list<u8>, string>;
+  /// WIT text for `world app` importing each interface (e.g. `ns:pkg/iface`), with the
+  /// definitions taken from the components that export them.
+  export import-world: func(components: list<list<u8>>, interfaces: list<string>) -> result<string, string>;
+  /// Names of a component's top-level imports (`ns:pkg/iface@ver` for interfaces).
+  export imports: func(component: list<u8>) -> result<list<string>, string>;
+}

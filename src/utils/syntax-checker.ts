@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 
+import { COMPONENT_TYPES_FILE } from '~componentize/components.ts';
 import { colorLog } from '~utils/color-log.ts';
 
 interface ResolvedTypeScript {
@@ -133,6 +134,9 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
   // ignoring any ambient tsconfig is correct.
   const ignoreConfig = typescript.major >= 6 ? ['--ignoreConfig'] : [];
 
+  // Written next to the entry by a build with components; a project tsconfig finds it via include
+  const componentTypes = join(dirname(tsInput), COMPONENT_TYPES_FILE);
+
   const defaultTscBuildFlags = [
     '--noEmit',
     '--skipLibCheck',
@@ -147,6 +151,7 @@ function containsTypeScriptSyntaxErrors(tsInput: string, tsConfigPath?: string):
     ...ignoreConfig,
     ...includeFastEdgeTypes,
     tsInput,
+    ...(existsSync(componentTypes) ? [componentTypes] : []),
   ];
 
   const tscBuildFlags = tsConfigPath

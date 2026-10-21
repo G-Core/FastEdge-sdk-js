@@ -30,6 +30,8 @@ export default [
       'integration-tests/**',
       'bin/**',
       'lib/**',
+      'vendor/**',
+      'tools/**',
       '**/runtime/fastedge/**',
       '**/runtime/StarlingMonkey/**',
       'github-pages/**',

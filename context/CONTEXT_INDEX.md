@@ -20,7 +20,7 @@
 
 | Document | Lines | Purpose |
 |----------|-------|---------|
-| `architecture/COMPONENTIZE_PIPELINE.md` | ~160 | The 4-stage JS→WASM compilation chain (esbuild → regex precompile → Wizer → JCO). Read when working on `fastedge-build` or `src/componentize/`. |
+| `architecture/COMPONENTIZE_PIPELINE.md` | ~200 | The 4-stage JS→WASM compilation chain (esbuild → regex precompile → Wizer → JCO), plus the component-imports splice flow and the vendored splicer/component-tools. Read when working on `fastedge-build` or `src/componentize/`. |
 | `architecture/RUNTIME_ARCHITECTURE.md` | ~170 | StarlingMonkey runtime, C++ builtins (env, kv, secret, fs, console), host-api bridge, WIT definitions, build process. Read when working on `runtime/`. |
 
 ### Development (read when implementing or testing)
@@ -28,6 +28,7 @@
 | Document | Lines | Purpose |
 |----------|-------|---------|
 | `development/BUILD_SYSTEM.md` | ~110 | esbuild scripts, TypeScript config (3 tsconfigs), path aliases, npm package contents. Read when changing build configuration. |
+| `development/VENDORED_TOOLS.md` | ~110 | `vendor/splicer` + `vendor/component-tools` (component imports): version coupling, when/how to update, licensing, CI coverage. Read before bumping StarlingMonkey or touching `vendor/` / `tools/`. |
 | `development/TESTING_GUIDE.md` | ~90 | Jest setup, unit vs integration tests, test organization, running tests. Read when adding or modifying tests. |
 
 ### Reference (search on-demand)
@@ -108,6 +109,10 @@
 ### Bumping the StarlingMonkey Submodule
 1. Read `PATCHES.md` — lists applied patches, upstream PR status, and the full rebase procedure
 2. Follow the rebase steps there when a new upstream tag lands
+3. Check the vendored ComponentizeJS `embedding.cpp` + splicer still fit — `development/VENDORED_TOOLS.md`
+
+### Updating vendor/ (splicer, component-tools)
+1. Read `development/VENDORED_TOOLS.md`
 
 ### Adding or Modifying a Prod-Invocation Test
 1. Read `integration-tests/test-application/README.md` — structure, handler/check split, routes.ts convention

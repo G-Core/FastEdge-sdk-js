@@ -13,6 +13,7 @@ const USAGE_TEXT = `\nUsage: fastedge-build [options]
   --output, -o    <output-file> Output filepath for wasm (e.g. ./dist/main.wasm)
   --tsconfig, -t  <tsconfig-file> Path to a TypeScript config file (default: ./tsconfig.json)
   --config, -c    <config-file> Path to a build config file (default: ./.fastedge/build-config.js)
+  --component     <interface>=<path> Wasm component to compose in, for the WIT interface the app imports (repeatable)
 `;
 
 /**

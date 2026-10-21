@@ -92,6 +92,24 @@ Wraps the Wizer output (a core WASM module) into a WASM Component Model componen
 
 After composition, `addWasmMetadata()` (`src/componentize/add-wasm-metadata.ts`) stamps the component with package metadata from `package.json`.
 
+## Component imports (splice flow)
+
+**File:** `src/componentize/components.ts` (called from `componentize()` when `components` is non-empty)
+
+Lets an app import any Wasm component by WIT interface (`import { scanUrl } from 'regexped:urlguard/sets'`). Configured as `components: { '<ns:pkg/iface>': '<path>' }` in the build config, or `--component <iface>=<path>` (repeatable). The plain flow above is unchanged when no components are given.
+
+1. **Types** (`writeComponentTypes`, from `buildWasm()` before the syntax check): reads each component, builds a WIT world importing the interfaces, writes `fastedge-components.d.ts` next to the entry point via jco-transpile's guest typegen (`@bytecodealliance/jco-transpile/component`).
+2. **Bundle:** esbuild marks the interface names `external`, so the `import`s survive; `precompile()` parses as `sourceType: 'module'`.
+3. **Splice** (`spliceImports`): the ComponentizeJS splicer patches the engine's `coreabi_*` hooks (the `embedding` builtin) with lowering/lifting for the user world only, and returns JS glue. A typed-array/DataView warm-up is appended to the glue so it runs at Wizer time (saves ~160 µs on each request's first import call).
+4. **Wizer** runs `--init-func componentize.wizer` on the spliced engine (instead of `-r _start=wizer.resume`), with `SOURCE_NAME`/`IMPORT*`/`EXPORT_CNT` env and the initializer/source paths on stdin, quoted (StarlingMonkey splits stdin on whitespace).
+5. **Restore bindings** (`restoreEngineBindings`): the splicer replaces the engine's `component-type:bindings` custom section with one for the user world, which would drop the FastEdge imports and the http handler export. The engine's original section is appended back; `componentNew` merges both.
+6. **componentNew** as in Stage 4.
+7. **Compose + validate** (`composeComponents`): `wac plug` satisfies the imports with the components, then every remaining import must be `wasi:*@0.2.*` or `gcore:*` (what the FastEdge host links). A failure removes the output file.
+
+FastEdge host APIs stay C++ builtins; splicing is only for third-party components whose WIT isn't known when the engine is built.
+
+**Vendored tools:** `vendor/splicer/` (ComponentizeJS splicer) and `vendor/component-tools/` (our wac-graph / wit-component wrapper), both jco-transpiled wasm on `@bytecodealliance/preview2-shim`, so the build stays platform-neutral. What they are, version coupling, when and how to update them, licensing and CI coverage: `development/VENDORED_TOOLS.md`.
+
 ## Platform-neutral build
 
 `fastedge-build` must work from a `node_modules` installed on a different OS, e.g. a project installed on macOS and built in the FastEdge MCP server's Linux container. Only wizer is a native binary:
@@ -121,6 +139,7 @@ fastedge-build <input> <output>              # Direct mode
 fastedge-build --input <file> --output <file> # Named options
 fastedge-build --config <path>               # Config-driven
 fastedge-build -c                            # Default config (.fastedge/build-config.js)
+fastedge-build -i <in> -o <out> --component <iface>=<path>  # Component import (repeatable)
 ```
 
 ### BuildConfig Interface
@@ -132,6 +151,7 @@ interface BuildConfig extends Partial<AssetCacheConfig> {
   entryPoint: string;
   wasmOutput: string;
   tsConfigPath?: string;
+  components?: Record<string, string>; // WIT interface → component path (cwd-relative)
 }
 ```
 
@@ -145,6 +165,7 @@ interface ComponentizeOptions {
   enableStdout?: boolean;
   enablePBL?: boolean;         // pre-built library mode
   preBundleJSInput?: boolean;  // default: true
+  components?: Record<string, string>; // enables the splice flow
 }
 ```
 
@@ -156,6 +177,7 @@ interface ComponentizeOptions {
 | `src/componentize/get-js-input.ts` | Stage 1: esbuild bundling |
 | `src/componentize/es-bundle.ts` | esbuild configuration for user code |
 | `src/componentize/precompile.ts` | Stage 2: regex precompilation |
+| `src/componentize/components.ts` | Component imports: types, splice, bindings restore, compose + validate |
 | `src/componentize/add-wasm-metadata.ts` | Post-Stage 4: metadata stamping |
 | `src/cli/fastedge-build/build.ts` | CLI entry point (arg parsing) |
 | `src/cli/fastedge-build/config-build.ts` | Config-driven build orchestration |
@@ -165,5 +187,6 @@ interface ComponentizeOptions {
 
 ## Testing
 
-- **Unit tests:** `src/componentize/__tests__/` — tests for add-wasm-metadata, componentize, get-js-input
-- **Integration tests:** `integration-tests/` — tests full CLI build output (fastedge-build.test.js, generates-output.test.js)
+- **Unit tests:** `src/componentize/__tests__/` — tests for add-wasm-metadata, componentize, components, get-js-input
+- **Integration tests:** `integration-tests/` — tests full CLI build output (fastedge-build.test.js, generates-output.test.js); `component-imports.test.js` runs real splice-flow builds against stub components generated by `test-files/components/make-components.mjs`; `cross-platform-build.test.js` builds and runs an app against the real `test-files/components/calculator.wasm`
+- **Runtime check:** `examples/component-imports/` fixtures (regexped URL guard) — run them under `@gcoredev/fastedge-test`
