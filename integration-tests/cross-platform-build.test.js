@@ -15,11 +15,13 @@
  *    it works from a node_modules installed by another OS
  *  - component imports: declarations are generated and type-checked, and the
  *    composed app runs under @gcoredev/fastedge-test and calls into the component
+ *  - a component can make its own outgoing HTTP requests through the host
  *
  * Requires a built `lib/` (runtime wasm) and `bin/`. See
  * .github/workflows/cross-platform-tests.yaml.
  */
 import { spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import {
   copyFileSync,
   existsSync,
@@ -30,6 +32,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -268,6 +271,57 @@ describe(`fastedge-build on ${process.platform}`, () => {
         await expect(get('/sum?v=1.5&v=2.5&v=3')).resolves.toStrictEqual([200, '7']);
         // Resource: constructor, method, borrowed handles in, owned handle out
         await expect(get('/accumulate?v=1&v=2&v=3')).resolves.toStrictEqual([200, '6 16']);
+      } finally {
+        await runner.cleanup();
+      }
+    }, 120_000);
+  });
+
+  describe('component imports (fetcher.wasm), outgoing HTTP from the component', () => {
+    const componentsDir = join(process.cwd(), 'integration-tests', 'test-files', 'components');
+    let server;
+    let authority;
+
+    beforeAll(async () => {
+      server = createServer((req, res) => res.end(`hi from ${req.url}`));
+      server.listen(0, '127.0.0.1');
+      await once(server, 'listening');
+      authority = `127.0.0.1:${server.address().port}`;
+    });
+
+    afterAll(() => server?.close());
+
+    it('should send the request from the component and return the response', async () => {
+      expect.assertions(4);
+      const output = join(workDir, 'fetcher.wasm');
+      // Declarations are written next to the entry, so keep it out of the repo
+      const entry = join(workDir, 'fetcher-app.js');
+      copyFileSync(join(componentsDir, 'fetcher-app.js'), entry);
+
+      const result = runBuild([
+        '-i',
+        entry,
+        '-o',
+        output,
+        '--component',
+        `acme:net/client=${join(componentsDir, 'fetcher.wasm')}`,
+      ]);
+
+      expect(result.status).toBe(0);
+      expect(isWasmComponent(output)).toBe(true);
+
+      const runner = await createRunner(output);
+      const get = async (to) => {
+        const { status, body } = await runHttpRequest(runner, { path: `/?to=${to}` });
+        return [status, body];
+      };
+      try {
+        await expect(get(authority)).resolves.toStrictEqual([200, 'hi from /hello']);
+        // Port 1 refuses the connection; the component's error reaches the app
+        await expect(get('127.0.0.1:1')).resolves.toStrictEqual([
+          502,
+          'ErrorCode::ConnectionRefused',
+        ]);
       } finally {
         await runner.cleanup();
       }

@@ -79,10 +79,13 @@ fixtures under `@gcoredev/fastedge-test`. After a splicer update, also re-check 
 |---|---|---|
 | `pr-tests.yaml` | Every PR | Lint + unit tests (`components.test.ts`, splice case in `componentize.test.ts`; tools mocked) |
 | `deploy.yaml` → `build-libs.yaml` | Push to release branches touching `src/**`, `runtime/**` or `vendor/**` | `test:integration` on Linux, incl. `component-imports.test.js`: real builds with the real engine + vendored tools against stub components, plus the error cases |
-| `deploy.yaml` → `cross-platform-tests.yaml` | Same | `test:cross-platform` on Ubuntu, Windows, macOS, with native modules blocked and paths containing spaces: builds a TypeScript app against `calculator.wasm`, checks the declarations and that `tsc` rejects a mistyped call, then runs the composed app under `@gcoredev/fastedge-test` |
+| `deploy.yaml` → `cross-platform-tests.yaml` | Same | `test:cross-platform` on Ubuntu, Windows, macOS, with native modules blocked and paths containing spaces: builds a TypeScript app against `calculator.wasm`, checks the declarations and that `tsc` rejects a mistyped call, then runs the composed app under `@gcoredev/fastedge-test`; also runs an app whose `fetcher.wasm` component makes its own outgoing request to a local server |
 
 `integration-tests/test-files/components/calculator.wasm` is a real component, committed so CI needs no
 Rust toolchain; rebuild it with `build.sh` in the `calculator/` crate next to it. It covers two
 interfaces from one file and s32, f64, `result` (an `err` becomes a thrown error with `.payload`),
-`list<f64>` (`Float64Array` in JS), record and string. The Linux-only tests still use stub components
+`list<f64>` (`Float64Array` in JS), record, string and a resource (constructor, method, static
+taking borrowed handles and returning an owned one). `fetcher.wasm` (crate `fetcher/`, same layout)
+makes an outgoing GET through `wasi:http/outgoing-handler@0.2.12` (via the host, as the app's own
+`fetch()` does); a failed request reaches the app as a thrown error. The Linux-only tests still use stub components
 that trap if called.
