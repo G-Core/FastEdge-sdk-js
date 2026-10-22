@@ -25,10 +25,10 @@ async function handle(request: Request): Promise<Response> {
   if (w === null || original.status !== 200) {
     return original;
   }
-  const maxWidth = Number.parseInt(w, 10);
-  if (Number.isNaN(maxWidth)) {
-    return new Response('w must be a number', { status: 400 });
+  if (!/^\d+$/.test(w)) {
+    return new Response('w must be a whole number', { status: 400 });
   }
+  const maxWidth = Number(w);
   const format = url.searchParams.get('format') === 'png' ? 'png' : 'jpeg';
 
   // The component works on bytes: the same code serves images fetched from an origin

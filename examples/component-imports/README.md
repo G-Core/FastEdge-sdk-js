@@ -12,10 +12,10 @@ import { dimensions, resize } from 'example:image/thumbnail';
 
 ## Why a component
 
-The FastEdge JS runtime has no image APIs, and image codecs written in JS are slow. A component
-lets the app use a mature library written in another language, compiled to Wasm and called like
-a JS function. Use one when a library or code you need exists in another language, or when a
-hot path needs native speed. For anything JS already does well, plain JS is simpler.
+The FastEdge JS runtime has no image APIs, and image codecs written in JS are slow. A component lets
+the app use a mature library written in another language, compiled to Wasm and called like a JS
+function. Use one when a library or code you need exists in another language, or when a hot path
+needs native speed. For anything JS already does well, plain JS is simpler.
 
 ## Behaviour
 
@@ -24,7 +24,7 @@ hot path needs native speed. For anything JS already does well, plain JS is simp
 | `GET /kev.jpeg`                     | `200` the original image                 |
 | `GET /kev.jpeg?w=320`               | `200` a JPEG thumbnail up to 320 px wide |
 | `GET /kev.jpeg?w=160&format=png`    | `200` a PNG thumbnail                    |
-| `?w=` not a number                  | `400`                                    |
+| `?w=` not a whole number            | `400`                                    |
 | Image over `MAX_PIXELS`             | `413`, without decoding it               |
 | Not an image the component can read | `415` with the component's error message |
 | Not in `images/`                    | `404`                                    |
@@ -49,10 +49,10 @@ components: {
 },
 ```
 
-`fastedge-build` reads the interface from the component, generates the bindings between JS and
-the component, and composes the component into the output: `dist/component-imports.wasm` is a
-single binary. It also writes `src/fastedge-components.d.ts` with TypeScript declarations
-for the import, before type-checking, so a call with the wrong types fails the build.
+`fastedge-build` reads the interface from the component, generates the bindings between JS and the
+component, and composes the component into the output: `dist/component-imports.wasm` is a single
+binary. It also writes `src/fastedge-components.d.ts` with TypeScript declarations for the import,
+before type-checking, so a call with the wrong types fails the build.
 
 The same build from the command line:
 
@@ -61,10 +61,10 @@ fastedge-build -i src/index.ts -o dist/component-imports.wasm -t tsconfig.json \
   --component example:image/thumbnail=./thumbnail.wasm
 ```
 
-The images are embedded in the binary as static assets (`npm run create-images-manifest`, as in
-the [static-assets](../static-assets/) example). That keeps the example self-contained; a real
-image service would `fetch()` the original from an origin or storage and pass its bytes to the
-same component calls.
+The images are embedded in the binary as static assets (`npm run create-images-manifest`, as in the
+[static-assets](../static-assets/) example). That keeps the example self-contained; a real image
+service would `fetch()` the original from an origin or storage and pass its bytes to the same
+component calls.
 
 ## WIT types in JS
 
@@ -78,8 +78,8 @@ same component calls.
 
 ## Time and memory limits
 
-A request has a time and memory budget; on the free plan, 100 ms and 52 MB. Decoding is the
-costly step, and its cost grows with the number of pixels. Measured on the edge:
+A request has a time and memory budget; on the free plan, 100 ms and 52 MB. Decoding is the costly
+step, and its cost grows with the number of pixels. Measured on the edge:
 
 | Image                     | Decode      | Whole component call | Memory |
 | ------------------------- | ----------- | -------------------- | ------ |
@@ -88,22 +88,22 @@ costly step, and its cost grows with the number of pixels. Measured on the edge:
 | 4000×3000 JPEG (12 MP)    | ~530–690 ms | over 700 ms          | 71 MB  |
 
 So the app checks the size with `dimensions()`, which reads only the image header, and rejects
-anything over `MAX_PIXELS` (0.5 MP) before decoding. Raise it only on a plan with a larger
-budget. Progressive JPEGs decode about 3× slower than baseline ones; save images as baseline.
+anything over `MAX_PIXELS` (0.5 MP) before decoding. Raise it only on a plan with a larger budget.
+Progressive JPEGs decode about 3× slower than baseline ones; save images as baseline.
 
-The component copies the image into its own memory for each call, so the bytes are held twice
-while it runs. That is small next to the decoded pixels (3 bytes per pixel for a JPEG).
+The component copies the image into its own memory for each call, so the bytes are held twice while
+it runs. That is small next to the decoded pixels (3 bytes per pixel for a JPEG).
 
 ## Writing a component in another language
 
-Any language that builds Wasm components can implement the interface, for example Go (TinyGo),
-C/C++ (wit-bindgen) or Python (componentize-py). The component may only
-import what FastEdge provides: WASI 0.2 and `gcore:` interfaces. The build fails otherwise.
+Any language that builds Wasm components can implement the interface, for example Go (TinyGo), C/C++
+(wit-bindgen) or Python (componentize-py). The component may only import what FastEdge provides:
+WASI 0.2 and `gcore:` interfaces. The build fails otherwise.
 
 ## Rebuilding the component
 
-`thumbnail.wasm` is committed, so `npm run build` needs no Rust. After changing
-`component/`, rebuild it with a Rust toolchain:
+`thumbnail.wasm` is committed, so `npm run build` needs no Rust. After changing `component/`,
+rebuild it with a Rust toolchain:
 
 ```sh
 rustup target add wasm32-wasip2

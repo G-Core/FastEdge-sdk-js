@@ -33,6 +33,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { createServer } from 'node:http';
+import { createServer as createTcpServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -281,15 +282,27 @@ describe(`fastedge-build on ${process.platform}`, () => {
     const componentsDir = join(process.cwd(), 'integration-tests', 'test-files', 'components');
     let server;
     let authority;
+    let dropper;
+    let droppedAuthority;
+
+    const listen = async (srv) => {
+      srv.listen(0, '127.0.0.1');
+      await once(srv, 'listening');
+      return `127.0.0.1:${srv.address().port}`;
+    };
 
     beforeAll(async () => {
       server = createServer((req, res) => res.end(`hi from ${req.url}`));
-      server.listen(0, '127.0.0.1');
-      await once(server, 'listening');
-      authority = `127.0.0.1:${server.address().port}`;
+      authority = await listen(server);
+      // Accepts each connection and closes it at once, so a request to it always fails
+      dropper = createTcpServer((socket) => socket.destroy());
+      droppedAuthority = await listen(dropper);
     });
 
-    afterAll(() => server?.close());
+    afterAll(() => {
+      server?.close();
+      dropper?.close();
+    });
 
     it('should send the request from the component and return the response', async () => {
       expect.assertions(4);
@@ -317,11 +330,10 @@ describe(`fastedge-build on ${process.platform}`, () => {
       };
       try {
         await expect(get(authority)).resolves.toStrictEqual([200, 'hi from /hello']);
-        // Port 1 refuses the connection; the component's error reaches the app
-        await expect(get('127.0.0.1:1')).resolves.toStrictEqual([
-          502,
-          'ErrorCode::ConnectionRefused',
-        ]);
+        // The connection fails (the error code varies by OS); the component's error reaches
+        // the app
+        const [status, body] = await get(droppedAuthority);
+        expect([status, body]).toStrictEqual([502, expect.stringMatching(/^ErrorCode::/u)]);
       } finally {
         await runner.cleanup();
       }
