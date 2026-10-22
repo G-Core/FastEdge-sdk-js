@@ -170,7 +170,7 @@ describe(`fastedge-build on ${process.platform}`, () => {
     const componentsDir = join(process.cwd(), 'integration-tests', 'test-files', 'components');
     let dir;
 
-    // Both interfaces come from the one file
+    // All interfaces come from the one file
     const buildApp = (entry, output) =>
       spawnSync(
         process.execPath,
@@ -186,6 +186,8 @@ describe(`fastedge-build on ${process.platform}`, () => {
           'acme:calc/arith=calculator.wasm',
           '--component',
           'acme:calc/format=calculator.wasm',
+          '--component',
+          'acme:calc/memory=calculator.wasm',
         ],
         {
           cwd: dir,
@@ -226,8 +228,8 @@ describe(`fastedge-build on ${process.platform}`, () => {
       );
     });
 
-    it('should write declarations for both interfaces', () => {
-      expect.assertions(5);
+    it('should write declarations for all interfaces', () => {
+      expect.assertions(7);
 
       const result = buildApp('app.ts', 'app.wasm');
 
@@ -237,6 +239,8 @@ describe(`fastedge-build on ${process.platform}`, () => {
       expect(types).toContain('export function divide(a: number, b: number): number;');
       expect(types).toContain('export function sum(values: Float64Array): number;');
       expect(types).toContain('export function describe(e: Expr, value: number): string;');
+      expect(types).toContain('export class Accumulator implements Disposable {');
+      expect(types).toContain('static merge(a: Accumulator, b: Accumulator): Accumulator;');
     }, 120_000);
 
     it('should reject a call that does not match the component types', () => {
@@ -249,7 +253,7 @@ describe(`fastedge-build on ${process.platform}`, () => {
     }, 120_000);
 
     it('should run the composed app and call into the component', async () => {
-      expect.assertions(5);
+      expect.assertions(6);
       const runner = await createRunner(join(dir, 'app.wasm'));
       const get = async (path) => {
         const { status, body } = await runHttpRequest(runner, { path });
@@ -262,6 +266,8 @@ describe(`fastedge-build on ${process.platform}`, () => {
         await expect(get('/divide?a=6&b=4')).resolves.toStrictEqual([200, '6 / 4 = 1.5']);
         await expect(get('/divide?a=1&b=0')).resolves.toStrictEqual([400, 'division by zero']);
         await expect(get('/sum?v=1.5&v=2.5&v=3')).resolves.toStrictEqual([200, '7']);
+        // Resource: constructor, method, borrowed handles in, owned handle out
+        await expect(get('/accumulate?v=1&v=2&v=3')).resolves.toStrictEqual([200, '6 16']);
       } finally {
         await runner.cleanup();
       }

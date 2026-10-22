@@ -1,5 +1,6 @@
 import { add, divide, sum } from 'acme:calc/arith';
 import { describe } from 'acme:calc/format';
+import { Accumulator } from 'acme:calc/memory';
 
 function handle(url: URL): Response {
   const a = Number(url.searchParams.get('a'));
@@ -17,6 +18,12 @@ function handle(url: URL): Response {
     }
     case '/sum': {
       return new Response(String(sum(Float64Array.from(url.searchParams.getAll('v'), Number))));
+    }
+    case '/accumulate': {
+      const acc = new Accumulator(0);
+      for (const v of url.searchParams.getAll('v')) acc.add(Number(v));
+      const merged = Accumulator.merge(acc, new Accumulator(10));
+      return new Response(`${acc.total()} ${merged.total()}`);
     }
     default: {
       return new Response('not found', { status: 404 });

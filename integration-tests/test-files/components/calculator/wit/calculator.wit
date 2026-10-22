@@ -11,7 +11,17 @@ interface format {
   describe: func(e: expr, value: f64) -> string;
 }
 
+interface memory {
+  resource accumulator {
+    constructor(start: f64);
+    add: func(value: f64);
+    total: func() -> f64;
+    merge: static func(a: borrow<accumulator>, b: borrow<accumulator>) -> accumulator;
+  }
+}
+
 world calculator {
   export arith;
   export format;
+  export memory;
 }
