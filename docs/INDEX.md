@@ -32,6 +32,7 @@ the package's `engines` field.
 | [fastedge-init CLI](INIT_CLI.md)              | Scaffold a new FastEdge project                     |
 | [fastedge-assets CLI](ASSETS_CLI.md)          | Generate static asset manifests                     |
 | [Static Sites](STATIC_SITES.md)               | Serve static websites from WASM                     |
+| [Component Imports](COMPONENT_IMPORTS.md)     | Import WebAssembly components into an application   |
 | [Runtime Constraints](RUNTIME_CONSTRAINTS.md) | What the runtime cannot do and what to use instead  |
 | [Authentication Patterns](AUTH_PATTERNS.md)   | Authentication patterns                             |
 | [Hono Patterns](HONO_PATTERNS.md)             | Using the Hono framework                            |
@@ -199,6 +200,7 @@ Standard Web APIs available globally:
 ## See Also
 
 - [SDK_API.md](SDK_API.md) — Full runtime API reference
+- [COMPONENT_IMPORTS.md](COMPONENT_IMPORTS.md) — Importing WebAssembly components
 - [RUNTIME_CONSTRAINTS.md](RUNTIME_CONSTRAINTS.md) — Runtime limitations and alternatives
 - [GitHub Repository](https://github.com/G-Core/FastEdge-sdk-js)
 - [npm Package](https://www.npmjs.com/package/@gcoredev/fastedge-sdk-js)

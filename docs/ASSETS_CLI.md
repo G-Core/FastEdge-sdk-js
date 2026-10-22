@@ -29,7 +29,7 @@ npx fastedge-assets --help
 npx fastedge-assets --version
 ```
 
-Running `fastedge-assets` with no arguments prints the usage information and exits with status 0. On success, the CLI prints the path of the generated manifest and exits with status 0.
+Running `fastedge-assets` with no arguments prints the usage information and exits with status 0. On success, the CLI prints the output path as it was given on the command line (or taken from the config file) and exits with status 0.
 
 ## Flags
 

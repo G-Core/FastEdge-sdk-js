@@ -12,6 +12,9 @@ npx fastedge-build src/index.js app.wasm
 # Named options
 npx fastedge-build --input src/index.js --output app.wasm
 
+# Direct mode with a Wasm component (options form only)
+npx fastedge-build --input src/index.js --output app.wasm --component acme:imageopt/optimise=./imageopt.wasm
+
 # Config-driven build
 npx fastedge-build --config .fastedge/build-config.js
 npx fastedge-build .fastedge/build-config.js  # single positional arg as config file
@@ -27,18 +30,21 @@ npx fastedge-build --version
 
 ## Options
 
-| Flag         | Alias | Type       | Description                                                     |
-| ------------ | ----- | ---------- | --------------------------------------------------------------- |
-| `--input`    | `-i`  | `String`   | Input JavaScript/TypeScript file (direct mode)                  |
-| `--output`   | `-o`  | `String`   | Output WebAssembly file path; must end in `.wasm` (direct mode) |
-| `--tsconfig` | `-t`  | `String`   | Path to tsconfig for the TypeScript check (direct mode)         |
-| `--config`   | `-c`  | `String[]` | Path(s) to build config files; may be repeated                  |
-| `--help`     | `-h`  | `Boolean`  | Print usage help                                                |
-| `--version`  | `-v`  | `Boolean`  | Print the SDK version                                           |
+| Flag          | Alias | Type       | Description                                                     |
+| ------------- | ----- | ---------- | --------------------------------------------------------------- |
+| `--input`     | `-i`  | `String`   | Input JavaScript/TypeScript file (direct mode)                  |
+| `--output`    | `-o`  | `String`   | Output WebAssembly file path; must end in `.wasm` (direct mode) |
+| `--tsconfig`  | `-t`  | `String`   | Path to tsconfig for the TypeScript check (direct mode)         |
+| `--config`    | `-c`  | `String[]` | Path(s) to build config files; may be repeated                  |
+| `--component` |       | `String[]` | Wasm component as `<interface>=<path>`; repeatable              |
+| `--help`      | `-h`  | `Boolean`  | Print usage help                                                |
+| `--version`   | `-v`  | `Boolean`  | Print the SDK version                                           |
 
 `-c` given with no path uses `.fastedge/build-config.js`, relative to the current directory. This fallback applies to the short flag `-c` only. A bare `--config` with no path prints the help text and exits with code 0.
 
 `--tsconfig` is used only by the TypeScript check of the input file. esbuild bundles without it. It has no effect for `.js`, `.cjs`, and `.mjs` inputs, and it is not read in config-driven mode; use `tsConfigPath` in the config file instead.
+
+`--component` applies to direct mode only; in config-driven mode use the `components` config field. See [Component Imports](#component-imports).
 
 ### Argument Rules
 
@@ -51,6 +57,8 @@ The CLI accepts one of the following argument forms:
 | Options only, no positional arguments      | Direct mode or config-driven mode        |
 | Positional arguments combined with options | Invalid; help is printed and exit code 1 |
 | No arguments                               | Invalid; help is printed and exit code 1 |
+
+Because `--component` is an option, a direct build that uses it must pass the input and output with `--input` and `--output`, not as positional arguments.
 
 `--help` on its own prints the help text and exits with code 0. `--version` on its own prints `@gcoredev/fastedge-sdk-js: <version>` and exits with code 0. If both are given, help takes precedence.
 
@@ -114,6 +122,60 @@ Both modes run the same compilation pipeline for each build:
 
 For `type: 'static'` builds, the asset manifest is generated before this pipeline runs.
 
+When components are given (`--component` or the `components` config field), the pipeline changes as follows:
+
+- The `fastedge-components.d.ts` declarations file is written before the syntax check, so the check sees the component types.
+- The app is compiled as an ES module that keeps its component imports.
+- After Wizer and `componentNew`, the components are linked into the output.
+- The build then checks every import left in the output. Only `wasi:*@0.2.x` and `gcore:*` imports may remain.
+
+## Component Imports
+
+Wasm components can be composed into the app so it can import their functions with `import { fn } from '<ns>:<pkg>/<interface>'`. Components are given as a map from WIT interface name to component file path:
+
+- Direct mode: `--component <interface>=<path>`, repeatable.
+- Config-driven mode: the `components` field, `Record<string, string>`.
+
+Paths are relative to the current directory. Several interfaces may map to the same file. `components` applies to both `http` and `static` builds.
+
+```bash
+npx fastedge-build --input src/index.js --output app.wasm \
+  --component acme:imageopt/optimise=./imageopt.wasm
+```
+
+`--component` splits its value at the first `=`. A value without `=`, or with nothing before it, prints `Error: --component expects <interface>=<path>, got "<value>"` and exits with code 1. Interface names have the form `ns:pkg/iface`, optionally followed by `@version`.
+
+```js
+const config = {
+  type: 'http',
+  entryPoint: './src/index.js',
+  wasmOutput: './dist/app.wasm',
+  components: {
+    'acme:imageopt/optimise': './imageopt.wasm',
+  },
+};
+
+export { config };
+```
+
+### Declarations File
+
+When components are given, the build writes `fastedge-components.d.ts` next to the entry point (in the same directory), before the syntax check. TypeScript inputs are checked against these declarations, so a call with wrong argument types fails the build. When a `tsconfig` is used (`--tsconfig` or `tsConfigPath`), it must include the file.
+
+A build without components deletes `fastedge-components.d.ts` if it was generated by `fastedge-build` (it starts with the generated header comment `// Generated by fastedge-build from the configured components. Do not edit.`). A hand-written file of the same name is left alone. Add `fastedge-components.d.ts` to `.gitignore`.
+
+### Component Errors
+
+Component errors stop the build with exit code 1 and do not produce an output file. Most are found before Wizer runs, so nothing is written to the output path; a file left there by an earlier build stays as it was. An unsupported import is found after Wizer, and the build then deletes the file Wizer wrote. The error is printed as `Error: <message>`:
+
+- Unreadable path: `Component "<path>" is not a readable file`
+- Not a Wasm component: `"<path>" is not a Wasm component`
+- Invalid interface name: `Invalid component interface name: <names> (expected "namespace:package/interface")`
+- A component imports an interface FastEdge does not provide: `Components import interfaces FastEdge does not provide: <names>`
+- No given component exports the interface: `no component exports <interface>`
+
+For writing components, WIT-to-JS type mapping, limits and error handling, see [COMPONENT_IMPORTS.md](COMPONENT_IMPORTS.md).
+
 ## Build Configuration
 
 The config file is an ES module that exports a named `config` object matching the `BuildConfig` interface.
@@ -165,12 +227,13 @@ export { config, serverConfig };
 
 ### BuildConfig Fields
 
-| Field          | Type                 | Required | Description                                                        |
-| -------------- | -------------------- | -------- | ------------------------------------------------------------------ |
-| `type`         | `'http' \| 'static'` | Yes      | Build type; must be `http` or `static`, otherwise nothing is built |
-| `entryPoint`   | `string`             | Yes      | Input JavaScript/TypeScript file                                   |
-| `wasmOutput`   | `string`             | Yes      | Output WASM file path; must end in `.wasm`                         |
-| `tsConfigPath` | `string`             | No       | Path to a TypeScript config file for the TypeScript check          |
+| Field          | Type                     | Required | Description                                                        |
+| -------------- | ------------------------ | -------- | ------------------------------------------------------------------ |
+| `type`         | `'http' \| 'static'`     | Yes      | Build type; must be `http` or `static`, otherwise nothing is built |
+| `entryPoint`   | `string`                 | Yes      | Input JavaScript/TypeScript file                                   |
+| `wasmOutput`   | `string`                 | Yes      | Output WASM file path; must end in `.wasm`                         |
+| `tsConfigPath` | `string`                 | No       | Path to a TypeScript config file for the TypeScript check          |
+| `components`   | `Record<string, string>` | No       | WIT interface name to component file path; see Component Imports   |
 
 `type` is optional in the TypeScript interface but required in practice.
 
@@ -262,7 +325,7 @@ Success: Built <wasmOutput>
 
 ### Failure Output
 
-A failed build can leave a file at the output path. Wizer writes the requested output file before the component creation and metadata steps run, so a failure in a later step can leave a core or partially processed `.wasm` at that path. Do not treat the presence of the output file as a sign of success; check the exit code and the printed messages.
+A failed build can leave a file at the output path. Wizer writes the requested output file before the component creation and metadata steps run, so a failure in a later step can leave a core or partially processed `.wasm` at that path. Do not treat the presence of the output file as a sign of success; check the exit code and the printed messages. Component errors are the exception: they do not produce an output file, although a file from an earlier build can remain (see [Component Errors](#component-errors)).
 
 Common failure messages:
 
@@ -272,6 +335,8 @@ Common failure messages:
 - Input has an unsupported extension: `Error: "<input>" is not a valid file type - must be ".js" or ".ts"`
 - TypeScript is not installed: `TypeScript is not installed.` followed by `Please run "npm install typescript"`
 - Wizer fails: `Error: Failed to compile JavaScript to Wasm: Wizer initialization failure`
+- Malformed `--component` value: `Error: --component expects <interface>=<path>, got "<value>"`
+- Component errors: `Error: <message>`, see [Component Errors](#component-errors)
 - Config file does not exist: `Error: Config file not found at <path>. Skipping file.`
 - Config `type` missing or invalid: `Error: Invalid config type. Must be one of: static, http.`
 
@@ -282,15 +347,19 @@ Common failure messages:
 | Direct | Build succeeds                                    | `0`                                                  |
 | Direct | Validation, syntax check, or Wizer failure        | `1`                                                  |
 | Direct | Input or output path missing (help printed)       | `1`                                                  |
+| Direct | Malformed `--component` value                     | `1`                                                  |
+| Direct | Component error (see Component Imports)           | `1`                                                  |
 | Direct | Component creation or metadata failure            | Non-zero (error is thrown)                           |
 | Config | Every config file processed                       | `0`                                                  |
 | Config | Config skipped (file not found or invalid `type`) | `0` (unchanged)                                      |
 | Config | Validation, syntax check, or Wizer failure        | `1` immediately; remaining configs are not processed |
+| Config | Component error (see Component Imports)           | `1` immediately; remaining configs are not processed |
 | Config | Component creation or metadata failure            | Non-zero (error is thrown)                           |
 | Config | Config file fails to import                       | Non-zero (error is thrown)                           |
 
 ## See Also
 
+- [COMPONENT_IMPORTS.md](COMPONENT_IMPORTS.md) — writing components, WIT-to-JS types, limits and errors
 - [INIT_CLI.md](INIT_CLI.md) — `fastedge-init` CLI for scaffolding new projects
 - [ASSETS_CLI.md](ASSETS_CLI.md) — `fastedge-assets` CLI for asset manifest management
 - [STATIC_SITES.md](STATIC_SITES.md) — guide for building and serving static sites

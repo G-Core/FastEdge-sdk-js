@@ -40,6 +40,24 @@
       "description": "Installation, first build, basic usage patterns with code examples"
     },
 
+    "component-imports": {
+      "files": ["docs/COMPONENT_IMPORTS.md"],
+      "required": false,
+      "description": "Importing Wasm components by WIT interface — build config, WIT-to-JS types, errors, what components may import, time and memory limits"
+    },
+    "component-imports-pattern": {
+      "files": [
+        "examples/component-imports/src/index.ts",
+        "examples/component-imports/.fastedge/build-config.js",
+        "examples/component-imports/component/wit/thumbnail.wit",
+        "examples/component-imports/component/src/lib.rs",
+        "examples/component-imports/component/Cargo.toml",
+        "examples/component-imports/package.json",
+        "examples/component-imports/README.md"
+      ],
+      "required": false,
+      "description": "Component imports example — docs pattern extraction (Rust image-thumbnail component called from TypeScript)"
+    },
     "runtime-constraints": {
       "files": ["docs/RUNTIME_CONSTRAINTS.md"],
       "required": true,
@@ -343,6 +361,14 @@
       "section": null
     },
 
+    "component-imports": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/component-imports-js.md",
+      "section": null
+    },
+    "component-imports-pattern": {
+      "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/http/examples-component-imports-js.md",
+      "section": null
+    },
     "runtime-constraints": {
       "reference_file": "plugins/gcore-fastedge/skills/fastedge-docs/reference/js-runtime.md",
       "section": null
