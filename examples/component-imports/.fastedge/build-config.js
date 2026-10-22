@@ -1,9 +1,10 @@
 export const config = {
   type: 'http',
-  entryPoint: './src/index.js',
+  tsConfigPath: './tsconfig.json',
+  entryPoint: './src/index.ts',
   wasmOutput: './dist/component-imports.wasm',
   // WIT interface the app imports → component that exports it
   components: {
-    'regexped:urlguard/sets': './urlguard.wasm',
+    'example:image/thumbnail': './thumbnail.wasm',
   },
 };

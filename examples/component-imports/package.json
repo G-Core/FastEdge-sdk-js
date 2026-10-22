@@ -1,11 +1,12 @@
 {
   "name": "fastedge-example-component-imports",
   "version": "1.0.0",
-  "description": "FastEdge JS example: import a Wasm component (regexped URL guard) by its WIT interface",
+  "description": "FastEdge JS example: import a Wasm component (Rust image thumbnails) by its WIT interface",
   "type": "module",
   "scripts": {
-    "build": "fastedge-build -c",
-    "build:component": "docker run --rm --user $(id -u):$(id -g) -v \"$PWD\":/work -w /work qrdl/regexped compile --config=regexped.yaml"
+    "build": "npm run create-images-manifest && fastedge-build -c",
+    "create-images-manifest": "fastedge-assets ./images src/images-static-assets.ts",
+    "build:component": "./component/build.sh"
   },
   "dependencies": {
     "@gcoredev/fastedge-sdk-js": "^2.7.0"

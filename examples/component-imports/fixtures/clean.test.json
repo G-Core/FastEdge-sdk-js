@@ -1,9 +1,0 @@
-{
-  "appType": "http-wasm",
-  "description": "Benign path and query — passes the scan",
-  "request": {
-    "method": "GET",
-    "path": "/products/42?sort=price&page=2",
-    "headers": {}
-  }
-}

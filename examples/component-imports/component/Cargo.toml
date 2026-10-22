@@ -1,0 +1,19 @@
+[package]
+name = "thumbnail"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+wit-bindgen = "0.63.0"
+# Only the formats the component handles: each extra codec adds to the binary
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

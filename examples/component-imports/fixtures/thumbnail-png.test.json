@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /kev.jpeg?w=160&format=png — a PNG thumbnail",
+  "request": {
+    "method": "GET",
+    "path": "/kev.jpeg?w=160&format=png",
+    "headers": {}
+  }
+}

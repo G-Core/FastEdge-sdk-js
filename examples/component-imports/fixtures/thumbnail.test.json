@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /kev.jpeg?w=320 — a 320 px wide JPEG thumbnail made by the component",
+  "request": {
+    "method": "GET",
+    "path": "/kev.jpeg?w=320",
+    "headers": {}
+  }
+}

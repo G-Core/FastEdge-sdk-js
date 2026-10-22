@@ -1,9 +1,0 @@
-{
-  "appType": "http-wasm",
-  "description": "SQL injection in the query — blocked with 403",
-  "request": {
-    "method": "GET",
-    "path": "/search?q=1%20UNION%20SELECT%20password%20FROM%20users",
-    "headers": {}
-  }
-}
