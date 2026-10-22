@@ -56,7 +56,8 @@ Procedure: bump versions in `tools/component-tools/Cargo.toml`, `cargo update`, 
 
 **After any update:** `pnpm run test:unit`, `pnpm run test:integration`,
 `pnpm run test:cross-platform` (runs a composed app), and build + run `examples/component-imports/`
-fixtures under `@gcoredev/fastedge-test`.
+fixtures under `@gcoredev/fastedge-test`. After a splicer update, also re-check first-call timing
+(`COMPONENT_PERFORMANCE.md`): new glue can use built-ins the Wizer-time warm-up doesn't cover.
 
 ## Licensing
 

@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 // Real builds (not NODE_ENV=test): needs lib/fastedge-runtime.wasm, like generates-output.test.js
 const BUILD = resolve('./bin/fastedge-build.js');
 const MAKE_COMPONENTS = resolve('./integration-tests/test-files/components/make-components.mjs');
+const CALCULATOR = resolve('./integration-tests/test-files/components/calculator.wasm');
 
 const APP = `import { greet } from 'acme:greet/hello';
 addEventListener('fetch', (event) => event.respondWith(new Response(greet('edge'))));
@@ -63,6 +64,47 @@ describe('fastedge-build component imports', () => {
     ]);
     expect(status).toBe(0);
     expect(existsSync(join(dir, 'out.wasm'))).toBe(true);
+  }, 60_000);
+
+  it('builds with components from two different files', () => {
+    expect.assertions(2);
+    writeFileSync(
+      join(dir, 'two.js'),
+      `${APP}import { add } from 'acme:calc/arith';\nglobalThis.add = add;\n`,
+    );
+    const { status, stderr } = build(dir, [
+      '-i',
+      'two.js',
+      '-o',
+      'two.wasm',
+      '--component',
+      'acme:greet/hello=./greet.wasm',
+      '--component',
+      `acme:calc/arith=${CALCULATOR}`,
+    ]);
+    expect({ status, stderr }).toStrictEqual({ status: 0, stderr: '' });
+    expect(existsSync(join(dir, 'two.wasm'))).toBe(true);
+  }, 60_000);
+
+  it('declares an interface that uses types from another in one self-contained file', () => {
+    expect.assertions(4);
+    writeFileSync(
+      join(dir, 'shapes.js'),
+      "import { origin } from 'acme:shapes/api';\nglobalThis.origin = origin;\n",
+    );
+    const { status } = build(dir, [
+      '-i',
+      'shapes.js',
+      '-o',
+      'shapes-out.wasm',
+      '--component',
+      'acme:shapes/api=./shapes.wasm',
+    ]);
+    expect(status).toBe(0);
+    const types = readFileSync(join(dir, 'fastedge-components.d.ts'), 'utf8');
+    expect(types).toContain("declare module 'acme:shapes/types'");
+    expect(types).toContain("export type Point = import('acme:shapes/types').Point;");
+    expect(types).not.toContain('<reference');
   }, 60_000);
 
   it('removes generated declarations when built without components, keeping others', () => {

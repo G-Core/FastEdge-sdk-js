@@ -174,7 +174,7 @@ describe('components', () => {
         `--initializer-script-path "${workDir}/initializer.js" --strip-path-prefix "${workDir}/" "${workDir}/source.js"`,
       );
       await expect(readFile(join(workDir, 'source.js'), 'utf8')).resolves.toBe('app();');
-      // Bindings plus the Wizer-time typed-array warm-up
+      // Bindings plus the Wizer-time warm-up
       await expect(readFile(join(workDir, 'initializer.js'), 'utf8')).resolves.toMatch(
         /^\/\* bindings \*\/[\s\S]*new DataView\(ab\)/u,
       );

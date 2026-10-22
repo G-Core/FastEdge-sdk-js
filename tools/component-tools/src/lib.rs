@@ -56,7 +56,22 @@ fn import_world(components: &[Vec<u8>], interfaces: &[String]) -> anyhow::Result
     let mut resolve = Resolve::default();
     let mut exported = Vec::new();
     for (i, bytes) in components.iter().enumerate() {
-        let (other, world) = decode_component(bytes).with_context(|| format!("component {i}"))?;
+        let (mut other, world) =
+            decode_component(bytes).with_context(|| format!("component {i}"))?;
+        // Every decoded component's own package is `root:component`; give each an unused name
+        // so they don't merge into one.
+        let own = other.worlds[world].package.context("component world has no package")?;
+        let name = (0..)
+            .map(|n| PackageName {
+                namespace: "root".into(),
+                name: format!("component{i}-{n}"),
+                version: None,
+            })
+            .find(|n| !other.package_names.contains_key(n) && !resolve.package_names.contains_key(n))
+            .expect("unbounded range");
+        let old = std::mem::replace(&mut other.packages[own].name, name.clone());
+        other.package_names.shift_remove(&old);
+        other.package_names.insert(name, own);
         let remap = resolve.merge(other)?;
         exported.push(remap.map_world(world, Default::default())?);
     }
@@ -75,18 +90,19 @@ fn import_world(components: &[Vec<u8>], interfaces: &[String]) -> anyhow::Result
         bail!("no component exports {}", missing.join(", "));
     }
     // An empty host package to print as the main one; real packages go nested inside it.
-    // The decoder names each component's own package `root:component`, so skip those.
+    // Skip the components' own packages, which hold only their worlds.
     let host = resolve.packages.alloc(wit_parser::Package {
         name: PackageName { namespace: "fastedge".into(), name: "app".into(), version: None },
         docs: Default::default(),
         interfaces: Default::default(),
         worlds: Default::default(),
     });
+    let own: Vec<_> = exported.iter().filter_map(|w| resolve.worlds[*w].package).collect();
     let nested: Vec<_> = resolve
         .packages
         .iter()
-        .filter(|(id, p)| *id != host && !(p.name.namespace == "root" && p.name.name == "component"))
         .map(|(id, _)| id)
+        .filter(|id| *id != host && !own.contains(id))
         .collect();
     let mut printer = WitPrinter::default();
     printer.print(&resolve, host, &nested)?;

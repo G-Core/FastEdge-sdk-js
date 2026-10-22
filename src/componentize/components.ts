@@ -60,13 +60,19 @@ const COMPONENT_TYPES_HEADER =
 
 const SPLICE_FEATURES = ['stdio', 'clocks', 'random', 'http', 'fetch-event'];
 
-// Typed arrays and DataView are resolved lazily per global. Touching them here, at Wizer
-// time, saves ~160 µs on the first import call of every request.
-const TYPED_ARRAY_WARMUP = `
+// The glue runs in its own global, where SpiderMonkey sets up standard classes on first use.
+// Touching the ones it uses here, at Wizer time, keeps that out of every request: typed arrays
+// and DataView (~160 µs on the first import call), String (~150 µs on the first string
+// argument), BigInt (~30 µs on the first u64/s64) and Error (~30 µs on the first `err`).
+// See context/development/COMPONENT_PERFORMANCE.md before adding to this.
+const GLUE_WARMUP = `
 { const ab = new ArrayBuffer(16);
   new Uint8Array(ab, 0, 4); new Int32Array(ab); new Uint32Array(ab); new Float32Array(ab);
   new Float64Array(ab); new BigInt64Array(ab); new Uint16Array(ab); new Int8Array(ab);
-  new Int16Array(ab); new BigUint64Array(ab); new DataView(ab).getUint8(0); }
+  new Int16Array(ab); new BigUint64Array(ab); new DataView(ab).getUint8(0);
+  'a'.charCodeAt(0);
+  BigInt.asUintN(64, BigInt(1)); BigInt.asIntN(64, 1n);
+  try { throw new Error('warm-up'); } catch {} }
 `;
 
 const componentTools = async (): Promise<ComponentTools> =>
@@ -150,7 +156,14 @@ async function writeComponentTypes(
   const decoder = new TextDecoder();
   const declarations = files
     .filter(([name]) => name.startsWith('interfaces/'))
-    .map(([, bytes]) => decoder.decode(bytes).replaceAll(/[\t ]+$/gmu, '').trim());
+    .map(([, bytes]) =>
+      decoder
+        .decode(bytes)
+        // All interfaces go in this one file, so drop references to jco's per-interface files
+        .replaceAll(/^\/\/\/ <reference path=.*$/gmu, '')
+        .replaceAll(/[\t ]+$/gmu, '')
+        .trim(),
+    );
   await writeFile(outputPath, `${COMPONENT_TYPES_HEADER}\n\n${declarations.join('\n\n')}\n`);
 }
 
@@ -196,7 +209,7 @@ async function spliceImports(
   const initializer = path.join(tmpDir, 'initializer.js');
   const source = path.join(tmpDir, 'source.js');
   await writeFile(engine, wasm);
-  await writeFile(initializer, jsBindings + TYPED_ARRAY_WARMUP);
+  await writeFile(initializer, jsBindings + GLUE_WARMUP);
   await writeFile(source, application);
 
   const env: Record<string, string> = {

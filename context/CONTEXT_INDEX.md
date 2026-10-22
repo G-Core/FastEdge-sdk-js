@@ -29,6 +29,7 @@
 |----------|-------|---------|
 | `development/BUILD_SYSTEM.md` | ~110 | esbuild scripts, TypeScript config (3 tsconfigs), path aliases, npm package contents. Read when changing build configuration. |
 | `development/VENDORED_TOOLS.md` | ~110 | `vendor/splicer` + `vendor/component-tools` (component imports): version coupling, when/how to update, licensing, CI coverage. Read before bumping StarlingMonkey or touching `vendor/` / `tools/`. |
+| `development/COMPONENT_PERFORMANCE.md` | ~110 | Component imports: why first calls cost more on FastEdge, what `GLUE_WARMUP` covers (measured), what can't be fixed, and how to diagnose a slow component. Read when a component call is slow or before changing the warm-up. |
 | `development/TESTING_GUIDE.md` | ~90 | Jest setup, unit vs integration tests, test organization, running tests. Read when adding or modifying tests. |
 
 ### Reference (search on-demand)
@@ -113,6 +114,10 @@
 
 ### Updating vendor/ (splicer, component-tools)
 1. Read `development/VENDORED_TOOLS.md`
+2. After a splicer update, re-check the glue warm-up — `development/COMPONENT_PERFORMANCE.md`
+
+### A component import is slow (first call or every request)
+1. Read `development/COMPONENT_PERFORMANCE.md` — measured costs, what's already warmed, ruled-out fixes, diagnosis steps
 
 ### Adding or Modifying a Prod-Invocation Test
 1. Read `integration-tests/test-application/README.md` — structure, handler/check split, routes.ts convention
