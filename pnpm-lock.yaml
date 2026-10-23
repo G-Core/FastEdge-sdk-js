@@ -171,6 +171,10 @@ importers:
       '@gcoredev/fastedge-sdk-js':
         specifier: link:../..
         version: link:../..
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   examples/crypto-hmac-jwt:
     dependencies:
