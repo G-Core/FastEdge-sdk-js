@@ -16,8 +16,10 @@ module.exports = {
       '@semantic-release/github',
       {
         assets: [
+          // Release assets are named by file name alone, so vendor/ (two LICENSE files) is left
+          // out; it ships in the npm package.
           ...packageJson.files
-            .filter((fileGlob) => fileGlob !== 'types')
+            .filter((fileGlob) => fileGlob !== 'types' && !fileGlob.startsWith('vendor/'))
             .map((fileGlob) => {
               return {
                 path: fileGlob,
