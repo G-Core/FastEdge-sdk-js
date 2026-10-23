@@ -5,7 +5,7 @@
  */
 
 const staticAssetManifest = {
-  "/kev.jpeg": {"assetKey":"/kev.jpeg","contentType":"image/jpeg","isText":false,"fileInfo":{"size":105462,"hash":"811f16b8401b13ecbd5629109f3460669aeadb91462f43dcd3adbe5c71d2396e","lastModifiedTime":1792680255,"assetPath":"./images/kev.jpeg"},"lastModifiedTime":1792680255,"type":"wasm-inline"},
+  '/kev.jpeg': {assetKey: '/kev.jpeg',contentType: 'image/jpeg',isText: false,fileInfo: {size: 105462,hash: '811f16b8401b13ecbd5629109f3460669aeadb91462f43dcd3adbe5c71d2396e',lastModifiedTime: 1792680255,assetPath: './images/kev.jpeg'},lastModifiedTime: 1792680255,type: 'wasm-inline'},
 };
 
 export { staticAssetManifest };
