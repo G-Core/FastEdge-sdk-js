@@ -1,6 +1,6 @@
 import arg from 'arg';
 
-import { buildFromConfigFiles, buildWasm } from './config-build.ts';
+import { buildFromConfigFiles, buildFromConfigFileTo, buildWasm } from './config-build.ts';
 import { printHelp, printVersion } from './print-info.ts';
 
 import { CONFIG_FILE_PATH } from '~constants/index.ts';
@@ -125,6 +125,13 @@ if (inputFileName && outputFileName) {
 }
 
 if (configFiles.length > 0 && configFiles[0].length > 0) {
+  if (outputFileName) {
+    if (configFiles.length > 1) {
+      colorLog('error', 'Error: --output can only be used with a single --config');
+      process.exit(1);
+    }
+    await buildFromConfigFileTo(configFiles[0], outputFileName);
+  }
   await buildFromConfigFiles(configFiles);
   process.exit(0);
 }

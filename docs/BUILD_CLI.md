@@ -33,7 +33,7 @@ npx fastedge-build --version
 | Flag          | Alias | Type       | Description                                                     |
 | ------------- | ----- | ---------- | --------------------------------------------------------------- |
 | `--input`     | `-i`  | `String`   | Input JavaScript/TypeScript file (direct mode)                  |
-| `--output`    | `-o`  | `String`   | Output WebAssembly file path; must end in `.wasm` (direct mode) |
+| `--output`    | `-o`  | `String`   | Output WebAssembly file path; must end in `.wasm`. With one `--config`, replaces its `wasmOutput` |
 | `--tsconfig`  | `-t`  | `String`   | Path to tsconfig for the TypeScript check (direct mode)         |
 | `--config`    | `-c`  | `String[]` | Path(s) to build config files; may be repeated                  |
 | `--component` |       | `String[]` | Wasm component as `<interface>=<path>`; repeatable              |
@@ -104,6 +104,12 @@ Config-driven builds support both `http` and `static` build types. Multiple conf
 
 ```bash
 npx fastedge-build -c config-api.js -c config-site.js
+```
+
+`--output` with a single config file builds that config but writes the `.wasm` to the given path instead of `wasmOutput`. Everything else comes from the config, including static asset manifests and `components`. In this form, a missing config file or an invalid `type` exits with code 1, and `--output` with more than one `--config` is an error:
+
+```bash
+npx fastedge-build -c .fastedge/build-config.js -o .fastedge-debug/app.wasm
 ```
 
 Running `-c` with no path uses `.fastedge/build-config.js`, relative to the current directory.

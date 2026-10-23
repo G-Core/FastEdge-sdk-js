@@ -48,25 +48,26 @@ async function buildWasm({
 /**
  * Builds the project based on the provided configuration.
  * @param config - The configuration object.
+ * @returns Whether a wasm was built.
  */
-async function buildFromConfig(config: BuildConfig | null): Promise<void> {
-  if (!config) return;
+async function buildFromConfig(config: BuildConfig | null): Promise<boolean> {
+  if (!config) return false;
 
   switch (config.type) {
     case 'static': {
       await createStaticAssetsManifest(config);
       await buildWasm(config);
       colorLog('success', `Success: Built ${config.wasmOutput}`);
-      break;
+      return true;
     }
     case 'http': {
       await buildWasm(config);
       colorLog('success', `Success: Built ${config.wasmOutput}`);
-      break;
+      return true;
     }
     default: {
       colorLog('error', 'Error: Invalid config type. Must be one of: static, http.');
-      break;
+      return false;
     }
   }
 }
@@ -85,4 +86,16 @@ async function buildFromConfigFiles(configFilePaths: string[] = []): Promise<voi
   process.exit(0);
 }
 
-export { buildFromConfigFiles, buildWasm };
+/**
+ * Builds one configuration file, writing the wasm to `wasmOutput` instead of the config's own.
+ * Unlike buildFromConfigFiles, a missing config or an invalid type fails the build.
+ * @param configFilePath - The path to the configuration file.
+ * @param wasmOutput - Output filepath for the wasm.
+ */
+async function buildFromConfigFileTo(configFilePath: string, wasmOutput: string): Promise<void> {
+  const config = await loadConfig<BuildConfig>(resolveOsPath(configFilePath));
+  const built = config !== null && (await buildFromConfig({ ...config, wasmOutput }));
+  process.exit(built ? 0 : 1);
+}
+
+export { buildFromConfigFiles, buildFromConfigFileTo, buildWasm };
