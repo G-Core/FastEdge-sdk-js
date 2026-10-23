@@ -40,7 +40,7 @@ npx fastedge-build --version
 | `--help`      | `-h`  | `Boolean`  | Print usage help                                                |
 | `--version`   | `-v`  | `Boolean`  | Print the SDK version                                           |
 
-`-c` given with no path uses `.fastedge/build-config.js`, relative to the current directory. This fallback applies to the short flag `-c` only. A bare `--config` with no path prints the help text and exits with code 0.
+`-c` given with no path uses `.fastedge/build-config.js`, relative to the current directory, also when other options follow it (`-c -o app.wasm`). This fallback applies to the short flag `-c` only. A bare `--config` with no path prints the help text and exits with code 0.
 
 `--tsconfig` is used only by the TypeScript check of the input file. esbuild bundles without it. It has no effect for `.js`, `.cjs`, and `.mjs` inputs, and it is not read in config-driven mode; use `tsConfigPath` in the config file instead.
 

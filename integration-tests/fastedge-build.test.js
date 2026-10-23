@@ -221,6 +221,23 @@ describe('fastedge-build', () => {
       expect(folderList).not.toContain('dist');
       await cleanup();
     });
+    it('should use the default config with -c and no path before --output', async () => {
+      expect.assertions(3);
+      const { execute, cleanup, ls, writeFile } = await prepareEnvironment();
+      await writeFile('./input.js', 'function Hello() { console.log("Hello World"); }');
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      await writeFile(
+        './.fastedge/build-config.js',
+        'export const config = { "type": "http", "entryPoint": "input.js", "wasmOutput": "./dist/fastedge.wasm" };',
+      );
+      await writeFile('./package.json', '{ "type": "module" }');
+      const { code } = await execute('node', './bin/fastedge-build.js -c -o debug/app.wasm');
+      const folderList = await ls('./');
+      expect(code).toBe(0);
+      expect(folderList).toContain('debug');
+      expect(folderList).not.toContain('dist');
+      await cleanup();
+    });
     it('should fail with --output if the config file does not exist', async () => {
       expect.assertions(1);
       const { execute, cleanup } = await prepareEnvironment();

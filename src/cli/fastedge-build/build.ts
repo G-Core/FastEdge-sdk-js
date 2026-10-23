@@ -27,6 +27,15 @@ let configFiles: string[] = [];
 const components: Record<string, string> = {};
 let args: ParsedArgs;
 
+// `-c` without a path uses the default config file, also when other options follow it
+const argv = process.argv
+  .slice(2)
+  .flatMap((value, index, all) =>
+    value === '-c' && (all[index + 1] === undefined || all[index + 1].startsWith('-'))
+      ? [value, CONFIG_FILE_PATH]
+      : [value],
+  );
+
 try {
   args = arg(
     {
@@ -48,19 +57,13 @@ try {
       '-c': '--config',
     },
     {
+      argv,
       permissive: true,
     },
   ) as ParsedArgs;
-} catch (error: unknown) {
-  const errorMessage = (error as Error).toString();
-  if (errorMessage.includes('option requires argument: -c')) {
-    // Set default config file - buildFromConfigFiles() will do error handling
-    // This happens when running: `fastedge-build -c` without specifying a filepath
-    args = { _: [], '--config': [CONFIG_FILE_PATH] };
-  } else {
-    printHelp();
-    process.exit(0);
-  }
+} catch {
+  printHelp();
+  process.exit(0);
 }
 
 const hasFileInputsOnly =
