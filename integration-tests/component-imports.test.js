@@ -86,6 +86,29 @@ describe('fastedge-build component imports', () => {
     expect(existsSync(join(dir, 'two.wasm'))).toBe(true);
   }, 60_000);
 
+  it('fails when two component files export the same imported interface', () => {
+    expect.assertions(3);
+    writeFileSync(
+      join(dir, 'wave.js'),
+      `${APP}import { wave } from 'acme:greet/wave';\nglobalThis.wave = wave;\n`,
+    );
+    const { status, stderr } = build(dir, [
+      '-i',
+      'wave.js',
+      '-o',
+      'out.wasm',
+      '--component',
+      'acme:greet/hello=./greet.wasm',
+      '--component',
+      'acme:greet/wave=./greet-wave.wasm',
+    ]);
+    expect(status).toBe(1);
+    expect(stderr).toMatch(
+      /acme:greet\/hello is exported by more than one component: .*greet\.wasm, .*greet-wave\.wasm/u,
+    );
+    expect(existsSync(join(dir, 'out.wasm'))).toBe(false);
+  }, 60_000);
+
   it('declares an interface that uses types from another in one self-contained file', () => {
     expect.assertions(4);
     writeFileSync(

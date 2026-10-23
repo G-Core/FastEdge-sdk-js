@@ -256,6 +256,8 @@ fastedge-build -i src/index.ts -o dist/app.wasm -t tsconfig.json \
   --component example:image/thumbnail=./thumbnail.wasm
 ```
 
+Two component files that export the same interface cannot be used in one build; see [Known Limitations](#known-limitations).
+
 ## Time and Memory Limits
 
 Every request runs a fresh instance, so the work a component does is paid on every request. A request has a time and memory budget; on the free plan, 100 ms and 52 MB.
@@ -342,19 +344,21 @@ Commit the built `.wasm` file, so that building the application needs no Rust to
 
 ## Build Errors
 
-| Error                                                                                | Cause                                                                               |
-| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| `--component expects <interface>=<path>, got "<value>"`                              | A `--component` value has no `=`, or nothing before it.                             |
-| `Invalid component interface name: <names> (expected "namespace:package/interface")` | The name is not `namespace:package/interface`, optionally followed by `@version`.   |
-| `Component "<path>" is not a readable file`                                          | The path does not exist or cannot be read.                                          |
-| `"<path>" is not a Wasm component`                                                   | The file is not a Wasm component.                                                   |
-| `no component exports <interface>`                                                   | No given component file exports the interface.                                      |
-| `Components import interfaces FastEdge does not provide: <names>`                    | After linking, an interface other than `wasi:*@0.2.x` or `gcore:*` remains imported. |
+| Error                                                                                                                            | Cause                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `--component expects <interface>=<path>, got "<value>"`                                                                          | A `--component` value has no `=`, or nothing before it.                                               |
+| `Invalid component interface name: <names> (expected "namespace:package/interface")`                                             | The name is not `namespace:package/interface`, optionally followed by `@version`.                     |
+| `Component "<path>" is not a readable file`                                                                                      | The path does not exist or cannot be read.                                                            |
+| `"<path>" is not a Wasm component`                                                                                               | The file is not a Wasm component.                                                                     |
+| `no component exports <interface>`                                                                                               | No given component file exports the interface.                                                        |
+| `<interface> is exported by more than one component: <paths>. Components that export the same interface cannot be used together` | More than one component file exports the interface, even if `components` maps it to only one of them. |
+| `Components import interfaces FastEdge does not provide: <names>`                                                                | After linking, an interface other than `wasi:*@0.2.x` or `gcore:*` remains imported.                  |
 
 ## Known Limitations
 
 - A component whose exported interface uses types from another interface must also export that interface. Otherwise the build fails with the "does not provide" error for it.
 - Components are linked in after the application is pre-initialized, so a component's own state is not pre-initialized. The first call in each request pays the component's start-up work.
+- Two component files that export the same interface the application imports cannot be used in one build, even when `components` maps that interface to only one of them. The build fails with the "exported by more than one component" error.
 
 ## See Also
 

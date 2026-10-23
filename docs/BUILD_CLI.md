@@ -177,6 +177,7 @@ Component errors stop the build with exit code 1 and do not produce an output fi
 - Unreadable path: `Component "<path>" is not a readable file`
 - Not a Wasm component: `"<path>" is not a Wasm component`
 - Invalid interface name: `Invalid component interface name: <names> (expected "namespace:package/interface")`
+- An imported interface is exported by more than one of the given files: `<interface> is exported by more than one component: <paths>. Components that export the same interface cannot be used together`
 - A component imports an interface FastEdge does not provide: `Components import interfaces FastEdge does not provide: <names>`
 - No given component exports the interface: `no component exports <interface>`
 

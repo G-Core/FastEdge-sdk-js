@@ -118,6 +118,25 @@ async function loadComponents(components: ComponentImports): Promise<LoadedCompo
       return bytes;
     }),
   );
+  // Composition plugs every matching export, so an interface exported by two of the files
+  // cannot be assigned to either; say so instead of failing in composition.
+  if (binaries.length > 1) {
+    for (const name of interfaces) {
+      const exporters = paths.filter((_, i) => {
+        try {
+          tools.importWorld([binaries[i]], [name]);
+          return true;
+        } catch {
+          return false;
+        }
+      });
+      if (exporters.length > 1) {
+        throw new Error(
+          `${name} is exported by more than one component: ${exporters.join(', ')}. Components that export the same interface cannot be used together`,
+        );
+      }
+    }
+  }
   return { interfaces, binaries };
 }
 
