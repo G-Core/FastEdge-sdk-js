@@ -1,0 +1,24 @@
+package example:image;
+
+interface thumbnail {
+  enum format { jpeg, png }
+
+  record size { width: u32, height: u32 }
+
+  record options {
+    /// Thumbnails are never wider than this; smaller images keep their size
+    max-width: u32,
+    format: format,
+  }
+
+  /// Reads only the image header, so it is cheap: call it before `resize` to reject
+  /// images too large to decode within the request's time and memory limits.
+  dimensions: func(image: list<u8>) -> result<size, string>;
+
+  /// Decodes a JPEG or PNG, scales it down keeping its aspect ratio, and encodes it.
+  resize: func(image: list<u8>, options: options) -> result<list<u8>, string>;
+}
+
+world thumbnail-component {
+  export thumbnail;
+}

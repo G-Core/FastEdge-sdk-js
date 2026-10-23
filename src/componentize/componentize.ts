@@ -5,10 +5,20 @@ import { dirname } from 'node:path';
 
 import { componentNew } from '@bytecodealliance/jco-transpile/wasm-tools';
 
+import type { ComponentImports, LoadedComponents } from '~componentize/components.ts';
+
 import { addWasmMetadata } from '~componentize/add-wasm-metadata.ts';
+import {
+  composeComponents,
+  importWorld,
+  loadComponents,
+  restoreEngineBindings,
+  spliceImports,
+} from '~componentize/components.ts';
 import { getJsInputContents } from '~componentize/get-js-input.ts';
 import { precompile } from '~componentize/precompile.ts';
 
+import { colorLog } from '~utils/color-log.ts';
 import { getTmpDir, resolveOsPath, resolveTmpDir, useUnixPath } from '~utils/file-system.ts';
 import { validateFileExists } from '~utils/input-path-verification.ts';
 import { npxPackagePath } from '~utils/npx-path.ts';
@@ -22,6 +32,8 @@ interface ComponentizeOptions {
   enableStdout?: boolean;
   enablePBL?: boolean;
   preBundleJSInput?: boolean;
+  /** Wasm components to compose in, keyed by the WIT interface the app imports. */
+  components?: ComponentImports;
 }
 
 /**
@@ -46,6 +58,7 @@ async function componentize(
     enableStdout = false,
     enablePBL = false,
     preBundleJSInput = true,
+    components = {},
   } = opts;
 
   const jsPath = resolveOsPath(process.cwd(), jsInput);
@@ -53,14 +66,32 @@ async function componentize(
 
   await validateFileExists(wasmEngine);
 
-  const contents = await getJsInputContents(jsPath, preBundleJSInput);
-  const application = precompile(contents);
+  let loaded: LoadedComponents | undefined;
+  let witWorld = '';
+  if (Object.keys(components).length > 0) {
+    try {
+      loaded = await loadComponents(components);
+      witWorld = await importWorld(loaded);
+    } catch (error) {
+      colorLog('error', `Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  }
+
+  const contents = await getJsInputContents(jsPath, preBundleJSInput, Object.keys(components));
+  // The splice flow loads the app as an ES module: it keeps its component `import`s.
+  const application = loaded ? precompile(contents, undefined, 'module') : precompile(contents);
 
   // Create a temporary file
   const tmpDir = await getTmpDir();
   const outPath = resolveTmpDir(tmpDir);
   await writeFile(outPath, application);
   const wizerInput = outPath;
+  // Splice flow: wizer runs the spliced engine's `componentize.wizer` instead of `wizer.resume`
+  let wizerEngine = wasmEngine;
+  let wizerStdin = useUnixPath(wizerInput);
+  let wizerEntry = ['-r', '_start=wizer.resume'];
+  let spliceEnv: Record<string, string> = {};
 
   const cleanup = (): void => {
     rmSync(tmpDir, { recursive: true });
@@ -70,6 +101,13 @@ async function componentize(
     // FASTEDGE_WIZER_PATH lets a build host (e.g. a Linux container building a
     // project installed on macOS) supply its own wizer binary. Import lazily:
     // the package throws at load time when this platform's binary is missing.
+    if (loaded) {
+      const spliced = await spliceImports(wasmEngine, witWorld, application, tmpDir);
+      wizerEngine = spliced.engine;
+      wizerStdin = spliced.input;
+      wizerEntry = ['--init-func', 'componentize.wizer'];
+      spliceEnv = spliced.env;
+    }
     let wizer = process.env.FASTEDGE_WIZER_PATH;
     if (!wizer) {
       ({ default: wizer } = await import(/* webpackChunkName: "wizer" */ '@bytecodealliance/wizer'));
@@ -86,14 +124,13 @@ async function componentize(
         `--dir=${useUnixPath(dirname(wizerInput))}`,
         // Two argv entries, not one. This previously relied on `shell: true`
         // word-splitting a single "-r _start=wizer.resume" string.
-        '-r',
-        '_start=wizer.resume',
+        ...wizerEntry,
         `-o=${useUnixPath(wasmOutputDir)}`,
-        useUnixPath(wasmEngine),
+        useUnixPath(wizerEngine),
       ],
       {
         stdio: [null, process.stdout, process.stderr],
-        input: useUnixPath(wizerInput),
+        input: wizerStdin,
         // No `shell: true`: `wizer` is an absolute path to a binary, and a
         // shell would re-parse the interpolated output/dir paths as syntax.
         encoding: 'utf-8',
@@ -101,6 +138,7 @@ async function componentize(
           // ENABLE_EXPERIMENTAL_HIGH_RESOLUTION_TIME_METHODS:
           //   enableExperimentalHighResolutionTimeMethods ? "1" : "0",
           ENABLE_PBL: enablePBL ? '1' : '0',
+          ...spliceEnv,
           // ...process.env,
         },
       },
@@ -121,12 +159,26 @@ async function componentize(
   }
 
   // Core component creation code (commented out for now)
-  const coreComponent = await readFile(output);
+  let coreComponent: Uint8Array = await readFile(output);
   const adapter = npxPackagePath('./lib/preview1-adapter.wasm');
 
-  const generatedComponent = await componentNew(coreComponent, [
-    ['wasi_snapshot_preview1', await readFile(adapter)],
-  ]);
+  const newComponent = async (core: Uint8Array): Promise<Uint8Array> =>
+    componentNew(core, [['wasi_snapshot_preview1', await readFile(adapter)]]);
+
+  let generatedComponent: Uint8Array;
+  if (loaded) {
+    try {
+      coreComponent = await restoreEngineBindings(wasmEngine, coreComponent);
+      generatedComponent = await composeComponents(await newComponent(coreComponent), loaded);
+    } catch (error) {
+      // Don't leave Wizer's intermediate core module at the output path
+      rmSync(output, { force: true });
+      colorLog('error', `Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  } else {
+    generatedComponent = await newComponent(coreComponent);
+  }
 
   await writeFile(output, generatedComponent);
   await addWasmMetadata(output);

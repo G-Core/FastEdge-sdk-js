@@ -1,0 +1,6 @@
+{
+  "expected": {
+    "status": 400,
+    "bodyContains": ["w must be a whole number"]
+  }
+}

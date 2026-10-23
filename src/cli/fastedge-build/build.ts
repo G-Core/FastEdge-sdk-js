@@ -1,6 +1,6 @@
 import arg from 'arg';
 
-import { buildFromConfigFiles, buildWasm } from './config-build.ts';
+import { buildFromConfigFiles, buildFromConfigFileTo, buildWasm } from './config-build.ts';
 import { printHelp, printVersion } from './print-info.ts';
 
 import { CONFIG_FILE_PATH } from '~constants/index.ts';
@@ -17,13 +17,24 @@ interface ParsedArgs {
   '--output'?: string;
   '--tsconfig'?: string;
   '--config'?: string[];
+  '--component'?: string[];
 }
 
 let inputFileName = '';
 let outputFileName = '';
 let tsConfigPath = '';
 let configFiles: string[] = [];
+const components: Record<string, string> = {};
 let args: ParsedArgs;
+
+// `-c` without a path uses the default config file, also when other options follow it
+const argv = process.argv
+  .slice(2)
+  .flatMap((value, index, all) =>
+    value === '-c' && (all[index + 1] === undefined || all[index + 1].startsWith('-'))
+      ? [value, CONFIG_FILE_PATH]
+      : [value],
+  );
 
 try {
   args = arg(
@@ -35,6 +46,7 @@ try {
       '--output': String,
       '--tsconfig': String,
       '--config': [String],
+      '--component': [String],
 
       // Aliases
       '-v': '--version',
@@ -45,19 +57,13 @@ try {
       '-c': '--config',
     },
     {
+      argv,
       permissive: true,
     },
   ) as ParsedArgs;
-} catch (error: unknown) {
-  const errorMessage = (error as Error).toString();
-  if (errorMessage.includes('option requires argument: -c')) {
-    // Set default config file - buildFromConfigFiles() will do error handling
-    // This happens when running: `fastedge-build -c` without specifying a filepath
-    args = { _: [], '--config': [CONFIG_FILE_PATH] };
-  } else {
-    printHelp();
-    process.exit(0);
-  }
+} catch {
+  printHelp();
+  process.exit(0);
 }
 
 const hasFileInputsOnly =
@@ -88,6 +94,15 @@ if (args['--tsconfig']) {
   tsConfigPath = args['--tsconfig'];
 }
 
+for (const spec of args['--component'] ?? []) {
+  const separator = spec.indexOf('=');
+  if (separator < 1) {
+    colorLog('error', `Error: --component expects <interface>=<path>, got "${spec}"`);
+    process.exit(1);
+  }
+  components[spec.slice(0, separator)] = spec.slice(separator + 1);
+}
+
 if (args._.length === 2) {
   [inputFileName, outputFileName] = args._;
 }
@@ -105,6 +120,7 @@ if (inputFileName && outputFileName) {
     entryPoint: inputFileName,
     wasmOutput: outputFileName,
     tsConfigPath,
+    components,
   });
   colorLog('success', `Build success!!`);
   colorLog('info', `"${inputFileName}" -> "${outputFileName}"`);
@@ -112,6 +128,13 @@ if (inputFileName && outputFileName) {
 }
 
 if (configFiles.length > 0 && configFiles[0].length > 0) {
+  if (outputFileName) {
+    if (configFiles.length > 1) {
+      colorLog('error', 'Error: --output can only be used with a single --config');
+      process.exit(1);
+    }
+    await buildFromConfigFileTo(configFiles[0], outputFileName);
+  }
   await buildFromConfigFiles(configFiles);
   process.exit(0);
 }

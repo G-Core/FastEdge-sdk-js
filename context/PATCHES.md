@@ -93,6 +93,12 @@ git add runtime/StarlingMonkey
 git commit -m "chore(runtime): bump StarlingMonkey to vX.Y.Z + gcore patches"
 ```
 
+5. The engine also carries ComponentizeJS's `embedding` builtin
+   (`runtime/fastedge/builtins/embedding/`), paired with `vendor/splicer/`. Rebuild the engine and
+   run the component-imports checks; if it no longer compiles or splices, move both to the
+   ComponentizeJS release matching the new StarlingMonkey — see
+   `development/VENDORED_TOOLS.md`.
+
 ## Retiring a patch
 
 When an upstream PR merges, remove the corresponding entry from this file and

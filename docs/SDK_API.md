@@ -414,7 +414,7 @@ A handle to a cached value. The bytes are already in memory when you receive a `
 
 All methods are static; `Cache` is never constructed. Every method returns a `Promise`.
 
-Operational errors from the host (access denied, internal error, implementation-specific I/O) surface as Promise rejections. Invalid `WriteOptions`, a non-function `populate`, and an invalid `delta` (non-finite, non-integer, or beyond ±`Number.MAX_SAFE_INTEGER`) throw an `Error` synchronously. A `set` value of an unsupported type rejects the returned Promise instead. Keys are converted with `String()`; ordinary values never cause an error. Both forms are caught the same way by `try`/`catch` around an `await`.
+Operational errors from the host (access denied, internal error, implementation-specific I/O) surface as Promise rejections. Invalid `WriteOptions` throw an `Error` synchronously; a non-function `populate` and an invalid `delta` (non-finite, non-integer, or beyond ±`Number.MAX_SAFE_INTEGER`) also throw synchronously. A `set` value of an unsupported type rejects the returned Promise instead. Keys are converted with `String()`; ordinary values never cause an error. Both forms are caught the same way by `try`/`catch` around an `await`.
 
 | Method                              | Signature                                                                                                                                 | Returns                       |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
@@ -1527,3 +1527,4 @@ For implementation guidance on what to use instead — particularly for crypto-h
 - [INIT_CLI.md](INIT_CLI.md) — `fastedge-init` CLI reference
 - [STATIC_SITES.md](STATIC_SITES.md) — Serving static assets from WASM
 - [ASSETS_CLI.md](ASSETS_CLI.md) — `fastedge-assets` CLI reference
+- [RUNTIME_CONSTRAINTS.md](RUNTIME_CONSTRAINTS.md) — Runtime constraints and alternatives for unavailable APIs

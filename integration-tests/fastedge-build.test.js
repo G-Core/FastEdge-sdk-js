@@ -201,5 +201,79 @@ describe('fastedge-build', () => {
       expect(distFolderExists).toBe(true);
       await cleanup();
     });
+    it('should write to --output instead of the config wasmOutput', async () => {
+      expect.assertions(3);
+      const { execute, cleanup, ls, writeFile } = await prepareEnvironment();
+      await writeFile('./input.js', 'function Hello() { console.log("Hello World"); }');
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      await writeFile(
+        './.fastedge/build-config.js',
+        'export const config = { "type": "http", "entryPoint": "input.js", "wasmOutput": "./dist/fastedge.wasm" };',
+      );
+      await writeFile('./package.json', '{ "type": "module" }');
+      const { code } = await execute(
+        'node',
+        './bin/fastedge-build.js -c .fastedge/build-config.js -o debug/app.wasm',
+      );
+      const folderList = await ls('./');
+      expect(code).toBe(0);
+      expect(folderList).toContain('debug');
+      expect(folderList).not.toContain('dist');
+      await cleanup();
+    });
+    it('should use the default config with -c and no path before --output', async () => {
+      expect.assertions(3);
+      const { execute, cleanup, ls, writeFile } = await prepareEnvironment();
+      await writeFile('./input.js', 'function Hello() { console.log("Hello World"); }');
+      await writeFile('./lib/fastedge-runtime.wasm', 'Some binary data');
+      await writeFile(
+        './.fastedge/build-config.js',
+        'export const config = { "type": "http", "entryPoint": "input.js", "wasmOutput": "./dist/fastedge.wasm" };',
+      );
+      await writeFile('./package.json', '{ "type": "module" }');
+      const { code } = await execute('node', './bin/fastedge-build.js -c -o debug/app.wasm');
+      const folderList = await ls('./');
+      expect(code).toBe(0);
+      expect(folderList).toContain('debug');
+      expect(folderList).not.toContain('dist');
+      await cleanup();
+    });
+    it('should fail with --output if the config file does not exist', async () => {
+      expect.assertions(1);
+      const { execute, cleanup } = await prepareEnvironment();
+      const { code } = await execute(
+        'node',
+        './bin/fastedge-build.js -c .fastedge/build-config.js -o debug/app.wasm',
+      );
+      expect(code).toBe(1);
+      await cleanup();
+    });
+    it('should fail with --output if the config type is invalid', async () => {
+      expect.assertions(2);
+      const { execute, cleanup, writeFile } = await prepareEnvironment();
+      await writeFile(
+        './.fastedge/build-config.js',
+        'export const config = { "type": "other", "entryPoint": "input.js", "wasmOutput": "./dist/fastedge.wasm" };',
+      );
+      await writeFile('./package.json', '{ "type": "module" }');
+      const { code, stderr } = await execute(
+        'node',
+        './bin/fastedge-build.js -c .fastedge/build-config.js -o debug/app.wasm',
+      );
+      expect(code).toBe(1);
+      expect(stderr[0]).toContain('Error: Invalid config type');
+      await cleanup();
+    });
+    it('should fail with --output and more than one --config', async () => {
+      expect.assertions(2);
+      const { execute, cleanup } = await prepareEnvironment();
+      const { code, stderr } = await execute(
+        'node',
+        './bin/fastedge-build.js -c a.js -c b.js -o debug/app.wasm',
+      );
+      expect(code).toBe(1);
+      expect(stderr[0]).toContain('Error: --output can only be used with a single --config');
+      await cleanup();
+    });
   });
 });

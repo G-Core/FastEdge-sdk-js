@@ -56,6 +56,10 @@ export default defineConfig({
               label: 'Creating static assets',
               link: `${import.meta.env.BASE_URL}guides/creating-a-static-manifest/`,
             },
+            {
+              label: 'Importing Wasm components',
+              link: `${import.meta.env.BASE_URL}guides/importing-components/`,
+            },
           ],
           collapsed: true,
         },

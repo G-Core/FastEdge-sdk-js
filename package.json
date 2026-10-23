@@ -1,6 +1,6 @@
 {
   "name": "@gcoredev/fastedge-sdk-js",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "engines": {
     "node": ">=22",
     "pnpm": ">=10"
@@ -31,6 +31,10 @@
     "bin/fastedge-init.js",
     "lib/*.wasm",
     "lib/*.js",
+    "vendor/**/*.js",
+    "vendor/**/*.wasm",
+    "vendor/**/LICENSE",
+    "vendor/**/THIRD_PARTY_LICENSES.txt",
     "README.md"
   ],
   "scripts": {
@@ -59,6 +63,7 @@
     "wit:bindings": "./runtime/fastedge/scripts/create-wit-bindings.sh"
   },
   "devDependencies": {
+    "@gcoredev/fastedge-test": "^0.2.6",
     "@gmrchk/cli-testing-library": "^0.1.2",
     "@jest/globals": "^30.3.0",
     "@jest/transform": "^30.3.0",
@@ -84,6 +89,7 @@
   },
   "dependencies": {
     "@bytecodealliance/jco-transpile": "^0.18.0",
+    "@bytecodealliance/preview2-shim": "^0.30.0",
     "@bytecodealliance/wizer": "^11.0.3",
     "acorn": "^8.16.0",
     "acorn-walk": "^8.3.5",

@@ -1,7 +1,7 @@
 /*
   This source code is licensed under the Apache License 2.0.
   It comes from here: https://github.com/fastly/js-compute-runtime
-  There are no modifications made to this source code.
+  Modified: optional `sourceType`, so ES module source (component imports) can be parsed.
 */
 
 import { Literal, parse } from 'acorn';
@@ -24,16 +24,21 @@ const POSTAMBLE = '}';
  *
  * @param source - The JavaScript source code to process.
  * @param filename - The filename of the source code (optional, defaults to '<input>').
+ * @param sourceType - Parse as a classic script (default) or an ES module.
  * @returns The transformed JavaScript source code with precompiled regular expressions.
  */
-export function precompile(source: string, filename: string = '<input>'): string {
+export function precompile(
+  source: string,
+  filename: string = '<input>',
+  sourceType: 'script' | 'module' = 'script',
+): string {
   const magicString = new MagicString(source, {
     filename,
   });
 
   const ast = parse(source, {
     ecmaVersion: 'latest',
-    sourceType: 'script',
+    sourceType,
   });
 
   const precompileCalls: string[] = [];

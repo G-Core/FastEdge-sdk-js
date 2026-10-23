@@ -13,15 +13,33 @@
  *    entries and are never re-parsed as shell syntax
  *  - the build loads no native module except wizer, via FASTEDGE_WIZER_PATH, so
  *    it works from a node_modules installed by another OS
+ *  - component imports: declarations are generated and type-checked, and the
+ *    composed app runs under @gcoredev/fastedge-test and calls into the component
+ *  - a component can make its own outgoing HTTP requests through the host
  *
  * Requires a built `lib/` (runtime wasm) and `bin/`. See
  * .github/workflows/cross-platform-tests.yaml.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { once } from 'node:events';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { createServer } from 'node:http';
+import { createServer as createTcpServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
+import { createRunner } from '@gcoredev/fastedge-test';
+import { runHttpRequest } from '@gcoredev/fastedge-test/test';
 
 const CLI = join(process.cwd(), 'bin', 'fastedge-build.js');
 const RUNTIME_WASM = join(process.cwd(), 'lib', 'fastedge-runtime.wasm');
@@ -150,6 +168,176 @@ describe(`fastedge-build on ${process.platform}`, () => {
 
     expect(result.status).toBe(0);
     expect(isWasmComponent(output)).toBe(true);
+  });
+
+  describe('component imports (calculator.wasm), from paths containing spaces', () => {
+    const componentsDir = join(process.cwd(), 'integration-tests', 'test-files', 'components');
+    let dir;
+
+    // All interfaces come from the one file
+    const buildApp = (entry, output) =>
+      spawnSync(
+        process.execPath,
+        [
+          '--import',
+          NO_NATIVE_PRELOAD,
+          CLI,
+          '-i',
+          entry,
+          '-o',
+          output,
+          '--component',
+          'acme:calc/arith=calculator.wasm',
+          '--component',
+          'acme:calc/format=calculator.wasm',
+          '--component',
+          'acme:calc/memory=calculator.wasm',
+        ],
+        {
+          cwd: dir,
+          encoding: 'utf-8',
+          env: {
+            ...process.env,
+            NODE_ENV: 'production',
+            FASTEDGE_WIZER_PATH: resolveWizerBinary(),
+            // The splice flow passes temp-dir paths to the engine as one string
+            TMPDIR: dir,
+            TEMP: dir,
+            TMP: dir,
+          },
+        },
+      );
+
+    beforeAll(() => {
+      dir = join(workDir, SPACED_DIR, 'calc app');
+      // Left over by an interrupted run, the junctions below would already exist
+      rmSync(dir, { recursive: true, force: true });
+      // A consumer's layout: tsc and the SDK's types resolve from the app's node_modules
+      mkdirSync(join(dir, 'node_modules', '@gcoredev'), { recursive: true });
+      symlinkSync(
+        process.cwd(),
+        join(dir, 'node_modules', '@gcoredev', 'fastedge-sdk-js'),
+        'junction',
+      );
+      symlinkSync(
+        realpathSync(join(process.cwd(), 'node_modules', 'typescript')),
+        join(dir, 'node_modules', 'typescript'),
+        'junction',
+      );
+      copyFileSync(join(componentsDir, 'calculator.wasm'), join(dir, 'calculator.wasm'));
+      copyFileSync(join(componentsDir, 'calculator-app.ts'), join(dir, 'app.ts'));
+      writeFileSync(
+        join(dir, 'bad-app.ts'),
+        "import { add } from 'acme:calc/arith';\nexport const n: number = add('1', 2);\n",
+      );
+    });
+
+    it('should write declarations for all interfaces', () => {
+      expect.assertions(7);
+
+      const result = buildApp('app.ts', 'app.wasm');
+
+      expect(result.status).toBe(0);
+      expect(isWasmComponent(join(dir, 'app.wasm'))).toBe(true);
+      const types = readFileSync(join(dir, 'fastedge-components.d.ts'), 'utf8');
+      expect(types).toContain('export function divide(a: number, b: number): number;');
+      expect(types).toContain('export function sum(values: Float64Array): number;');
+      expect(types).toContain('export function describe(e: Expr, value: number): string;');
+      expect(types).toContain('export class Accumulator implements Disposable {');
+      expect(types).toContain('static merge(a: Accumulator, b: Accumulator): Accumulator;');
+    }, 120_000);
+
+    it('should reject a call that does not match the component types', () => {
+      expect.assertions(2);
+
+      const result = buildApp('bad-app.ts', 'bad-app.wasm');
+
+      expect(result.status).not.toBe(0);
+      expect(result.stdout).toContain('TS2345');
+    }, 120_000);
+
+    it('should run the composed app and call into the component', async () => {
+      expect.assertions(6);
+      const runner = await createRunner(join(dir, 'app.wasm'));
+      const get = async (path) => {
+        const { status, body } = await runHttpRequest(runner, { path });
+        return [status, body];
+      };
+
+      try {
+        await expect(get('/add?a=2&b=40')).resolves.toStrictEqual([200, '42']);
+        await expect(get('/add?a=2147483647&b=1')).resolves.toStrictEqual([200, '-2147483648']);
+        await expect(get('/divide?a=6&b=4')).resolves.toStrictEqual([200, '6 / 4 = 1.5']);
+        await expect(get('/divide?a=1&b=0')).resolves.toStrictEqual([400, 'division by zero']);
+        await expect(get('/sum?v=1.5&v=2.5&v=3')).resolves.toStrictEqual([200, '7']);
+        // Resource: constructor, method, borrowed handles in, owned handle out
+        await expect(get('/accumulate?v=1&v=2&v=3')).resolves.toStrictEqual([200, '6 16']);
+      } finally {
+        await runner.cleanup();
+      }
+    }, 120_000);
+  });
+
+  describe('component imports (fetcher.wasm), outgoing HTTP from the component', () => {
+    const componentsDir = join(process.cwd(), 'integration-tests', 'test-files', 'components');
+    let server;
+    let authority;
+    let dropper;
+    let droppedAuthority;
+
+    const listen = async (srv) => {
+      srv.listen(0, '127.0.0.1');
+      await once(srv, 'listening');
+      return `127.0.0.1:${srv.address().port}`;
+    };
+
+    beforeAll(async () => {
+      server = createServer((req, res) => res.end(`hi from ${req.url}`));
+      authority = await listen(server);
+      // Accepts each connection and closes it at once, so a request to it always fails
+      dropper = createTcpServer((socket) => socket.destroy());
+      droppedAuthority = await listen(dropper);
+    });
+
+    afterAll(() => {
+      server?.close();
+      dropper?.close();
+    });
+
+    it('should send the request from the component and return the response', async () => {
+      expect.assertions(4);
+      const output = join(workDir, 'fetcher.wasm');
+      // Declarations are written next to the entry, so keep it out of the repo
+      const entry = join(workDir, 'fetcher-app.js');
+      copyFileSync(join(componentsDir, 'fetcher-app.js'), entry);
+
+      const result = runBuild([
+        '-i',
+        entry,
+        '-o',
+        output,
+        '--component',
+        `acme:net/client=${join(componentsDir, 'fetcher.wasm')}`,
+      ]);
+
+      expect(result.status).toBe(0);
+      expect(isWasmComponent(output)).toBe(true);
+
+      const runner = await createRunner(output);
+      const get = async (to) => {
+        const { status, body } = await runHttpRequest(runner, { path: `/?to=${to}` });
+        return [status, body];
+      };
+      try {
+        await expect(get(authority)).resolves.toStrictEqual([200, 'hi from /hello']);
+        // The connection fails (the error code varies by OS); the component's error reaches
+        // the app
+        const [status, body] = await get(droppedAuthority);
+        expect([status, body]).toStrictEqual([502, expect.stringMatching(/^ErrorCode::/u)]);
+      } finally {
+        await runner.cleanup();
+      }
+    }, 120_000);
   });
 
   it('should not execute shell metacharacters embedded in the output path', () => {

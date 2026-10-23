@@ -103,14 +103,17 @@ npx fastedge-build .fastedge/build-config.js
 
 ### fastedge-build CLI Flags
 
-| Flag         | Alias | Type       | Description                     |
-| ------------ | ----- | ---------- | ------------------------------- |
-| `--input`    | `-i`  | `string`   | Entry point file                |
-| `--output`   | `-o`  | `string`   | Output `.wasm` file path        |
-| `--tsconfig` | `-t`  | `string`   | Path to `tsconfig.json`         |
-| `--config`   | `-c`  | `string[]` | Path(s) to build config file(s) |
-| `--version`  | `-v`  | `boolean`  | Print version                   |
-| `--help`     | `-h`  | `boolean`  | Print help                      |
+| Flag          | Alias | Type       | Description                                                 |
+| ------------- | ----- | ---------- | ----------------------------------------------------------- |
+| `--input`     | `-i`  | `string`   | Entry point file                                            |
+| `--output`    | `-o`  | `string`   | Output `.wasm` file path                                    |
+| `--tsconfig`  | `-t`  | `string`   | Path to `tsconfig.json`                                     |
+| `--config`    | `-c`  | `string[]` | Path(s) to build config file(s)                             |
+| `--component` | —     | `string[]` | Component import mapping: `<interface>=<path>` (repeatable) |
+| `--version`   | `-v`  | `boolean`  | Print version                                               |
+| `--help`      | `-h`  | `boolean`  | Print help                                                  |
+
+`--component` expects a value in the form `<interface>=<path>`. A value without an `=` separator, or with an empty interface name, causes the build to exit with an error. See [Component Imports](COMPONENT_IMPORTS.md) for details.
 
 ## TypeScript Configuration
 
@@ -363,6 +366,7 @@ See [SDK Runtime API](SDK_API.md) for the complete `Cache` method reference, `Ca
 - [fastedge-build CLI](BUILD_CLI.md) — build options and configuration
 - [fastedge-init CLI](INIT_CLI.md) — project scaffolding details
 - [Static Sites](STATIC_SITES.md) — serve static websites
+- [Component Imports](COMPONENT_IMPORTS.md) — import WebAssembly components with `--component`
 - [SDK Runtime API](SDK_API.md) — full API reference
 - [Deploy your app](https://gcore.com/docs/fastedge/getting-started/create-fastedge-apps#stage-2-deploy-an-app)
 
@@ -370,4 +374,5 @@ See [SDK Runtime API](SDK_API.md) for the complete `Cache` method reference, `Ca
 
 - [INDEX](INDEX.md) — documentation overview
 - [SDK Runtime API](SDK_API.md) — complete `Cache`, `KvStore`, env, and secret reference
+- [Component Imports](COMPONENT_IMPORTS.md) — `--component` usage
 - [Examples](https://github.com/G-Core/FastEdge-sdk-js/tree/main/examples) — real-world patterns

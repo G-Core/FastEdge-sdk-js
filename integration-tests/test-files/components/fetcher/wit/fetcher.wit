@@ -1,0 +1,11 @@
+package acme:net;
+
+interface client {
+  /// GETs http://<authority><path> and returns the body, or an error for a failed
+  /// request or a non-200 status.
+  get: func(authority: string, path: string) -> result<string, string>;
+}
+
+world fetcher {
+  export client;
+}

@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /kev.jpeg?w=320px — w is not a whole number",
+  "request": {
+    "method": "GET",
+    "path": "/kev.jpeg?w=320px",
+    "headers": {}
+  }
+}

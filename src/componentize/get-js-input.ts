@@ -7,11 +7,16 @@ import { esBundle } from '~componentize/es-bundle.ts';
  *
  * @param jsInput - The path to the JavaScript input file.
  * @param preBundleJSInput - Whether to bundle the input file before reading its contents.
+ * @param external - Import specifiers the bundler leaves as imports.
  * @returns A promise that resolves to the contents of the JavaScript file as a string.
  */
-async function getJsInputContents(jsInput: string, preBundleJSInput: boolean): Promise<string> {
+async function getJsInputContents(
+  jsInput: string,
+  preBundleJSInput: boolean,
+  external: string[] = [],
+): Promise<string> {
   if (preBundleJSInput) {
-    return esBundle(jsInput);
+    return esBundle(jsInput, external);
   }
   return readFile(jsInput, 'utf8');
 }

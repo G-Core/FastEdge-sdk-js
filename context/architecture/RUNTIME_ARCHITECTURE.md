@@ -58,6 +58,13 @@ Provides the `KvStore` class:
 
 Overrides the default `console` implementation to route logging through the FastEdge host API.
 
+### embedding/ — Component-import hooks (vendored)
+
+**File:** `runtime/fastedge/builtins/embedding/embedding.cpp`
+**CMake name:** `componentize::embedding`
+
+Vendored from ComponentizeJS 0.23.0 (Apache-2.0 WITH LLVM-exception). Exports the `coreabi_*` hooks the ComponentizeJS splicer patches to bind user-supplied component imports at build time. It does nothing unless the splice flow sets `SOURCE_NAME` at Wizer time, so plain builds are unaffected. FastEdge host APIs stay as the C++ builtins above; splicing is only for third-party components. Two local changes, listed in the file header: the `console.log` override is removed (`console-override.cpp` owns it) and `install()` returns early without `SOURCE_NAME`. Adds ~14 KB to the engine.
+
 ## Host API (C++ → WIT Bridge)
 
 **Location:** `runtime/fastedge/host-api/`

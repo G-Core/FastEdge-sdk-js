@@ -31,7 +31,7 @@ Select the static site type. `fastedge-init` prompts for:
 | Is your site a single page application?               | No                             | Answer yes to be prompted for an SPA entrypoint                  |
 | Path to your SPA entrypoint (only when answering yes) | `./index.html`                 | Must exist in the public directory, otherwise a warning is shown |
 
-The SPA entrypoint must be a file inside the public directory. If it is not, a warning is shown and no SPA entrypoint is set.
+The SPA entrypoint must be a file inside the public directory, both as typed and after symlinks are resolved. If it is not, a warning is shown and no SPA entrypoint is set.
 
 It writes `.fastedge/static-index.js` (the entry point), `.fastedge/build-config.js` (build and server config), and a `package.json` and `jsconfig.json` in `.fastedge/`.
 
@@ -434,6 +434,16 @@ addEventListener('fetch', (event: FetchEvent) => {
 ## Wizer Constraint
 
 Wizer pre-initializes the binary by running all top-level module code before snapshotting memory. `createStaticServer` reads asset files with `readFileSync` from `fastedge::fs`, which only works during Wizer pre-initialization. It must be called at the **module top level**. Calling it inside a request handler throws at request time.
+
+The `fastedge::fs` module declares:
+
+```typescript
+declare module 'fastedge::fs' {
+  export function readFileSync(path: string): Uint8Array;
+}
+```
+
+`readFileSync` reads a file synchronously and can only be invoked during build-time initialization.
 
 **Correct:**
 

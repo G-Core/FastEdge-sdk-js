@@ -1,0 +1,27 @@
+package acme:calc;
+
+interface arith {
+  add: func(a: s32, b: s32) -> s32;
+  divide: func(a: f64, b: f64) -> result<f64, string>;
+  sum: func(values: list<f64>) -> f64;
+}
+
+interface format {
+  record expr { op: string, a: f64, b: f64 }
+  describe: func(e: expr, value: f64) -> string;
+}
+
+interface memory {
+  resource accumulator {
+    constructor(start: f64);
+    add: func(value: f64);
+    total: func() -> f64;
+    merge: static func(a: borrow<accumulator>, b: borrow<accumulator>) -> accumulator;
+  }
+}
+
+world calculator {
+  export arith;
+  export format;
+  export memory;
+}

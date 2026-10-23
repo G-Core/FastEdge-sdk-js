@@ -54,9 +54,10 @@ const fastedgePackagePlugin: Plugin = {
  * Bundles the provided input file using esbuild.
  *
  * @param input - The path to the input file.
+ * @param external - Import specifiers left as imports (e.g. WIT interfaces of components).
  * @returns The bundled output as a string.
  */
-async function esBundle(input: string): Promise<string> {
+async function esBundle(input: string, external: string[] = []): Promise<string> {
   const contents: BuildResult = await build({
     entryPoints: [input],
     bundle: true,
@@ -64,6 +65,7 @@ async function esBundle(input: string): Promise<string> {
     format: 'esm',
     target: 'es2023',
     tsconfig: undefined,
+    external,
     plugins: [fastedgePackagePlugin],
   });
 

@@ -31,7 +31,7 @@ Changes to these surfaces require updated `docs/`, updated tests, and a semver-a
 
 These files are generated from source code by `./fastedge-plugin-source/generate-docs.sh` and **must not be edited by hand** — manual changes will be silently overwritten on the next generation run:
 
-- `docs/BUILD_CLI.md`, `docs/INIT_CLI.md`, `docs/ASSETS_CLI.md`, `docs/STATIC_SITES.md`, `docs/SDK_API.md`
+- `docs/BUILD_CLI.md`, `docs/INIT_CLI.md`, `docs/ASSETS_CLI.md`, `docs/STATIC_SITES.md`, `docs/SDK_API.md`, `docs/COMPONENT_IMPORTS.md`
 - `docs/quickstart.md`, `docs/INDEX.md`
 
 ### Hand-curated docs (exception)
@@ -77,6 +77,8 @@ These files contain knowledge and best practices with no single code-source equi
 | `src/cli/fastedge-build/` (flags, config) | `docs/BUILD_CLI.md` |
 | `src/cli/fastedge-build/types.ts` (BuildConfig) | `docs/BUILD_CLI.md` |
 | `src/cli/fastedge-build/config-build.ts` (build types) | `docs/BUILD_CLI.md` |
+| `src/componentize/components.ts` (component imports) | `docs/BUILD_CLI.md`, `docs/COMPONENT_IMPORTS.md` |
+| `examples/component-imports/` | `docs/COMPONENT_IMPORTS.md` |
 | `src/cli/fastedge-init/` (wizard, templates) | `docs/INIT_CLI.md` |
 | `src/cli/fastedge-assets/` (manifest CLI) | `docs/ASSETS_CLI.md` |
 | `src/server/static-assets/static-server/` | `docs/STATIC_SITES.md` |

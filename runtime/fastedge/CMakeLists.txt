@@ -8,6 +8,8 @@ add_builtin(fastedge::kv_store SRC builtins/kv-store.cpp)
 add_builtin(fastedge::cache SRC builtins/cache.cpp)
 add_builtin(fastedge::request_info SRC builtins/request-info.cpp)
 add_builtin(fastedge::console_override SRC builtins/console-override.cpp)
+add_builtin(componentize::embedding SRC builtins/embedding/embedding.cpp)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../StarlingMonkey")
 
 
 project(fastedge)

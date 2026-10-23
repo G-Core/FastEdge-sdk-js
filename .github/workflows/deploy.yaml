@@ -7,6 +7,8 @@ on:
     paths:
       - 'src/**'
       - 'runtime/**'
+      # Vendored build tools (component imports) run on every OS in cross-platform-tests
+      - 'vendor/**'
 
   workflow_dispatch: # trigger manually
     inputs:

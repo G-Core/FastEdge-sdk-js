@@ -5,6 +5,35 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-21] — fastedge-build: import Wasm components by WIT interface
+
+### Overview
+Apps can `import { fn } from 'ns:pkg/iface'` and have `fastedge-build` compose the component that exports it into the output. Builds without components are unchanged.
+
+### Changes
+- **Config / CLI:** `components: { '<ns:pkg/iface>': '<path>' }` in the build config; `--component <iface>=<path>` (repeatable) with `-i`/`-o`.
+- **Pipeline** (`src/componentize/components.ts`): interface WIT read from the components → `fastedge-components.d.ts` next to the entry point (before the tsc syntax check) → esbuild keeps the imports external → precompile parses as a module → ComponentizeJS splicer (user world only) + Wizer-time warm-up of the glue's standard classes → Wizer `componentize.wizer` → engine's `component-type:bindings` section restored → `componentNew` → `wac plug` → imports must be `wasi:*@0.2.*` or `gcore:*`. Bad interface names, missing or non-component files, unexported interfaces and unsupported imports fail with a clear error and no output file.
+- **Vendored, platform-neutral:** `vendor/splicer/` (ComponentizeJS 0.23.0, `tools/splicer/vendor.sh`) and `vendor/component-tools/` (new Rust crate in `tools/component-tools/` — wac-graph plug, WIT world builder, import lister — jco-transpiled). Shipped in the npm package (3.5 → 5.5 MB packed) with `LICENSE` files and a `cargo about`-generated `THIRD_PARTY_LICENSES.txt` for component-tools; new dependency `@bytecodealliance/preview2-shim`. Maintenance (coupling, when/how to update, CI coverage): `context/development/VENDORED_TOOLS.md`.
+- `precompile()` takes an optional `sourceType`; `esBundle()` / `getJsInputContents()` take an `external` list.
+- **Example:** `examples/component-imports/` — image thumbnails: a Rust component (`image` crate, JPEG+PNG; source in `component/`, committed `thumbnail.wasm`) exporting `example:image/thumbnail` (`dimensions`, `resize`), called from TypeScript; images embedded as static assets; rejects images over 0.5 MP before decoding to stay within the free plan's 100 ms / 52 MB. Measured on the edge: 612×640 JPEG thumbnail in ~20–30 ms, 3 MB.
+- **Tests:** unit `components.test.ts` + splice case in `componentize.test.ts`; integration `component-imports.test.js` (stub components generated at test time); cross-platform (Ubuntu, Windows, macOS) builds a TypeScript app against the committed `test-files/components/calculator.wasm` (Rust source alongside; two interfaces from one file; s32, f64, `result`, `list<f64>`, record, string, resource) with native modules blocked from paths with spaces, checks the declarations and that `tsc` rejects a mistyped call, then runs the composed app under `@gcoredev/fastedge-test` (new devDependency). A second committed component, `fetcher.wasm`, makes its own outgoing HTTP request through the host to a local server. `deploy.yaml` now also triggers on `vendor/**`.
+- **TypeScript without a tsconfig:** the default `tsc` flags now include `fastedge-components.d.ts` when it sits next to the entry, so component imports resolve (found by the calculator test).
+- **Stale declarations:** a build without components deletes a `fastedge-components.d.ts` next to the entry if it carries our generated header, so imports of removed components fail the type check instead of esbuild; a file without the header is left alone.
+- **Two component files:** every decoded component's own package is `root:component`, so merging a second file failed (`failed to merge package root:component`); `component-tools` now gives each an unused name before merging, and leaves the components' own packages out of the printed WIT by ID (not by name, so a real `root:*` dependency is kept). Covered by an integration test with two files.
+- **Declarations:** jco's `/// <reference path="./<iface>.d.ts" />` lines (for an interface that `use`s another) pointed at files we don't write; removed, since all interfaces go in one file.
+- **First-call timing:** measured with calculator + regexped composed (fresh instance per request, `fastedge-run`). The first string argument cost ~150–220 µs: `'a'.charCodeAt` in the glue's own global sets up String lazily. Added String, BigInt and Error to the Wizer-time warm-up (`GLUE_WARMUP`). First calls now: regexped ~70 µs, `describe` (record with string) ~30–60 µs, `u64` ~7 µs, other calls ~7–25 µs, first `err` ~60–100 µs; second calls 4–20 µs. Findings, ruled-out fixes and the diagnosis method: `development/COMPONENT_PERFORMANCE.md`.
+- Not included: github-pages user docs (separate PR).
+
+## [2026-10-21] — Engine: component-import hooks (ComponentizeJS embedding)
+
+### Overview
+Adds the ComponentizeJS `embedding` builtin to the engine so a later `fastedge-build` change can splice user-supplied Wasm component imports. No behaviour change for existing builds.
+
+### Changes
+- Vendored `runtime/fastedge/builtins/embedding/` from ComponentizeJS 0.23.0, registered as `componentize::embedding` in `runtime/fastedge/CMakeLists.txt`. The engine now exports 7 `coreabi_*` functions (+~14 KB).
+- Removed its `console.log` override (duplicate symbol with `console-override.cpp`); `install()` is inert unless `SOURCE_NAME` is set, so plain Wizer builds don't hit its unguarded `getenv`.
+- Verified on the new engine: unit 441/441, integration 67/67, all 22 examples × 60 fixtures identical to the stock engine (bar timestamp-dependent output), fastedge-test HTTP integration 81/81.
+
 ## [2026-10-14] — Security review fixes: release-workflow injection, manifest escaping, symlinks
 
 ### Overview

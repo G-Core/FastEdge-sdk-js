@@ -1,0 +1,9 @@
+{
+  "appType": "http-wasm",
+  "description": "GET /missing.jpeg — not in the images folder",
+  "request": {
+    "method": "GET",
+    "path": "/missing.jpeg?w=320",
+    "headers": {}
+  }
+}
