@@ -25,7 +25,7 @@ async function handle(request: Request): Promise<Response> {
   if (w === null || original.status !== 200) {
     return original;
   }
-  if (!/^\d+$/.test(w)) {
+  if (!/^\d+$/u.test(w)) {
     return new Response('w must be a whole number', { status: 400 });
   }
   const maxWidth = Number(w);
