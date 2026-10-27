@@ -5,6 +5,29 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-27] — db: async `fastedge::db/sql` over `gcore:db/sql` (branch `feat/db-interface-async`)
+
+### Overview
+`SqlDatabase.query` / `batch` start the host call and return a pending Promise; a StarlingMonkey
+`AsyncTask` per call waits on the host future's pollable and settles it. JS API unchanged.
+
+### Decisions
+- Async WIT is the plain `gcore:db/sql` interface (pollable futures, wasi:io 0.2.3) beside
+  `sql-sync`; the runtime includes world `gcore:fastedge/reactor-async`. Rust stays on `sql-sync`.
+- Measured on fastedge-run against Neon (median of 7, query = `pg_sleep(0.1)` + round trip):
+  1 query sync 312 ms / async 326 ms (noise); 3 queries via `Promise.all` sync 617 ms / async 319 ms.
+- Calls not awaited may run in any order (documented in the types).
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface-async`; bindings regenerated
+- `runtime/fastedge/builtins/db-sql.cpp` — `SqlTask` (AsyncTask), `start_query` / `start_batch`;
+  argument errors reject the returned Promise
+- `merge-wit-bindings.js` — includes `reactor-async`; skips FastEdge-wit's `deps/io` (StarlingMonkey
+  host-apis already provide `wasi:io@0.2.3`)
+- `types/fastedge-db-sql.d.ts` — concurrency / ordering note
+
+---
+
 ## [2026-10-27] — db: builtin binds `gcore:db/sql-sync` (WIT split)
 
 ### Overview

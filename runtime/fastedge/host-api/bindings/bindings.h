@@ -14,10 +14,235 @@ typedef struct bindings_string_t {
   size_t len;
 } bindings_string_t;
 
+typedef struct wasi_io_poll_own_pollable_t {
+  int32_t __handle;
+} wasi_io_poll_own_pollable_t;
+
+typedef struct wasi_io_poll_borrow_pollable_t {
+  int32_t __handle;
+} wasi_io_poll_borrow_pollable_t;
+
+typedef struct {
+  wasi_io_poll_borrow_pollable_t *ptr;
+  size_t len;
+} wasi_io_poll_list_borrow_pollable_t;
+
+typedef struct {
+  uint32_t *ptr;
+  size_t len;
+} bindings_list_u32_t;
+
+typedef struct {
+  uint8_t *ptr;
+  size_t len;
+} bindings_list_u8_t;
+
+// A parameter or result value.
+// 
+// Results use the narrowest variant that is lossless:
+// - `int2`, `int4` → `int32`
+// - `int8` → `int64`
+// - `float4`, `float8` → `float64`
+// - `numeric` → `numeric` (decimal text, e.g. "12345678901234567890.123")
+// - `bool` → `boolean`
+// - `json`, `jsonb` → `json` (JSON text)
+// - `bytea` → `bytes`
+// - everything else (text, varchar, uuid, date/time types, arrays, ...) → `text`, in PostgreSQL
+//   text format. `timestamptz` is rendered in UTC. Arrays are PostgreSQL array literals
+//   (e.g. "{1,2,3}"). Use `column.type-oid` to interpret them.
+// - SQL `NULL` → `null`
+// 
+// Parameters are sent to the database as text; PostgreSQL casts them to the target type.
+typedef struct gcore_db_sql_types_value_t {
+  uint8_t tag;
+  union {
+    bool     boolean;
+    int32_t     int32;
+    int64_t     int64;
+    double     float64;
+    bindings_string_t     numeric;
+    bindings_string_t     text;
+    bindings_list_u8_t     bytes;
+    bindings_string_t     json;
+  } val;
+} gcore_db_sql_types_value_t;
+
+#define GCORE_DB_SQL_TYPES_VALUE_NULL 0
+#define GCORE_DB_SQL_TYPES_VALUE_BOOLEAN 1
+#define GCORE_DB_SQL_TYPES_VALUE_INT32 2
+#define GCORE_DB_SQL_TYPES_VALUE_INT64 3
+#define GCORE_DB_SQL_TYPES_VALUE_FLOAT64 4
+#define GCORE_DB_SQL_TYPES_VALUE_NUMERIC 5
+#define GCORE_DB_SQL_TYPES_VALUE_TEXT 6
+#define GCORE_DB_SQL_TYPES_VALUE_BYTES 7
+#define GCORE_DB_SQL_TYPES_VALUE_JSON 8
+
+// A result column.
+typedef struct gcore_db_sql_types_column_t {
+  // Column name or alias.
+  bindings_string_t   name;
+  // PostgreSQL type OID (e.g. 23 = int4, 1184 = timestamptz, 1007 = int4[]).
+  uint32_t   type_oid;
+} gcore_db_sql_types_column_t;
+
+typedef struct {
+  gcore_db_sql_types_column_t *ptr;
+  size_t len;
+} gcore_db_sql_types_list_column_t;
+
+typedef struct {
+  gcore_db_sql_types_value_t *ptr;
+  size_t len;
+} gcore_db_sql_types_list_value_t;
+
+typedef struct {
+  gcore_db_sql_types_list_value_t *ptr;
+  size_t len;
+} gcore_db_sql_types_list_list_value_t;
+
+// The result of one statement.
+typedef struct gcore_db_sql_types_query_result_t {
+  gcore_db_sql_types_list_column_t   columns;
+  // Rows in column order. Empty for statements that return no rows.
+  gcore_db_sql_types_list_list_value_t   rows;
+  // Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE).
+  uint64_t   row_count;
+} gcore_db_sql_types_query_result_t;
+
+// One statement in a batch.
+typedef struct gcore_db_sql_types_statement_t {
+  bindings_string_t   sql;
+  gcore_db_sql_types_list_value_t   params;
+} gcore_db_sql_types_statement_t;
+
 typedef struct {
   bool is_some;
   bindings_string_t val;
 } bindings_option_string_t;
+
+// Error details reported by the database.
+typedef struct gcore_db_sql_types_db_error_t {
+  // SQLSTATE code (e.g. "23505" unique_violation), when the database provides one.
+  bindings_option_string_t   code;
+  bindings_string_t   message;
+  bindings_option_string_t   detail;
+  bindings_option_string_t   hint;
+  // Name of the violated constraint, for constraint errors.
+  bindings_option_string_t   constraint;
+} gcore_db_sql_types_db_error_t;
+
+// The set of errors which may be raised by the SQL interfaces.
+typedef struct gcore_db_sql_types_error_t {
+  uint8_t tag;
+  union {
+    gcore_db_sql_types_db_error_t     config;
+    bindings_string_t     connection;
+    bindings_string_t     limit;
+    gcore_db_sql_types_db_error_t     query;
+  } val;
+} gcore_db_sql_types_error_t;
+
+// The host does not recognize the database binding requested.
+#define GCORE_DB_SQL_TYPES_ERROR_NO_SUCH_DATABASE 0
+// The requesting component does not have access to the specified database
+// (which may or may not exist).
+#define GCORE_DB_SQL_TYPES_ERROR_ACCESS_DENIED 1
+// The binding is misconfigured: bad credentials, unknown database name, invalid connection
+// settings. Not retryable without a configuration change.
+#define GCORE_DB_SQL_TYPES_ERROR_CONFIG 2
+// The database could not be reached (network, DNS, TLS, backend unavailable).
+#define GCORE_DB_SQL_TYPES_ERROR_CONNECTION 3
+// The call exceeded the host's time limit. The statement may or may not have been applied.
+#define GCORE_DB_SQL_TYPES_ERROR_TIMEOUT 4
+// A host or backend limit was exceeded (e.g. response size, statements per batch).
+#define GCORE_DB_SQL_TYPES_ERROR_LIMIT 5
+// The database rejected the statement (syntax, constraint, permission, ...).
+#define GCORE_DB_SQL_TYPES_ERROR_QUERY 6
+// Some unexpected internal error has occurred.
+#define GCORE_DB_SQL_TYPES_ERROR_INTERNAL_ERROR 7
+
+typedef gcore_db_sql_types_value_t gcore_db_sql_value_t;
+
+typedef gcore_db_sql_types_query_result_t gcore_db_sql_query_result_t;
+
+typedef gcore_db_sql_types_statement_t gcore_db_sql_statement_t;
+
+typedef gcore_db_sql_types_error_t gcore_db_sql_error_t;
+
+typedef struct gcore_db_sql_own_database_t {
+  int32_t __handle;
+} gcore_db_sql_own_database_t;
+
+typedef struct gcore_db_sql_borrow_database_t {
+  int32_t __handle;
+} gcore_db_sql_borrow_database_t;
+
+typedef struct gcore_db_sql_own_future_query_result_t {
+  int32_t __handle;
+} gcore_db_sql_own_future_query_result_t;
+
+typedef struct gcore_db_sql_borrow_future_query_result_t {
+  int32_t __handle;
+} gcore_db_sql_borrow_future_query_result_t;
+
+typedef struct gcore_db_sql_own_future_batch_result_t {
+  int32_t __handle;
+} gcore_db_sql_own_future_batch_result_t;
+
+typedef struct gcore_db_sql_borrow_future_batch_result_t {
+  int32_t __handle;
+} gcore_db_sql_borrow_future_batch_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_own_database_t ok;
+    gcore_db_sql_error_t err;
+  } val;
+} gcore_db_sql_result_own_database_error_t;
+
+typedef struct {
+  gcore_db_sql_value_t *ptr;
+  size_t len;
+} gcore_db_sql_list_value_t;
+
+typedef struct {
+  gcore_db_sql_statement_t *ptr;
+  size_t len;
+} gcore_db_sql_list_statement_t;
+
+typedef wasi_io_poll_own_pollable_t gcore_db_sql_own_pollable_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_query_result_t ok;
+    gcore_db_sql_error_t err;
+  } val;
+} gcore_db_sql_result_query_result_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_db_sql_result_query_result_error_t val;
+} gcore_db_sql_option_result_query_result_error_t;
+
+typedef struct {
+  gcore_db_sql_query_result_t *ptr;
+  size_t len;
+} gcore_db_sql_list_query_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_list_query_result_t ok;
+    gcore_db_sql_error_t err;
+  } val;
+} gcore_db_sql_result_list_query_result_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_db_sql_result_list_query_result_error_t val;
+} gcore_db_sql_option_result_list_query_result_error_t;
 
 // The set of errors which may be raised by functions in this interface
 typedef struct gcore_fastedge_secret_error_t {
@@ -208,130 +433,6 @@ typedef struct {
   } val;
 } gcore_fastedge_cache_sync_result_u64_error_t;
 
-typedef struct {
-  uint8_t *ptr;
-  size_t len;
-} bindings_list_u8_t;
-
-// A parameter or result value.
-// 
-// Results use the narrowest variant that is lossless:
-// - `int2`, `int4` → `int32`
-// - `int8` → `int64`
-// - `float4`, `float8` → `float64`
-// - `numeric` → `numeric` (decimal text, e.g. "12345678901234567890.123")
-// - `bool` → `boolean`
-// - `json`, `jsonb` → `json` (JSON text)
-// - `bytea` → `bytes`
-// - everything else (text, varchar, uuid, date/time types, arrays, ...) → `text`, in PostgreSQL
-//   text format. `timestamptz` is rendered in UTC. Arrays are PostgreSQL array literals
-//   (e.g. "{1,2,3}"). Use `column.type-oid` to interpret them.
-// - SQL `NULL` → `null`
-// 
-// Parameters are sent to the database as text; PostgreSQL casts them to the target type.
-typedef struct gcore_db_sql_types_value_t {
-  uint8_t tag;
-  union {
-    bool     boolean;
-    int32_t     int32;
-    int64_t     int64;
-    double     float64;
-    bindings_string_t     numeric;
-    bindings_string_t     text;
-    bindings_list_u8_t     bytes;
-    bindings_string_t     json;
-  } val;
-} gcore_db_sql_types_value_t;
-
-#define GCORE_DB_SQL_TYPES_VALUE_NULL 0
-#define GCORE_DB_SQL_TYPES_VALUE_BOOLEAN 1
-#define GCORE_DB_SQL_TYPES_VALUE_INT32 2
-#define GCORE_DB_SQL_TYPES_VALUE_INT64 3
-#define GCORE_DB_SQL_TYPES_VALUE_FLOAT64 4
-#define GCORE_DB_SQL_TYPES_VALUE_NUMERIC 5
-#define GCORE_DB_SQL_TYPES_VALUE_TEXT 6
-#define GCORE_DB_SQL_TYPES_VALUE_BYTES 7
-#define GCORE_DB_SQL_TYPES_VALUE_JSON 8
-
-// A result column.
-typedef struct gcore_db_sql_types_column_t {
-  // Column name or alias.
-  bindings_string_t   name;
-  // PostgreSQL type OID (e.g. 23 = int4, 1184 = timestamptz, 1007 = int4[]).
-  uint32_t   type_oid;
-} gcore_db_sql_types_column_t;
-
-typedef struct {
-  gcore_db_sql_types_column_t *ptr;
-  size_t len;
-} gcore_db_sql_types_list_column_t;
-
-typedef struct {
-  gcore_db_sql_types_value_t *ptr;
-  size_t len;
-} gcore_db_sql_types_list_value_t;
-
-typedef struct {
-  gcore_db_sql_types_list_value_t *ptr;
-  size_t len;
-} gcore_db_sql_types_list_list_value_t;
-
-// The result of one statement.
-typedef struct gcore_db_sql_types_query_result_t {
-  gcore_db_sql_types_list_column_t   columns;
-  // Rows in column order. Empty for statements that return no rows.
-  gcore_db_sql_types_list_list_value_t   rows;
-  // Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE).
-  uint64_t   row_count;
-} gcore_db_sql_types_query_result_t;
-
-// One statement in a batch.
-typedef struct gcore_db_sql_types_statement_t {
-  bindings_string_t   sql;
-  gcore_db_sql_types_list_value_t   params;
-} gcore_db_sql_types_statement_t;
-
-// Error details reported by the database.
-typedef struct gcore_db_sql_types_db_error_t {
-  // SQLSTATE code (e.g. "23505" unique_violation), when the database provides one.
-  bindings_option_string_t   code;
-  bindings_string_t   message;
-  bindings_option_string_t   detail;
-  bindings_option_string_t   hint;
-  // Name of the violated constraint, for constraint errors.
-  bindings_option_string_t   constraint;
-} gcore_db_sql_types_db_error_t;
-
-// The set of errors which may be raised by the SQL interfaces.
-typedef struct gcore_db_sql_types_error_t {
-  uint8_t tag;
-  union {
-    gcore_db_sql_types_db_error_t     config;
-    bindings_string_t     connection;
-    bindings_string_t     limit;
-    gcore_db_sql_types_db_error_t     query;
-  } val;
-} gcore_db_sql_types_error_t;
-
-// The host does not recognize the database binding requested.
-#define GCORE_DB_SQL_TYPES_ERROR_NO_SUCH_DATABASE 0
-// The requesting component does not have access to the specified database
-// (which may or may not exist).
-#define GCORE_DB_SQL_TYPES_ERROR_ACCESS_DENIED 1
-// The binding is misconfigured: bad credentials, unknown database name, invalid connection
-// settings. Not retryable without a configuration change.
-#define GCORE_DB_SQL_TYPES_ERROR_CONFIG 2
-// The database could not be reached (network, DNS, TLS, backend unavailable).
-#define GCORE_DB_SQL_TYPES_ERROR_CONNECTION 3
-// The call exceeded the host's time limit. The statement may or may not have been applied.
-#define GCORE_DB_SQL_TYPES_ERROR_TIMEOUT 4
-// A host or backend limit was exceeded (e.g. response size, statements per batch).
-#define GCORE_DB_SQL_TYPES_ERROR_LIMIT 5
-// The database rejected the statement (syntax, constraint, permission, ...).
-#define GCORE_DB_SQL_TYPES_ERROR_QUERY 6
-// Some unexpected internal error has occurred.
-#define GCORE_DB_SQL_TYPES_ERROR_INTERNAL_ERROR 7
-
 typedef gcore_db_sql_types_value_t gcore_db_sql_sync_value_t;
 
 typedef gcore_db_sql_types_query_result_t gcore_db_sql_sync_query_result_t;
@@ -408,24 +509,6 @@ typedef struct wasi_io_error_own_error_t {
 typedef struct wasi_io_error_borrow_error_t {
   int32_t __handle;
 } wasi_io_error_borrow_error_t;
-
-typedef struct wasi_io_poll_own_pollable_t {
-  int32_t __handle;
-} wasi_io_poll_own_pollable_t;
-
-typedef struct wasi_io_poll_borrow_pollable_t {
-  int32_t __handle;
-} wasi_io_poll_borrow_pollable_t;
-
-typedef struct {
-  wasi_io_poll_borrow_pollable_t *ptr;
-  size_t len;
-} wasi_io_poll_list_borrow_pollable_t;
-
-typedef struct {
-  uint32_t *ptr;
-  size_t len;
-} bindings_list_u32_t;
 
 typedef wasi_io_error_own_error_t wasi_io_streams_own_error_t;
 
@@ -1640,6 +1723,33 @@ typedef wasi_http_types_own_incoming_request_t exports_wasi_http_incoming_handle
 
 typedef wasi_http_types_own_response_outparam_t exports_wasi_http_incoming_handler_own_response_outparam_t;
 
+// Imported Functions from `wasi:io/poll@0.2.3`
+extern bool wasi_io_poll_method_pollable_ready(wasi_io_poll_borrow_pollable_t self);
+extern void wasi_io_poll_method_pollable_block(wasi_io_poll_borrow_pollable_t self);
+extern void wasi_io_poll_poll(wasi_io_poll_list_borrow_pollable_t *in, bindings_list_u32_t *ret);
+
+// Imported Functions from `gcore:db/sql@0.1.0`
+// Open the database bound to `name`.
+// 
+// `error::no-such-database` will be raised if the `name` is not recognized.
+extern bool gcore_db_sql_static_database_open(bindings_string_t *name, gcore_db_sql_own_database_t *ret, gcore_db_sql_error_t *err);
+// Start one statement with positional parameters (`$1`, `$2`, ...). Auto-commits.
+// 
+// `sql` must contain exactly one statement.
+extern gcore_db_sql_own_future_query_result_t gcore_db_sql_method_database_query(gcore_db_sql_borrow_database_t self, bindings_string_t *sql, gcore_db_sql_list_value_t *params);
+// Start several statements in one transaction. Either all commit or none do.
+extern gcore_db_sql_own_future_batch_result_t gcore_db_sql_method_database_batch(gcore_db_sql_borrow_database_t self, gcore_db_sql_list_statement_t *statements);
+// Ready when the result is available.
+extern gcore_db_sql_own_pollable_t gcore_db_sql_method_future_query_result_subscribe(gcore_db_sql_borrow_future_query_result_t self);
+// The result, once ready; `none` before that. Returns the result only once: later calls
+// return `some(err(error::internal-error))`.
+extern bool gcore_db_sql_method_future_query_result_get(gcore_db_sql_borrow_future_query_result_t self, gcore_db_sql_result_query_result_error_t *ret);
+// Ready when the result is available.
+extern gcore_db_sql_own_pollable_t gcore_db_sql_method_future_batch_result_subscribe(gcore_db_sql_borrow_future_batch_result_t self);
+// The result, once ready; `none` before that. Returns the result only once: later calls
+// return `some(err(error::internal-error))`.
+extern bool gcore_db_sql_method_future_batch_result_get(gcore_db_sql_borrow_future_batch_result_t self, gcore_db_sql_result_list_query_result_error_t *ret);
+
 // Imported Functions from `gcore:fastedge/dictionary`
 // Get the value associated with the specified `key`
 // 
@@ -1788,11 +1898,6 @@ extern void wasi_cli_exit_exit(wasi_cli_exit_result_void_void_t *status);
 
 // Imported Functions from `wasi:io/error@0.2.3`
 extern void wasi_io_error_method_error_to_debug_string(wasi_io_error_borrow_error_t self, bindings_string_t *ret);
-
-// Imported Functions from `wasi:io/poll@0.2.3`
-extern bool wasi_io_poll_method_pollable_ready(wasi_io_poll_borrow_pollable_t self);
-extern void wasi_io_poll_method_pollable_block(wasi_io_poll_borrow_pollable_t self);
-extern void wasi_io_poll_poll(wasi_io_poll_list_borrow_pollable_t *in, bindings_list_u32_t *ret);
 
 // Imported Functions from `wasi:io/streams@0.2.3`
 extern bool wasi_io_streams_method_input_stream_read(wasi_io_streams_borrow_input_stream_t self, uint64_t len, bindings_list_u8_t *ret, wasi_io_streams_stream_error_t *err);
@@ -2278,7 +2383,79 @@ void exports_wasi_http_incoming_handler_handle(exports_wasi_http_incoming_handle
 
 // Helper Functions
 
+extern void wasi_io_poll_pollable_drop_own(wasi_io_poll_own_pollable_t handle);
+
+extern void wasi_io_poll_pollable_drop_borrow(wasi_io_poll_borrow_pollable_t handle);
+
+extern wasi_io_poll_borrow_pollable_t wasi_io_poll_borrow_pollable(wasi_io_poll_own_pollable_t handle);
+
+void wasi_io_poll_list_borrow_pollable_free(wasi_io_poll_list_borrow_pollable_t *ptr);
+
+void bindings_list_u32_free(bindings_list_u32_t *ptr);
+
+void bindings_list_u8_free(bindings_list_u8_t *ptr);
+
+void gcore_db_sql_types_value_free(gcore_db_sql_types_value_t *ptr);
+
+void gcore_db_sql_types_column_free(gcore_db_sql_types_column_t *ptr);
+
+void gcore_db_sql_types_list_column_free(gcore_db_sql_types_list_column_t *ptr);
+
+void gcore_db_sql_types_list_value_free(gcore_db_sql_types_list_value_t *ptr);
+
+void gcore_db_sql_types_list_list_value_free(gcore_db_sql_types_list_list_value_t *ptr);
+
+void gcore_db_sql_types_query_result_free(gcore_db_sql_types_query_result_t *ptr);
+
+void gcore_db_sql_types_statement_free(gcore_db_sql_types_statement_t *ptr);
+
 void bindings_option_string_free(bindings_option_string_t *ptr);
+
+void gcore_db_sql_types_db_error_free(gcore_db_sql_types_db_error_t *ptr);
+
+void gcore_db_sql_types_error_free(gcore_db_sql_types_error_t *ptr);
+
+void gcore_db_sql_value_free(gcore_db_sql_value_t *ptr);
+
+void gcore_db_sql_query_result_free(gcore_db_sql_query_result_t *ptr);
+
+void gcore_db_sql_statement_free(gcore_db_sql_statement_t *ptr);
+
+void gcore_db_sql_error_free(gcore_db_sql_error_t *ptr);
+
+extern void gcore_db_sql_database_drop_own(gcore_db_sql_own_database_t handle);
+
+extern void gcore_db_sql_database_drop_borrow(gcore_db_sql_borrow_database_t handle);
+
+extern gcore_db_sql_borrow_database_t gcore_db_sql_borrow_database(gcore_db_sql_own_database_t handle);
+
+extern void gcore_db_sql_future_query_result_drop_own(gcore_db_sql_own_future_query_result_t handle);
+
+extern void gcore_db_sql_future_query_result_drop_borrow(gcore_db_sql_borrow_future_query_result_t handle);
+
+extern gcore_db_sql_borrow_future_query_result_t gcore_db_sql_borrow_future_query_result(gcore_db_sql_own_future_query_result_t handle);
+
+extern void gcore_db_sql_future_batch_result_drop_own(gcore_db_sql_own_future_batch_result_t handle);
+
+extern void gcore_db_sql_future_batch_result_drop_borrow(gcore_db_sql_borrow_future_batch_result_t handle);
+
+extern gcore_db_sql_borrow_future_batch_result_t gcore_db_sql_borrow_future_batch_result(gcore_db_sql_own_future_batch_result_t handle);
+
+void gcore_db_sql_result_own_database_error_free(gcore_db_sql_result_own_database_error_t *ptr);
+
+void gcore_db_sql_list_value_free(gcore_db_sql_list_value_t *ptr);
+
+void gcore_db_sql_list_statement_free(gcore_db_sql_list_statement_t *ptr);
+
+void gcore_db_sql_result_query_result_error_free(gcore_db_sql_result_query_result_error_t *ptr);
+
+void gcore_db_sql_option_result_query_result_error_free(gcore_db_sql_option_result_query_result_error_t *ptr);
+
+void gcore_db_sql_list_query_result_free(gcore_db_sql_list_query_result_t *ptr);
+
+void gcore_db_sql_result_list_query_result_error_free(gcore_db_sql_result_list_query_result_error_t *ptr);
+
+void gcore_db_sql_option_result_list_query_result_error_free(gcore_db_sql_option_result_list_query_result_error_t *ptr);
 
 void gcore_fastedge_secret_error_free(gcore_fastedge_secret_error_t *ptr);
 
@@ -2334,26 +2511,6 @@ void gcore_fastedge_cache_sync_result_s64_error_free(gcore_fastedge_cache_sync_r
 
 void gcore_fastedge_cache_sync_result_u64_error_free(gcore_fastedge_cache_sync_result_u64_error_t *ptr);
 
-void bindings_list_u8_free(bindings_list_u8_t *ptr);
-
-void gcore_db_sql_types_value_free(gcore_db_sql_types_value_t *ptr);
-
-void gcore_db_sql_types_column_free(gcore_db_sql_types_column_t *ptr);
-
-void gcore_db_sql_types_list_column_free(gcore_db_sql_types_list_column_t *ptr);
-
-void gcore_db_sql_types_list_value_free(gcore_db_sql_types_list_value_t *ptr);
-
-void gcore_db_sql_types_list_list_value_free(gcore_db_sql_types_list_list_value_t *ptr);
-
-void gcore_db_sql_types_query_result_free(gcore_db_sql_types_query_result_t *ptr);
-
-void gcore_db_sql_types_statement_free(gcore_db_sql_types_statement_t *ptr);
-
-void gcore_db_sql_types_db_error_free(gcore_db_sql_types_db_error_t *ptr);
-
-void gcore_db_sql_types_error_free(gcore_db_sql_types_error_t *ptr);
-
 void gcore_db_sql_sync_value_free(gcore_db_sql_sync_value_t *ptr);
 
 void gcore_db_sql_sync_query_result_free(gcore_db_sql_sync_query_result_t *ptr);
@@ -2391,16 +2548,6 @@ extern void wasi_io_error_error_drop_own(wasi_io_error_own_error_t handle);
 extern void wasi_io_error_error_drop_borrow(wasi_io_error_borrow_error_t handle);
 
 extern wasi_io_error_borrow_error_t wasi_io_error_borrow_error(wasi_io_error_own_error_t handle);
-
-extern void wasi_io_poll_pollable_drop_own(wasi_io_poll_own_pollable_t handle);
-
-extern void wasi_io_poll_pollable_drop_borrow(wasi_io_poll_borrow_pollable_t handle);
-
-extern wasi_io_poll_borrow_pollable_t wasi_io_poll_borrow_pollable(wasi_io_poll_own_pollable_t handle);
-
-void wasi_io_poll_list_borrow_pollable_free(wasi_io_poll_list_borrow_pollable_t *ptr);
-
-void bindings_list_u32_free(bindings_list_u32_t *ptr);
 
 void wasi_io_streams_stream_error_free(wasi_io_streams_stream_error_t *ptr);
 

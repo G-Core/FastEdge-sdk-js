@@ -3,6 +3,40 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Imported Functions from `wasi:io/poll@0.2.3`
+
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[method]pollable.ready")))
+extern int32_t __wasm_import_wasi_io_poll_method_pollable_ready(int32_t);
+
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[method]pollable.block")))
+extern void __wasm_import_wasi_io_poll_method_pollable_block(int32_t);
+
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("poll")))
+extern void __wasm_import_wasi_io_poll_poll(uint8_t *, size_t, uint8_t *);
+
+// Imported Functions from `gcore:db/sql@0.1.0`
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[static]database.open")))
+extern void __wasm_import_gcore_db_sql_static_database_open(uint8_t *, size_t, uint8_t *);
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[method]database.query")))
+extern int32_t __wasm_import_gcore_db_sql_method_database_query(int32_t, uint8_t *, size_t, uint8_t *, size_t);
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[method]database.batch")))
+extern int32_t __wasm_import_gcore_db_sql_method_database_batch(int32_t, uint8_t *, size_t);
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[method]future-query-result.subscribe")))
+extern int32_t __wasm_import_gcore_db_sql_method_future_query_result_subscribe(int32_t);
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[method]future-query-result.get")))
+extern void __wasm_import_gcore_db_sql_method_future_query_result_get(int32_t, uint8_t *);
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[method]future-batch-result.subscribe")))
+extern int32_t __wasm_import_gcore_db_sql_method_future_batch_result_subscribe(int32_t);
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[method]future-batch-result.get")))
+extern void __wasm_import_gcore_db_sql_method_future_batch_result_get(int32_t, uint8_t *);
+
 // Imported Functions from `gcore:fastedge/dictionary`
 
 __attribute__((__import_module__("gcore:fastedge/dictionary"), __import_name__("get")))
@@ -98,17 +132,6 @@ extern void __wasm_import_wasi_cli_exit_exit(int32_t);
 
 __attribute__((__import_module__("wasi:io/error@0.2.3"), __import_name__("[method]error.to-debug-string")))
 extern void __wasm_import_wasi_io_error_method_error_to_debug_string(int32_t, uint8_t *);
-
-// Imported Functions from `wasi:io/poll@0.2.3`
-
-__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[method]pollable.ready")))
-extern int32_t __wasm_import_wasi_io_poll_method_pollable_ready(int32_t);
-
-__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[method]pollable.block")))
-extern void __wasm_import_wasi_io_poll_method_pollable_block(int32_t);
-
-__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("poll")))
-extern void __wasm_import_wasi_io_poll_poll(uint8_t *, size_t, uint8_t *);
 
 // Imported Functions from `wasi:io/streams@0.2.3`
 
@@ -671,9 +694,292 @@ void *cabi_realloc(void *ptr, size_t old_size, size_t align, size_t new_size) {
 
 // Helper Functions
 
+__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[resource-drop]pollable")))
+extern void __wasm_import_wasi_io_poll_pollable_drop(int32_t handle);
+
+void wasi_io_poll_pollable_drop_own(wasi_io_poll_own_pollable_t handle) {
+  __wasm_import_wasi_io_poll_pollable_drop(handle.__handle);
+}
+
+void wasi_io_poll_pollable_drop_borrow(wasi_io_poll_borrow_pollable_t handle) {
+  __wasm_import_wasi_io_poll_pollable_drop(handle.__handle);
+}
+
+wasi_io_poll_borrow_pollable_t wasi_io_poll_borrow_pollable(wasi_io_poll_own_pollable_t arg) {
+  return (wasi_io_poll_borrow_pollable_t) { arg.__handle };
+}
+
+void wasi_io_poll_list_borrow_pollable_free(wasi_io_poll_list_borrow_pollable_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    wasi_io_poll_borrow_pollable_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+    }
+    free(list_ptr);
+  }
+}
+
+void bindings_list_u32_free(bindings_list_u32_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    uint32_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+    }
+    free(list_ptr);
+  }
+}
+
+void bindings_list_u8_free(bindings_list_u8_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    uint8_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_db_sql_types_value_free(gcore_db_sql_types_value_t *ptr) {
+  switch ((int32_t) ptr->tag) {
+    case 1: {
+      break;
+    }
+    case 2: {
+      break;
+    }
+    case 3: {
+      break;
+    }
+    case 4: {
+      break;
+    }
+    case 5: {
+      bindings_string_free(&ptr->val.numeric);
+      break;
+    }
+    case 6: {
+      bindings_string_free(&ptr->val.text);
+      break;
+    }
+    case 7: {
+      bindings_list_u8_free(&ptr->val.bytes);
+      break;
+    }
+    case 8: {
+      bindings_string_free(&ptr->val.json);
+      break;
+    }
+  }
+}
+
+void gcore_db_sql_types_column_free(gcore_db_sql_types_column_t *ptr) {
+  bindings_string_free(&ptr->name);
+}
+
+void gcore_db_sql_types_list_column_free(gcore_db_sql_types_list_column_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    gcore_db_sql_types_column_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      gcore_db_sql_types_column_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_db_sql_types_list_value_free(gcore_db_sql_types_list_value_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    gcore_db_sql_types_value_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      gcore_db_sql_types_value_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_db_sql_types_list_list_value_free(gcore_db_sql_types_list_list_value_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    gcore_db_sql_types_list_value_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      gcore_db_sql_types_list_value_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_db_sql_types_query_result_free(gcore_db_sql_types_query_result_t *ptr) {
+  gcore_db_sql_types_list_column_free(&ptr->columns);
+  gcore_db_sql_types_list_list_value_free(&ptr->rows);
+}
+
+void gcore_db_sql_types_statement_free(gcore_db_sql_types_statement_t *ptr) {
+  bindings_string_free(&ptr->sql);
+  gcore_db_sql_types_list_value_free(&ptr->params);
+}
+
 void bindings_option_string_free(bindings_option_string_t *ptr) {
   if (ptr->is_some) {
     bindings_string_free(&ptr->val);
+  }
+}
+
+void gcore_db_sql_types_db_error_free(gcore_db_sql_types_db_error_t *ptr) {
+  bindings_option_string_free(&ptr->code);
+  bindings_string_free(&ptr->message);
+  bindings_option_string_free(&ptr->detail);
+  bindings_option_string_free(&ptr->hint);
+  bindings_option_string_free(&ptr->constraint);
+}
+
+void gcore_db_sql_types_error_free(gcore_db_sql_types_error_t *ptr) {
+  switch ((int32_t) ptr->tag) {
+    case 2: {
+      gcore_db_sql_types_db_error_free(&ptr->val.config);
+      break;
+    }
+    case 3: {
+      bindings_string_free(&ptr->val.connection);
+      break;
+    }
+    case 5: {
+      bindings_string_free(&ptr->val.limit);
+      break;
+    }
+    case 6: {
+      gcore_db_sql_types_db_error_free(&ptr->val.query);
+      break;
+    }
+  }
+}
+
+void gcore_db_sql_value_free(gcore_db_sql_value_t *ptr) {
+  gcore_db_sql_types_value_free(ptr);
+}
+
+void gcore_db_sql_query_result_free(gcore_db_sql_query_result_t *ptr) {
+  gcore_db_sql_types_query_result_free(ptr);
+}
+
+void gcore_db_sql_statement_free(gcore_db_sql_statement_t *ptr) {
+  gcore_db_sql_types_statement_free(ptr);
+}
+
+void gcore_db_sql_error_free(gcore_db_sql_error_t *ptr) {
+  gcore_db_sql_types_error_free(ptr);
+}
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[resource-drop]database")))
+extern void __wasm_import_gcore_db_sql_database_drop(int32_t handle);
+
+void gcore_db_sql_database_drop_own(gcore_db_sql_own_database_t handle) {
+  __wasm_import_gcore_db_sql_database_drop(handle.__handle);
+}
+
+void gcore_db_sql_database_drop_borrow(gcore_db_sql_borrow_database_t handle) {
+  __wasm_import_gcore_db_sql_database_drop(handle.__handle);
+}
+
+gcore_db_sql_borrow_database_t gcore_db_sql_borrow_database(gcore_db_sql_own_database_t arg) {
+  return (gcore_db_sql_borrow_database_t) { arg.__handle };
+}
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[resource-drop]future-query-result")))
+extern void __wasm_import_gcore_db_sql_future_query_result_drop(int32_t handle);
+
+void gcore_db_sql_future_query_result_drop_own(gcore_db_sql_own_future_query_result_t handle) {
+  __wasm_import_gcore_db_sql_future_query_result_drop(handle.__handle);
+}
+
+void gcore_db_sql_future_query_result_drop_borrow(gcore_db_sql_borrow_future_query_result_t handle) {
+  __wasm_import_gcore_db_sql_future_query_result_drop(handle.__handle);
+}
+
+gcore_db_sql_borrow_future_query_result_t gcore_db_sql_borrow_future_query_result(gcore_db_sql_own_future_query_result_t arg) {
+  return (gcore_db_sql_borrow_future_query_result_t) { arg.__handle };
+}
+
+__attribute__((__import_module__("gcore:db/sql@0.1.0"), __import_name__("[resource-drop]future-batch-result")))
+extern void __wasm_import_gcore_db_sql_future_batch_result_drop(int32_t handle);
+
+void gcore_db_sql_future_batch_result_drop_own(gcore_db_sql_own_future_batch_result_t handle) {
+  __wasm_import_gcore_db_sql_future_batch_result_drop(handle.__handle);
+}
+
+void gcore_db_sql_future_batch_result_drop_borrow(gcore_db_sql_borrow_future_batch_result_t handle) {
+  __wasm_import_gcore_db_sql_future_batch_result_drop(handle.__handle);
+}
+
+gcore_db_sql_borrow_future_batch_result_t gcore_db_sql_borrow_future_batch_result(gcore_db_sql_own_future_batch_result_t arg) {
+  return (gcore_db_sql_borrow_future_batch_result_t) { arg.__handle };
+}
+
+void gcore_db_sql_result_own_database_error_free(gcore_db_sql_result_own_database_error_t *ptr) {
+  if (!ptr->is_err) {
+  } else {
+    gcore_db_sql_error_free(&ptr->val.err);
+  }
+}
+
+void gcore_db_sql_list_value_free(gcore_db_sql_list_value_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    gcore_db_sql_value_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      gcore_db_sql_value_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_db_sql_list_statement_free(gcore_db_sql_list_statement_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    gcore_db_sql_statement_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      gcore_db_sql_statement_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_db_sql_result_query_result_error_free(gcore_db_sql_result_query_result_error_t *ptr) {
+  if (!ptr->is_err) {
+    gcore_db_sql_query_result_free(&ptr->val.ok);
+  } else {
+    gcore_db_sql_error_free(&ptr->val.err);
+  }
+}
+
+void gcore_db_sql_option_result_query_result_error_free(gcore_db_sql_option_result_query_result_error_t *ptr) {
+  if (ptr->is_some) {
+    gcore_db_sql_result_query_result_error_free(&ptr->val);
+  }
+}
+
+void gcore_db_sql_list_query_result_free(gcore_db_sql_list_query_result_t *ptr) {
+  size_t list_len = ptr->len;
+  if (list_len > 0) {
+    gcore_db_sql_query_result_t *list_ptr = ptr->ptr;
+    for (size_t i = 0; i < list_len; i++) {
+      gcore_db_sql_query_result_free(&list_ptr[i]);
+    }
+    free(list_ptr);
+  }
+}
+
+void gcore_db_sql_result_list_query_result_error_free(gcore_db_sql_result_list_query_result_error_t *ptr) {
+  if (!ptr->is_err) {
+    gcore_db_sql_list_query_result_free(&ptr->val.ok);
+  } else {
+    gcore_db_sql_error_free(&ptr->val.err);
+  }
+}
+
+void gcore_db_sql_option_result_list_query_result_error_free(gcore_db_sql_option_result_list_query_result_error_t *ptr) {
+  if (ptr->is_some) {
+    gcore_db_sql_result_list_query_result_error_free(&ptr->val);
   }
 }
 
@@ -688,7 +994,6 @@ void gcore_fastedge_secret_error_free(gcore_fastedge_secret_error_t *ptr) {
 
 void gcore_fastedge_secret_result_option_string_error_free(gcore_fastedge_secret_result_option_string_error_t *ptr) {
   if (!ptr->is_err) {
-    bindings_option_string_free(&ptr->val.ok);
   } else {
     gcore_fastedge_secret_error_free(&ptr->val.err);
   }
@@ -872,121 +1177,6 @@ void gcore_fastedge_cache_sync_result_u64_error_free(gcore_fastedge_cache_sync_r
   }
 }
 
-void bindings_list_u8_free(bindings_list_u8_t *ptr) {
-  size_t list_len = ptr->len;
-  if (list_len > 0) {
-    uint8_t *list_ptr = ptr->ptr;
-    for (size_t i = 0; i < list_len; i++) {
-    }
-    free(list_ptr);
-  }
-}
-
-void gcore_db_sql_types_value_free(gcore_db_sql_types_value_t *ptr) {
-  switch ((int32_t) ptr->tag) {
-    case 1: {
-      break;
-    }
-    case 2: {
-      break;
-    }
-    case 3: {
-      break;
-    }
-    case 4: {
-      break;
-    }
-    case 5: {
-      bindings_string_free(&ptr->val.numeric);
-      break;
-    }
-    case 6: {
-      bindings_string_free(&ptr->val.text);
-      break;
-    }
-    case 7: {
-      bindings_list_u8_free(&ptr->val.bytes);
-      break;
-    }
-    case 8: {
-      bindings_string_free(&ptr->val.json);
-      break;
-    }
-  }
-}
-
-void gcore_db_sql_types_column_free(gcore_db_sql_types_column_t *ptr) {
-  bindings_string_free(&ptr->name);
-}
-
-void gcore_db_sql_types_list_column_free(gcore_db_sql_types_list_column_t *ptr) {
-  size_t list_len = ptr->len;
-  if (list_len > 0) {
-    gcore_db_sql_types_column_t *list_ptr = ptr->ptr;
-    for (size_t i = 0; i < list_len; i++) {
-      gcore_db_sql_types_column_free(&list_ptr[i]);
-    }
-    free(list_ptr);
-  }
-}
-
-void gcore_db_sql_types_list_value_free(gcore_db_sql_types_list_value_t *ptr) {
-  size_t list_len = ptr->len;
-  if (list_len > 0) {
-    gcore_db_sql_types_value_t *list_ptr = ptr->ptr;
-    for (size_t i = 0; i < list_len; i++) {
-      gcore_db_sql_types_value_free(&list_ptr[i]);
-    }
-    free(list_ptr);
-  }
-}
-
-void gcore_db_sql_types_list_list_value_free(gcore_db_sql_types_list_list_value_t *ptr) {
-  size_t list_len = ptr->len;
-  if (list_len > 0) {
-    gcore_db_sql_types_list_value_t *list_ptr = ptr->ptr;
-    for (size_t i = 0; i < list_len; i++) {
-      gcore_db_sql_types_list_value_free(&list_ptr[i]);
-    }
-    free(list_ptr);
-  }
-}
-
-void gcore_db_sql_types_query_result_free(gcore_db_sql_types_query_result_t *ptr) {
-  gcore_db_sql_types_list_column_free(&ptr->columns);
-  gcore_db_sql_types_list_list_value_free(&ptr->rows);
-}
-
-void gcore_db_sql_types_statement_free(gcore_db_sql_types_statement_t *ptr) {
-  bindings_string_free(&ptr->sql);
-  gcore_db_sql_types_list_value_free(&ptr->params);
-}
-
-void gcore_db_sql_types_db_error_free(gcore_db_sql_types_db_error_t *ptr) {
-  bindings_string_free(&ptr->message);
-}
-
-void gcore_db_sql_types_error_free(gcore_db_sql_types_error_t *ptr) {
-  switch ((int32_t) ptr->tag) {
-    case 2: {
-      gcore_db_sql_types_db_error_free(&ptr->val.config);
-      break;
-    }
-    case 3: {
-      bindings_string_free(&ptr->val.connection);
-      break;
-    }
-    case 5: {
-      bindings_string_free(&ptr->val.limit);
-      break;
-    }
-    case 6: {
-      gcore_db_sql_types_db_error_free(&ptr->val.query);
-      break;
-    }
-  }
-}
-
 void gcore_db_sql_sync_value_free(gcore_db_sql_sync_value_t *ptr) {
   gcore_db_sql_types_value_free(ptr);
 }
@@ -1108,41 +1298,6 @@ void wasi_io_error_error_drop_borrow(wasi_io_error_borrow_error_t handle) {
 
 wasi_io_error_borrow_error_t wasi_io_error_borrow_error(wasi_io_error_own_error_t arg) {
   return (wasi_io_error_borrow_error_t) { arg.__handle };
-}
-
-__attribute__((__import_module__("wasi:io/poll@0.2.3"), __import_name__("[resource-drop]pollable")))
-extern void __wasm_import_wasi_io_poll_pollable_drop(int32_t handle);
-
-void wasi_io_poll_pollable_drop_own(wasi_io_poll_own_pollable_t handle) {
-  __wasm_import_wasi_io_poll_pollable_drop(handle.__handle);
-}
-
-void wasi_io_poll_pollable_drop_borrow(wasi_io_poll_borrow_pollable_t handle) {
-  __wasm_import_wasi_io_poll_pollable_drop(handle.__handle);
-}
-
-wasi_io_poll_borrow_pollable_t wasi_io_poll_borrow_pollable(wasi_io_poll_own_pollable_t arg) {
-  return (wasi_io_poll_borrow_pollable_t) { arg.__handle };
-}
-
-void wasi_io_poll_list_borrow_pollable_free(wasi_io_poll_list_borrow_pollable_t *ptr) {
-  size_t list_len = ptr->len;
-  if (list_len > 0) {
-    wasi_io_poll_borrow_pollable_t *list_ptr = ptr->ptr;
-    for (size_t i = 0; i < list_len; i++) {
-    }
-    free(list_ptr);
-  }
-}
-
-void bindings_list_u32_free(bindings_list_u32_t *ptr) {
-  size_t list_len = ptr->len;
-  if (list_len > 0) {
-    uint32_t *list_ptr = ptr->ptr;
-    for (size_t i = 0; i < list_len; i++) {
-    }
-    free(list_ptr);
-  }
 }
 
 void wasi_io_streams_stream_error_free(wasi_io_streams_stream_error_t *ptr) {
@@ -2180,6 +2335,567 @@ void bindings_string_free(bindings_string_t *ret) {
 }
 
 // Component Adapters
+
+bool wasi_io_poll_method_pollable_ready(wasi_io_poll_borrow_pollable_t self) {
+  int32_t ret = __wasm_import_wasi_io_poll_method_pollable_ready((self).__handle);
+  return ret;
+}
+
+void wasi_io_poll_method_pollable_block(wasi_io_poll_borrow_pollable_t self) {
+  __wasm_import_wasi_io_poll_method_pollable_block((self).__handle);
+}
+
+void wasi_io_poll_poll(wasi_io_poll_list_borrow_pollable_t *in, bindings_list_u32_t *ret) {
+  __attribute__((__aligned__(sizeof(void*))))
+  uint8_t ret_area[(2*sizeof(void*))];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_wasi_io_poll_poll((uint8_t *) (*in).ptr, (*in).len, ptr);
+  *ret = (bindings_list_u32_t) { (uint32_t*)(*((uint8_t **) (ptr + 0))), (*((size_t*) (ptr + sizeof(void*)))) };
+}
+
+bool gcore_db_sql_static_database_open(bindings_string_t *name, gcore_db_sql_own_database_t *ret, gcore_db_sql_error_t *err) {
+  __attribute__((__aligned__(sizeof(void*))))
+  uint8_t ret_area[(16*sizeof(void*))];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_db_sql_static_database_open((uint8_t *) (*name).ptr, (*name).len, ptr);
+  gcore_db_sql_result_own_database_error_t result;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      result.is_err = false;
+      result.val.ok = (gcore_db_sql_own_database_t) { *((int32_t*) (ptr + sizeof(void*))) };
+      break;
+    }
+    case 1: {
+      result.is_err = true;
+      gcore_db_sql_types_error_t variant;
+      variant.tag = (int32_t) *((uint8_t*) (ptr + sizeof(void*)));
+      switch ((int32_t) variant.tag) {
+        case 0: {
+          break;
+        }
+        case 1: {
+          break;
+        }
+        case 2: {
+          bindings_option_string_t option;
+          switch ((int32_t) *((uint8_t*) (ptr + (2*sizeof(void*))))) {
+            case 0: {
+              option.is_some = false;
+              break;
+            }
+            case 1: {
+              option.is_some = true;
+              option.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (3*sizeof(void*))))), (*((size_t*) (ptr + (4*sizeof(void*))))) };
+              break;
+            }
+          }
+          bindings_option_string_t option0;
+          switch ((int32_t) *((uint8_t*) (ptr + (7*sizeof(void*))))) {
+            case 0: {
+              option0.is_some = false;
+              break;
+            }
+            case 1: {
+              option0.is_some = true;
+              option0.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (8*sizeof(void*))))), (*((size_t*) (ptr + (9*sizeof(void*))))) };
+              break;
+            }
+          }
+          bindings_option_string_t option1;
+          switch ((int32_t) *((uint8_t*) (ptr + (10*sizeof(void*))))) {
+            case 0: {
+              option1.is_some = false;
+              break;
+            }
+            case 1: {
+              option1.is_some = true;
+              option1.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (11*sizeof(void*))))), (*((size_t*) (ptr + (12*sizeof(void*))))) };
+              break;
+            }
+          }
+          bindings_option_string_t option2;
+          switch ((int32_t) *((uint8_t*) (ptr + (13*sizeof(void*))))) {
+            case 0: {
+              option2.is_some = false;
+              break;
+            }
+            case 1: {
+              option2.is_some = true;
+              option2.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (14*sizeof(void*))))), (*((size_t*) (ptr + (15*sizeof(void*))))) };
+              break;
+            }
+          }
+          variant.val.config = (gcore_db_sql_types_db_error_t) {
+            (bindings_option_string_t) option,
+            (bindings_string_t) (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (5*sizeof(void*))))), (*((size_t*) (ptr + (6*sizeof(void*))))) },
+            (bindings_option_string_t) option0,
+            (bindings_option_string_t) option1,
+            (bindings_option_string_t) option2,
+          };
+          break;
+        }
+        case 3: {
+          variant.val.connection = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (2*sizeof(void*))))), (*((size_t*) (ptr + (3*sizeof(void*))))) };
+          break;
+        }
+        case 4: {
+          break;
+        }
+        case 5: {
+          variant.val.limit = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (2*sizeof(void*))))), (*((size_t*) (ptr + (3*sizeof(void*))))) };
+          break;
+        }
+        case 6: {
+          bindings_option_string_t option3;
+          switch ((int32_t) *((uint8_t*) (ptr + (2*sizeof(void*))))) {
+            case 0: {
+              option3.is_some = false;
+              break;
+            }
+            case 1: {
+              option3.is_some = true;
+              option3.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (3*sizeof(void*))))), (*((size_t*) (ptr + (4*sizeof(void*))))) };
+              break;
+            }
+          }
+          bindings_option_string_t option4;
+          switch ((int32_t) *((uint8_t*) (ptr + (7*sizeof(void*))))) {
+            case 0: {
+              option4.is_some = false;
+              break;
+            }
+            case 1: {
+              option4.is_some = true;
+              option4.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (8*sizeof(void*))))), (*((size_t*) (ptr + (9*sizeof(void*))))) };
+              break;
+            }
+          }
+          bindings_option_string_t option5;
+          switch ((int32_t) *((uint8_t*) (ptr + (10*sizeof(void*))))) {
+            case 0: {
+              option5.is_some = false;
+              break;
+            }
+            case 1: {
+              option5.is_some = true;
+              option5.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (11*sizeof(void*))))), (*((size_t*) (ptr + (12*sizeof(void*))))) };
+              break;
+            }
+          }
+          bindings_option_string_t option6;
+          switch ((int32_t) *((uint8_t*) (ptr + (13*sizeof(void*))))) {
+            case 0: {
+              option6.is_some = false;
+              break;
+            }
+            case 1: {
+              option6.is_some = true;
+              option6.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (14*sizeof(void*))))), (*((size_t*) (ptr + (15*sizeof(void*))))) };
+              break;
+            }
+          }
+          variant.val.query = (gcore_db_sql_types_db_error_t) {
+            (bindings_option_string_t) option3,
+            (bindings_string_t) (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (5*sizeof(void*))))), (*((size_t*) (ptr + (6*sizeof(void*))))) },
+            (bindings_option_string_t) option4,
+            (bindings_option_string_t) option5,
+            (bindings_option_string_t) option6,
+          };
+          break;
+        }
+        case 7: {
+          break;
+        }
+      }
+
+      result.val.err = variant;
+      break;
+    }
+  }
+  if (!result.is_err) {
+    *ret = result.val.ok;
+    return 1;
+  } else {
+    *err = result.val.err;
+    return 0;
+  }
+}
+
+gcore_db_sql_own_future_query_result_t gcore_db_sql_method_database_query(gcore_db_sql_borrow_database_t self, bindings_string_t *sql, gcore_db_sql_list_value_t *params) {
+  int32_t ret = __wasm_import_gcore_db_sql_method_database_query((self).__handle, (uint8_t *) (*sql).ptr, (*sql).len, (uint8_t *) (*params).ptr, (*params).len);
+  return (gcore_db_sql_own_future_query_result_t) { ret };
+}
+
+gcore_db_sql_own_future_batch_result_t gcore_db_sql_method_database_batch(gcore_db_sql_borrow_database_t self, gcore_db_sql_list_statement_t *statements) {
+  int32_t ret = __wasm_import_gcore_db_sql_method_database_batch((self).__handle, (uint8_t *) (*statements).ptr, (*statements).len);
+  return (gcore_db_sql_own_future_batch_result_t) { ret };
+}
+
+gcore_db_sql_own_pollable_t gcore_db_sql_method_future_query_result_subscribe(gcore_db_sql_borrow_future_query_result_t self) {
+  int32_t ret = __wasm_import_gcore_db_sql_method_future_query_result_subscribe((self).__handle);
+  return (gcore_db_sql_own_pollable_t) { ret };
+}
+
+bool gcore_db_sql_method_future_query_result_get(gcore_db_sql_borrow_future_query_result_t self, gcore_db_sql_result_query_result_error_t *ret) {
+  __attribute__((__aligned__(8)))
+  uint8_t ret_area[(24+14*sizeof(void*))];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_db_sql_method_future_query_result_get((self).__handle, ptr);
+  gcore_db_sql_option_result_query_result_error_t option8;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      option8.is_some = false;
+      break;
+    }
+    case 1: {
+      option8.is_some = true;
+      gcore_db_sql_result_query_result_error_t result;
+      switch ((int32_t) *((uint8_t*) (ptr + 8))) {
+        case 0: {
+          result.is_err = false;
+          result.val.ok = (gcore_db_sql_types_query_result_t) {
+            (gcore_db_sql_types_list_column_t) (gcore_db_sql_types_list_column_t) { (gcore_db_sql_types_column_t*)(*((uint8_t **) (ptr + 16))), (*((size_t*) (ptr + (16+1*sizeof(void*))))) },
+            (gcore_db_sql_types_list_list_value_t) (gcore_db_sql_types_list_list_value_t) { (gcore_db_sql_types_list_value_t*)(*((uint8_t **) (ptr + (16+2*sizeof(void*))))), (*((size_t*) (ptr + (16+3*sizeof(void*))))) },
+            (uint64_t) (uint64_t) (*((int64_t*) (ptr + (16+4*sizeof(void*))))),
+          };
+          break;
+        }
+        case 1: {
+          result.is_err = true;
+          gcore_db_sql_types_error_t variant7;
+          variant7.tag = (int32_t) *((uint8_t*) (ptr + 16));
+          switch ((int32_t) variant7.tag) {
+            case 0: {
+              break;
+            }
+            case 1: {
+              break;
+            }
+            case 2: {
+              bindings_option_string_t option;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+1*sizeof(void*))))) {
+                case 0: {
+                  option.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option.is_some = true;
+                  option.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+2*sizeof(void*))))), (*((size_t*) (ptr + (16+3*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option0;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+6*sizeof(void*))))) {
+                case 0: {
+                  option0.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option0.is_some = true;
+                  option0.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+7*sizeof(void*))))), (*((size_t*) (ptr + (16+8*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option1;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+9*sizeof(void*))))) {
+                case 0: {
+                  option1.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option1.is_some = true;
+                  option1.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+10*sizeof(void*))))), (*((size_t*) (ptr + (16+11*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option2;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+12*sizeof(void*))))) {
+                case 0: {
+                  option2.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option2.is_some = true;
+                  option2.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+13*sizeof(void*))))), (*((size_t*) (ptr + (16+14*sizeof(void*))))) };
+                  break;
+                }
+              }
+              variant7.val.config = (gcore_db_sql_types_db_error_t) {
+                (bindings_option_string_t) option,
+                (bindings_string_t) (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+4*sizeof(void*))))), (*((size_t*) (ptr + (16+5*sizeof(void*))))) },
+                (bindings_option_string_t) option0,
+                (bindings_option_string_t) option1,
+                (bindings_option_string_t) option2,
+              };
+              break;
+            }
+            case 3: {
+              variant7.val.connection = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+1*sizeof(void*))))), (*((size_t*) (ptr + (16+2*sizeof(void*))))) };
+              break;
+            }
+            case 4: {
+              break;
+            }
+            case 5: {
+              variant7.val.limit = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+1*sizeof(void*))))), (*((size_t*) (ptr + (16+2*sizeof(void*))))) };
+              break;
+            }
+            case 6: {
+              bindings_option_string_t option3;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+1*sizeof(void*))))) {
+                case 0: {
+                  option3.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option3.is_some = true;
+                  option3.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+2*sizeof(void*))))), (*((size_t*) (ptr + (16+3*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option4;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+6*sizeof(void*))))) {
+                case 0: {
+                  option4.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option4.is_some = true;
+                  option4.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+7*sizeof(void*))))), (*((size_t*) (ptr + (16+8*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option5;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+9*sizeof(void*))))) {
+                case 0: {
+                  option5.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option5.is_some = true;
+                  option5.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+10*sizeof(void*))))), (*((size_t*) (ptr + (16+11*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option6;
+              switch ((int32_t) *((uint8_t*) (ptr + (16+12*sizeof(void*))))) {
+                case 0: {
+                  option6.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option6.is_some = true;
+                  option6.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+13*sizeof(void*))))), (*((size_t*) (ptr + (16+14*sizeof(void*))))) };
+                  break;
+                }
+              }
+              variant7.val.query = (gcore_db_sql_types_db_error_t) {
+                (bindings_option_string_t) option3,
+                (bindings_string_t) (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (16+4*sizeof(void*))))), (*((size_t*) (ptr + (16+5*sizeof(void*))))) },
+                (bindings_option_string_t) option4,
+                (bindings_option_string_t) option5,
+                (bindings_option_string_t) option6,
+              };
+              break;
+            }
+            case 7: {
+              break;
+            }
+          }
+
+          result.val.err = variant7;
+          break;
+        }
+      }
+
+      option8.val = result;
+      break;
+    }
+  }
+  *ret = option8.val;
+  return option8.is_some;
+}
+
+gcore_db_sql_own_pollable_t gcore_db_sql_method_future_batch_result_subscribe(gcore_db_sql_borrow_future_batch_result_t self) {
+  int32_t ret = __wasm_import_gcore_db_sql_method_future_batch_result_subscribe((self).__handle);
+  return (gcore_db_sql_own_pollable_t) { ret };
+}
+
+bool gcore_db_sql_method_future_batch_result_get(gcore_db_sql_borrow_future_batch_result_t self, gcore_db_sql_result_list_query_result_error_t *ret) {
+  __attribute__((__aligned__(sizeof(void*))))
+  uint8_t ret_area[(17*sizeof(void*))];
+  uint8_t *ptr = (uint8_t *) &ret_area;
+  __wasm_import_gcore_db_sql_method_future_batch_result_get((self).__handle, ptr);
+  gcore_db_sql_option_result_list_query_result_error_t option8;
+  switch ((int32_t) *((uint8_t*) (ptr + 0))) {
+    case 0: {
+      option8.is_some = false;
+      break;
+    }
+    case 1: {
+      option8.is_some = true;
+      gcore_db_sql_result_list_query_result_error_t result;
+      switch ((int32_t) *((uint8_t*) (ptr + sizeof(void*)))) {
+        case 0: {
+          result.is_err = false;
+          result.val.ok = (gcore_db_sql_list_query_result_t) { (gcore_db_sql_query_result_t*)(*((uint8_t **) (ptr + (2*sizeof(void*))))), (*((size_t*) (ptr + (3*sizeof(void*))))) };
+          break;
+        }
+        case 1: {
+          result.is_err = true;
+          gcore_db_sql_types_error_t variant7;
+          variant7.tag = (int32_t) *((uint8_t*) (ptr + (2*sizeof(void*))));
+          switch ((int32_t) variant7.tag) {
+            case 0: {
+              break;
+            }
+            case 1: {
+              break;
+            }
+            case 2: {
+              bindings_option_string_t option;
+              switch ((int32_t) *((uint8_t*) (ptr + (3*sizeof(void*))))) {
+                case 0: {
+                  option.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option.is_some = true;
+                  option.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (4*sizeof(void*))))), (*((size_t*) (ptr + (5*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option0;
+              switch ((int32_t) *((uint8_t*) (ptr + (8*sizeof(void*))))) {
+                case 0: {
+                  option0.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option0.is_some = true;
+                  option0.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (9*sizeof(void*))))), (*((size_t*) (ptr + (10*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option1;
+              switch ((int32_t) *((uint8_t*) (ptr + (11*sizeof(void*))))) {
+                case 0: {
+                  option1.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option1.is_some = true;
+                  option1.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (12*sizeof(void*))))), (*((size_t*) (ptr + (13*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option2;
+              switch ((int32_t) *((uint8_t*) (ptr + (14*sizeof(void*))))) {
+                case 0: {
+                  option2.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option2.is_some = true;
+                  option2.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (15*sizeof(void*))))), (*((size_t*) (ptr + (16*sizeof(void*))))) };
+                  break;
+                }
+              }
+              variant7.val.config = (gcore_db_sql_types_db_error_t) {
+                (bindings_option_string_t) option,
+                (bindings_string_t) (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (6*sizeof(void*))))), (*((size_t*) (ptr + (7*sizeof(void*))))) },
+                (bindings_option_string_t) option0,
+                (bindings_option_string_t) option1,
+                (bindings_option_string_t) option2,
+              };
+              break;
+            }
+            case 3: {
+              variant7.val.connection = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (3*sizeof(void*))))), (*((size_t*) (ptr + (4*sizeof(void*))))) };
+              break;
+            }
+            case 4: {
+              break;
+            }
+            case 5: {
+              variant7.val.limit = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (3*sizeof(void*))))), (*((size_t*) (ptr + (4*sizeof(void*))))) };
+              break;
+            }
+            case 6: {
+              bindings_option_string_t option3;
+              switch ((int32_t) *((uint8_t*) (ptr + (3*sizeof(void*))))) {
+                case 0: {
+                  option3.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option3.is_some = true;
+                  option3.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (4*sizeof(void*))))), (*((size_t*) (ptr + (5*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option4;
+              switch ((int32_t) *((uint8_t*) (ptr + (8*sizeof(void*))))) {
+                case 0: {
+                  option4.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option4.is_some = true;
+                  option4.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (9*sizeof(void*))))), (*((size_t*) (ptr + (10*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option5;
+              switch ((int32_t) *((uint8_t*) (ptr + (11*sizeof(void*))))) {
+                case 0: {
+                  option5.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option5.is_some = true;
+                  option5.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (12*sizeof(void*))))), (*((size_t*) (ptr + (13*sizeof(void*))))) };
+                  break;
+                }
+              }
+              bindings_option_string_t option6;
+              switch ((int32_t) *((uint8_t*) (ptr + (14*sizeof(void*))))) {
+                case 0: {
+                  option6.is_some = false;
+                  break;
+                }
+                case 1: {
+                  option6.is_some = true;
+                  option6.val = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (15*sizeof(void*))))), (*((size_t*) (ptr + (16*sizeof(void*))))) };
+                  break;
+                }
+              }
+              variant7.val.query = (gcore_db_sql_types_db_error_t) {
+                (bindings_option_string_t) option3,
+                (bindings_string_t) (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + (6*sizeof(void*))))), (*((size_t*) (ptr + (7*sizeof(void*))))) },
+                (bindings_option_string_t) option4,
+                (bindings_option_string_t) option5,
+                (bindings_option_string_t) option6,
+              };
+              break;
+            }
+            case 7: {
+              break;
+            }
+          }
+
+          result.val.err = variant7;
+          break;
+        }
+      }
+
+      option8.val = result;
+      break;
+    }
+  }
+  *ret = option8.val;
+  return option8.is_some;
+}
 
 bool gcore_fastedge_dictionary_get(bindings_string_t *name, bindings_string_t *ret) {
   __attribute__((__aligned__(sizeof(void*))))
@@ -3519,23 +4235,6 @@ void wasi_io_error_method_error_to_debug_string(wasi_io_error_borrow_error_t sel
   uint8_t *ptr = (uint8_t *) &ret_area;
   __wasm_import_wasi_io_error_method_error_to_debug_string((self).__handle, ptr);
   *ret = (bindings_string_t) { (uint8_t*)(*((uint8_t **) (ptr + 0))), (*((size_t*) (ptr + sizeof(void*)))) };
-}
-
-bool wasi_io_poll_method_pollable_ready(wasi_io_poll_borrow_pollable_t self) {
-  int32_t ret = __wasm_import_wasi_io_poll_method_pollable_ready((self).__handle);
-  return ret;
-}
-
-void wasi_io_poll_method_pollable_block(wasi_io_poll_borrow_pollable_t self) {
-  __wasm_import_wasi_io_poll_method_pollable_block((self).__handle);
-}
-
-void wasi_io_poll_poll(wasi_io_poll_list_borrow_pollable_t *in, bindings_list_u32_t *ret) {
-  __attribute__((__aligned__(sizeof(void*))))
-  uint8_t ret_area[(2*sizeof(void*))];
-  uint8_t *ptr = (uint8_t *) &ret_area;
-  __wasm_import_wasi_io_poll_poll((uint8_t *) (*in).ptr, (*in).len, ptr);
-  *ret = (bindings_list_u32_t) { (uint32_t*)(*((uint8_t **) (ptr + 0))), (*((size_t*) (ptr + sizeof(void*)))) };
 }
 
 bool wasi_io_streams_method_input_stream_read(wasi_io_streams_borrow_input_stream_t self, uint64_t len, bindings_list_u8_t *ret, wasi_io_streams_stream_error_t *err) {

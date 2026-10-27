@@ -1,5 +1,6 @@
-// `fastedge::db/sql`: `SqlDatabase` + `SqlError` over `gcore:db/sql-sync@0.1.0`.
-// ponytail: host calls are synchronous; query/batch return already-settled Promises (like Cache).
+// `fastedge::db/sql`: `SqlDatabase` + `SqlError` over `gcore:db/sql@0.1.0` (async).
+// query/batch start the host call and return a Promise; an AsyncTask settles it when the host
+// future's pollable is ready, so calls run concurrently with each other and with `fetch`.
 #include "db-sql.h"
 #include "encode.h"
 #include "../host-api/bindings/bindings.h"
@@ -18,6 +19,7 @@
 #include <js/Promise.h>
 #include <js/Realm.h>
 #include <js/experimental/TypedData.h>
+#include <js/TracingAPI.h>
 
 using fastedge::db_sql::SqlDatabase;
 
@@ -60,7 +62,7 @@ JSObject *new_sql_error(JSContext *cx, const char *kind, JS::HandleString messag
 }
 
 // Host error -> pending SqlError exception. Always returns false.
-bool throw_sql_error(JSContext *cx, gcore_db_sql_sync_error_t &err) {
+bool throw_sql_error(JSContext *cx, gcore_db_sql_error_t &err) {
   static const char *KINDS[] = {"config", "access-denied", "config", "connection",
                                 "timeout", "limit",         "query",  "internal"};
   static const char *MESSAGES[] = {"no such database", "access denied", "", "",
@@ -94,7 +96,7 @@ bool throw_sql_error(JSContext *cx, gcore_db_sql_sync_error_t &err) {
     bindings_option_string_free(&e->hint);
     bindings_option_string_free(&e->constraint);
   }
-  gcore_db_sql_sync_error_free(&err);
+  gcore_db_sql_error_free(&err);
   if (ok) {
     JS::RootedValue exc(cx, JS::ObjectValue(*obj));
     JS_SetPendingException(cx, exc);
@@ -102,20 +104,13 @@ bool throw_sql_error(JSContext *cx, gcore_db_sql_sync_error_t &err) {
   return false;
 }
 
-// Settles the returned Promise: `value` on success, the pending exception otherwise.
-bool settle(JSContext *cx, JS::CallArgs &args, bool ok, JS::HandleValue value) {
-  JS::RootedObject promise(cx);
-  if (ok) {
-    promise = JS::CallOriginalPromiseResolve(cx, value);
-  } else {
-    JS::RootedValue exc(cx);
-    if (!JS_GetPendingException(cx, &exc)) return false; // uncatchable (e.g. OOM)
-    JS_ClearPendingException(cx);
-    promise = JS::CallOriginalPromiseReject(cx, exc);
-  }
-  if (!promise) return false;
-  args.rval().setObject(*promise);
-  return true;
+// Settles `promise`: `value` on success, the pending exception otherwise.
+bool settle(JSContext *cx, JS::HandleObject promise, bool ok, JS::HandleValue value) {
+  if (ok) return JS::ResolvePromise(cx, promise, value);
+  JS::RootedValue exc(cx);
+  if (!JS_GetPendingException(cx, &exc)) return false; // uncatchable (e.g. OOM)
+  JS_ClearPendingException(cx);
+  return JS::RejectPromise(cx, promise, exc);
 }
 
 bool append_u16(const char16_t *buf, uint32_t len, void *data) {
@@ -126,7 +121,7 @@ bool append_u16(const char16_t *buf, uint32_t len, void *data) {
 // JS param -> WIT value: null/undefined, boolean, number, bigint (int8), Uint8Array (bytea),
 // Date (ISO text), other objects (JSON text), anything else as text. Strings/bytes are owned by
 // `keep`/`bytes` until the host call returns.
-bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_sync_value_t &out,
+bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_value_t &out,
               std::vector<host_api::HostString> &keep, std::vector<std::vector<uint8_t>> &bytes) {
   if (v.isNullOrUndefined()) {
     out.tag = GCORE_DB_SQL_TYPES_VALUE_NULL;
@@ -190,7 +185,7 @@ bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_sync_value_t &out,
   return true;
 }
 
-bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_sql_sync_value_t> &out,
+bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_sql_value_t> &out,
                std::vector<host_api::HostString> &keep,
                std::vector<std::vector<uint8_t>> &bytes) {
   if (arr_val.isUndefined()) return true;
@@ -212,7 +207,7 @@ bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_sql_
 
 // WIT value -> JS, per the `fastedge::db/sql` type mapping: int8 as string (no precision loss),
 // json/jsonb parsed, bytea as Uint8Array, numeric/text as string.
-bool from_value(JSContext *cx, const gcore_db_sql_sync_value_t &v, JS::MutableHandleValue out) {
+bool from_value(JSContext *cx, const gcore_db_sql_value_t &v, JS::MutableHandleValue out) {
   switch (v.tag) {
   case GCORE_DB_SQL_TYPES_VALUE_NULL:
     out.setNull();
@@ -259,7 +254,7 @@ bool from_value(JSContext *cx, const gcore_db_sql_sync_value_t &v, JS::MutableHa
 
 // `{ rows, rowCount, columns: [{ name, typeOid }] }`; rows are objects keyed by column name,
 // or arrays in column order with `rowMode: 'array'`.
-JSObject *from_result(JSContext *cx, const gcore_db_sql_sync_query_result_t &r, bool array_mode) {
+JSObject *from_result(JSContext *cx, const gcore_db_sql_query_result_t &r, bool array_mode) {
   JS::RootedObject obj(cx, JS_NewPlainObject(cx));
   JS::RootedObject columns(cx, JS::NewArrayObject(cx, r.columns.len));
   JS::RootedObject rows(cx, JS::NewArrayObject(cx, r.rows.len));
@@ -315,7 +310,7 @@ bool array_mode(JSContext *cx, JS::HandleValue options, bool *out) {
   return !mode.isString() || JS_StringEqualsLiteral(cx, mode.toString(), "array", out);
 }
 
-bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_sync_borrow_database_t &out) {
+bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_borrow_database_t &out) {
   JS::RootedObject self(cx, args.thisv().isObject() ? &args.thisv().toObject() : nullptr);
   if (!self || !JS_InstanceOf(cx, self, &SqlDatabase::class_, nullptr)) {
     JS_ReportErrorUTF8(cx, "Invalid SqlDatabase instance");
@@ -325,8 +320,128 @@ bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_sync_borrow_dat
   return true;
 }
 
-bool run_query(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result) {
-  gcore_db_sql_sync_borrow_database_t db;
+// Host query result -> JS (frees `ret`).
+bool query_to_js(JSContext *cx, gcore_db_sql_query_result_t &ret, bool rows_as_arrays,
+                 JS::MutableHandleValue out) {
+  JSObject *obj = from_result(cx, ret, rows_as_arrays);
+  gcore_db_sql_query_result_free(&ret);
+  if (!obj) return false;
+  out.setObject(*obj);
+  return true;
+}
+
+// Host batch result -> JS array (frees `ret`).
+bool batch_to_js(JSContext *cx, gcore_db_sql_list_query_result_t &ret, bool rows_as_arrays,
+                 JS::MutableHandleValue out) {
+  JS::RootedObject arr(cx, JS::NewArrayObject(cx, ret.len));
+  bool ok = arr != nullptr;
+  JS::RootedValue v(cx);
+  for (size_t i = 0; ok && i < ret.len; i++) {
+    JSObject *obj = from_result(cx, ret.ptr[i], rows_as_arrays);
+    ok = obj != nullptr;
+    if (ok) {
+      v.setObject(*obj);
+      ok = JS_SetElement(cx, arr, i, v);
+    }
+  }
+  gcore_db_sql_list_query_result_free(&ret);
+  if (!ok) return false;
+  out.setObject(*arr);
+  return true;
+}
+
+// A started query/batch. Holds the host future; settles `promise_` once its pollable is ready.
+class SqlTask final : public api::AsyncTask {
+  JS::Heap<JSObject *> promise_;
+  int32_t future_;
+  bool batch_;
+  bool rows_as_arrays_;
+
+  void drop_future() {
+    if (batch_) {
+      gcore_db_sql_future_batch_result_drop_own({future_});
+    } else {
+      gcore_db_sql_future_query_result_drop_own({future_});
+    }
+  }
+
+  bool result(JSContext *cx, JS::MutableHandleValue out) {
+    if (batch_) {
+      gcore_db_sql_result_list_query_result_error_t res{};
+      if (!gcore_db_sql_method_future_batch_result_get({future_}, &res)) {
+        JS_ReportErrorUTF8(cx, "database result not ready");
+        return false;
+      }
+      if (res.is_err) return throw_sql_error(cx, res.val.err);
+      return batch_to_js(cx, res.val.ok, rows_as_arrays_, out);
+    }
+    gcore_db_sql_result_query_result_error_t res{};
+    if (!gcore_db_sql_method_future_query_result_get({future_}, &res)) {
+      JS_ReportErrorUTF8(cx, "database result not ready");
+      return false;
+    }
+    if (res.is_err) return throw_sql_error(cx, res.val.err);
+    return query_to_js(cx, res.val.ok, rows_as_arrays_, out);
+  }
+
+public:
+  SqlTask(JS::HandleObject promise, int32_t future, bool batch, bool rows_as_arrays)
+      : promise_(promise), future_(future), batch_(batch), rows_as_arrays_(rows_as_arrays) {
+    handle_ = batch ? gcore_db_sql_method_future_batch_result_subscribe({future}).__handle
+                    : gcore_db_sql_method_future_query_result_subscribe({future}).__handle;
+  }
+
+  bool run(api::Engine *engine) override {
+    JSContext *cx = engine->cx();
+    wasi_io_poll_pollable_drop_own({handle_});
+    handle_ = INVALID_POLLABLE_HANDLE;
+    JS::RootedObject promise(cx, promise_);
+    JS::RootedValue value(cx);
+    bool ok = result(cx, &value);
+    drop_future();
+    return settle(cx, promise, ok, value);
+  }
+
+  bool cancel(api::Engine *engine) override {
+    if (handle_ != INVALID_POLLABLE_HANDLE) {
+      wasi_io_poll_pollable_drop_own({handle_});
+      handle_ = INVALID_POLLABLE_HANDLE;
+      drop_future();
+    }
+    return true;
+  }
+
+  void trace(JSTracer *trc) override { JS::TraceEdge(trc, &promise_, "SqlTask promise"); }
+};
+
+// Queues a task for host future `future` and returns its Promise in `args.rval()`.
+bool start(JSContext *cx, JS::CallArgs &args, int32_t future, bool batch, bool rows_as_arrays) {
+  JS::RootedObject promise(cx, JS::NewPromiseObject(cx, nullptr));
+  if (!promise) {
+    // Don't leak the host call: it would otherwise run to completion unobserved.
+    if (batch) {
+      gcore_db_sql_future_batch_result_drop_own({future});
+    } else {
+      gcore_db_sql_future_query_result_drop_own({future});
+    }
+    return false;
+  }
+  api::Engine::queue_async_task(new SqlTask(promise, future, batch, rows_as_arrays));
+  args.rval().setObject(*promise);
+  return true;
+}
+
+// Argument errors reject the returned Promise rather than throw synchronously.
+bool reject_pending(JSContext *cx, JS::CallArgs &args) {
+  JS::RootedObject promise(cx, JS::NewPromiseObject(cx, nullptr));
+  JS::RootedValue none(cx);
+  if (!promise || !settle(cx, promise, false, none)) return false;
+  args.rval().setObject(*promise);
+  return true;
+}
+
+bool start_query(JSContext *cx, JS::CallArgs &args) {
+  gcore_db_sql_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   JS::RootedString sql_str(cx, JS::ToString(cx, args[0]));
   if (!sql_str) return false;
@@ -335,27 +450,19 @@ bool run_query(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
   bool rows_as_arrays;
   if (!array_mode(cx, args.get(2), &rows_as_arrays)) return false;
 
-  std::vector<gcore_db_sql_sync_value_t> params;
+  std::vector<gcore_db_sql_value_t> params;
   std::vector<host_api::HostString> keep;
   std::vector<std::vector<uint8_t>> bytes;
   if (!to_params(cx, args.get(1), params, keep, bytes)) return false;
 
   bindings_string_t sql_ws{(uint8_t *)sql.ptr.get(), sql.len};
-  gcore_db_sql_sync_list_value_t params_ws{params.data(), params.size()};
-  gcore_db_sql_sync_query_result_t ret{};
-  gcore_db_sql_sync_error_t err{};
-  if (!gcore_db_sql_sync_method_database_query(db, &sql_ws, &params_ws, &ret, &err)) {
-    return throw_sql_error(cx, err);
-  }
-  JSObject *obj = from_result(cx, ret, rows_as_arrays);
-  gcore_db_sql_sync_query_result_free(&ret);
-  if (!obj) return false;
-  result.setObject(*obj);
-  return true;
+  gcore_db_sql_list_value_t params_ws{params.data(), params.size()};
+  auto future = gcore_db_sql_method_database_query(db, &sql_ws, &params_ws);
+  return start(cx, args, future.__handle, false, rows_as_arrays);
 }
 
-bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result) {
-  gcore_db_sql_sync_borrow_database_t db;
+bool start_batch(JSContext *cx, JS::CallArgs &args) {
+  gcore_db_sql_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   bool rows_as_arrays;
   if (!array_mode(cx, args.get(1), &rows_as_arrays)) return false;
@@ -370,8 +477,8 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
 
   std::vector<host_api::HostString> keep;
   std::vector<std::vector<uint8_t>> bytes;
-  std::vector<std::vector<gcore_db_sql_sync_value_t>> params(len);
-  std::vector<gcore_db_sql_sync_statement_t> stmts(len);
+  std::vector<std::vector<gcore_db_sql_value_t>> params(len);
+  std::vector<gcore_db_sql_statement_t> stmts(len);
   JS::RootedValue el(cx), sql_val(cx), params_val(cx);
   for (uint32_t i = 0; i < len; i++) {
     if (!JS_GetElement(cx, list, i, &el)) return false;
@@ -395,27 +502,9 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
     stmts[i] = {sql_ws, {params[i].data(), params[i].size()}};
   }
 
-  gcore_db_sql_sync_list_statement_t stmts_ws{stmts.data(), stmts.size()};
-  gcore_db_sql_sync_list_query_result_t ret{};
-  gcore_db_sql_sync_error_t err{};
-  if (!gcore_db_sql_sync_method_database_batch(db, &stmts_ws, &ret, &err)) {
-    return throw_sql_error(cx, err);
-  }
-  JS::RootedObject out(cx, JS::NewArrayObject(cx, ret.len));
-  bool ok = out != nullptr;
-  JS::RootedValue v(cx);
-  for (size_t i = 0; ok && i < ret.len; i++) {
-    JSObject *obj = from_result(cx, ret.ptr[i], rows_as_arrays);
-    ok = obj != nullptr;
-    if (ok) {
-      v.setObject(*obj);
-      ok = JS_SetElement(cx, out, i, v);
-    }
-  }
-  gcore_db_sql_sync_list_query_result_free(&ret);
-  if (!ok) return false;
-  result.setObject(*out);
-  return true;
+  gcore_db_sql_list_statement_t stmts_ws{stmts.data(), stmts.size()};
+  auto future = gcore_db_sql_method_database_batch(db, &stmts_ws);
+  return start(cx, args, future.__handle, true, rows_as_arrays);
 }
 
 // `new SqlError(...)` is not supported; instances come from the host.
@@ -450,9 +539,9 @@ bool SqlDatabase::open(JSContext *cx, unsigned argc, JS::Value *vp) {
   if (!name) return false;
 
   bindings_string_t name_ws{(uint8_t *)name.ptr.get(), name.len};
-  gcore_db_sql_sync_own_database_t db{};
-  gcore_db_sql_sync_error_t err{};
-  if (!gcore_db_sql_sync_static_database_open(&name_ws, &db, &err)) return throw_sql_error(cx, err);
+  gcore_db_sql_own_database_t db{};
+  gcore_db_sql_error_t err{};
+  if (!gcore_db_sql_static_database_open(&name_ws, &db, &err)) return throw_sql_error(cx, err);
 
   JS::RootedObject obj(cx, JS_NewObjectWithGivenProto(cx, &SqlDatabase::class_, nullptr));
   if (!obj || !JS_DefineFunctions(cx, obj, SqlDatabase::methods)) return false;
@@ -466,16 +555,14 @@ bool SqlDatabase::open(JSContext *cx, unsigned argc, JS::Value *vp) {
 bool SqlDatabase::query(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
   if (!args.requireAtLeast(cx, "query", 1)) return false;
-  JS::RootedValue result(cx);
-  return settle(cx, args, run_query(cx, args, &result), result);
+  return start_query(cx, args) || reject_pending(cx, args);
 }
 
 // batch([{ sql, params? }], { rowMode? }) -> Promise<result[]>; one transaction.
 bool SqlDatabase::batch(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
   if (!args.requireAtLeast(cx, "batch", 1)) return false;
-  JS::RootedValue result(cx);
-  return settle(cx, args, run_batch(cx, args, &result), result);
+  return start_batch(cx, args) || reject_pending(cx, args);
 }
 
 bool install(api::Engine *engine) {

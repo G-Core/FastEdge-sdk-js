@@ -79,6 +79,11 @@ declare module 'fastedge::db/sql' {
    * A SQL database (PostgreSQL) bound to your application by name. The connection details stay
    * with the host; the app only knows the binding name.
    *
+   * `query` and `batch` start at once and run concurrently with each other and with `fetch`, so
+   * `Promise.all` of several queries takes about one round trip. Calls you have not awaited may
+   * run in any order: await a write before relying on it, and use `batch` for ordered or atomic
+   * work.
+   *
    * @example
    * ```js
    * /// <reference types="@gcoredev/fastedge-sdk-js" />

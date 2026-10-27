@@ -12,6 +12,8 @@ const starlingHostApisDir = path.resolve(dirname, '../StarlingMonkey/host-apis')
 const fastedgeWitDir = path.resolve(dirname, '../FastEdge-wit');
 // http* interfaces are Rust-specific (we use wasi-http).
 const fastedgeDepsToRemove = ['http-client', 'http-handler', 'http'];
+// FastEdge-wit deps already provided by StarlingMonkey's host-apis (wasi-io-<version>).
+const fastedgeNestedDepsProvided = ['io'];
 
 function clearExistingWitFiles() {
   // Remove all files from the ./wit directory
@@ -68,6 +70,9 @@ function mergeFastEdgeWitFiles() {
   // FastEdge-wit's own deps (e.g. gcore:db) must sit at wit/deps/ for wit-bindgen to resolve them.
   const nestedDepsDir = path.join(fastedgeDepsDir, 'deps');
   if (fs.existsSync(nestedDepsDir)) {
+    for (const dep of fastedgeNestedDepsProvided) {
+      fs.rmSync(path.join(nestedDepsDir, dep), { recursive: true, force: true });
+    }
     copyFilesRecursively(nestedDepsDir, path.join(witDir, 'deps'));
     fs.rmSync(nestedDepsDir, { recursive: true });
   }
@@ -83,7 +88,7 @@ function mergeFastEdgeWitFiles() {
 
   const updatedMainWitContent = mainWitContent.replace(
     'world bindings {\n',
-    `world bindings {\n  include gcore:fastedge/reactor;\n`,
+    `world bindings {\n  include gcore:fastedge/reactor-async;\n`,
   );
   fs.writeFileSync(mainWitFile, updatedMainWitContent, 'utf-8');
   console.log(`WIT files successfully created in ${witDir}`);

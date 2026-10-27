@@ -9,3 +9,9 @@ world reactor {
     import gcore:db/sql-sync@0.1.0;
 
 }
+
+/// `reactor` plus the asynchronous `gcore:db/sql` (needs `wasi:io`).
+world reactor-async {
+    include reactor;
+    import gcore:db/sql@0.1.0;
+}
