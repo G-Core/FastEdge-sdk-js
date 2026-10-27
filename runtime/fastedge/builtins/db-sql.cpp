@@ -42,23 +42,6 @@ bool set_opt_str(JSContext *cx, JS::HandleObject obj, const char *key,
   return !s.is_some || set_str(cx, obj, key, s.val);
 }
 
-// A real Error (message, stack) re-parented to SqlError.prototype, with `kind`.
-JSObject *new_sql_error(JSContext *cx, const char *kind, JS::HandleString message) {
-  JS::RootedObject error_ctor(cx);
-  if (!JS_GetClassObject(cx, JSProto_Error, &error_ctor)) return nullptr;
-  JS::RootedValue ctor_val(cx, JS::ObjectValue(*error_ctor));
-  JS::RootedValueArray<1> ctor_args(cx);
-  ctor_args[0].setString(message);
-  JS::RootedObject err(cx);
-  if (!JS::Construct(cx, ctor_val, ctor_args, &err)) return nullptr;
-  if (!JS_SetPrototype(cx, err, *sql_error_proto)) return nullptr;
-  JS::RootedString kind_str(cx, JS_NewStringCopyZ(cx, kind));
-  if (!kind_str) return nullptr;
-  JS::RootedValue kind_val(cx, JS::StringValue(kind_str));
-  if (!JS_SetProperty(cx, err, "kind", kind_val)) return nullptr;
-  return err;
-}
-
 // Host error -> pending SqlError exception. Always returns false.
 bool throw_sql_error(JSContext *cx, gcore_db_sql_sync_error_t &err) {
   static const char *KINDS[] = {"config", "access-denied", "config", "connection",
@@ -78,7 +61,9 @@ bool throw_sql_error(JSContext *cx, gcore_db_sql_sync_error_t &err) {
   } else {
     message = JS_NewStringCopyZ(cx, MESSAGES[err.tag]);
   }
-  JS::RootedObject obj(cx, message ? new_sql_error(cx, KINDS[err.tag], message) : nullptr);
+  JS::RootedObject obj(cx, message ? fastedge::db_sql::new_error(cx, *sql_error_proto,
+                                                                  KINDS[err.tag], message)
+                                   : nullptr);
   bool ok = obj != nullptr;
   if (ok && db_err) {
     ok = set_opt_str(cx, obj, "code", db_err->code) &&
@@ -100,22 +85,6 @@ bool throw_sql_error(JSContext *cx, gcore_db_sql_sync_error_t &err) {
     JS_SetPendingException(cx, exc);
   }
   return false;
-}
-
-// Settles the returned Promise: `value` on success, the pending exception otherwise.
-bool settle(JSContext *cx, JS::CallArgs &args, bool ok, JS::HandleValue value) {
-  JS::RootedObject promise(cx);
-  if (ok) {
-    promise = JS::CallOriginalPromiseResolve(cx, value);
-  } else {
-    JS::RootedValue exc(cx);
-    if (!JS_GetPendingException(cx, &exc)) return false; // uncatchable (e.g. OOM)
-    JS_ClearPendingException(cx);
-    promise = JS::CallOriginalPromiseReject(cx, exc);
-  }
-  if (!promise) return false;
-  args.rval().setObject(*promise);
-  return true;
 }
 
 bool append_u16(const char16_t *buf, uint32_t len, void *data) {
@@ -418,8 +387,8 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
   return true;
 }
 
-// `new SqlError(...)` is not supported; instances come from the host.
-bool sql_error_ctor(JSContext *cx, unsigned argc, JS::Value *vp) {
+// `new SqlError(...)` / `new KvError(...)` are not supported; instances come from the host.
+bool error_ctor(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS_ReportErrorUTF8(cx, "Illegal constructor");
   return false;
 }
@@ -427,6 +396,58 @@ bool sql_error_ctor(JSContext *cx, unsigned argc, JS::Value *vp) {
 } // namespace
 
 namespace fastedge::db_sql {
+
+JSObject *new_error(JSContext *cx, JS::HandleObject proto, const char *kind,
+                    JS::HandleString message) {
+  JS::RootedObject error_ctor(cx);
+  if (!JS_GetClassObject(cx, JSProto_Error, &error_ctor)) return nullptr;
+  JS::RootedValue ctor_val(cx, JS::ObjectValue(*error_ctor));
+  JS::RootedValueArray<1> ctor_args(cx);
+  ctor_args[0].setString(message);
+  JS::RootedObject err(cx);
+  if (!JS::Construct(cx, ctor_val, ctor_args, &err)) return nullptr;
+  if (!JS_SetPrototype(cx, err, proto)) return nullptr;
+  JS::RootedString kind_str(cx, JS_NewStringCopyZ(cx, kind));
+  if (!kind_str) return nullptr;
+  JS::RootedValue kind_val(cx, JS::StringValue(kind_str));
+  if (!JS_SetProperty(cx, err, "kind", kind_val)) return nullptr;
+  return err;
+}
+
+bool settle(JSContext *cx, JS::CallArgs &args, bool ok, JS::HandleValue value) {
+  JS::RootedObject promise(cx);
+  if (ok) {
+    promise = JS::CallOriginalPromiseResolve(cx, value);
+  } else {
+    JS::RootedValue exc(cx);
+    if (!JS_GetPendingException(cx, &exc)) return false; // uncatchable (e.g. OOM)
+    JS_ClearPendingException(cx);
+    promise = JS::CallOriginalPromiseReject(cx, exc);
+  }
+  if (!promise) return false;
+  args.rval().setObject(*promise);
+  return true;
+}
+
+// `instanceof <name>` and `instanceof Error` both hold for host errors.
+bool define_error_class(api::Engine *engine, const char *name,
+                        JS::PersistentRooted<JSObject *> **out) {
+  JSContext *cx = engine->cx();
+  JS::RootedObject error_proto(cx, JS::GetRealmErrorPrototype(cx));
+  JS::RootedObject proto(cx, JS_NewObjectWithGivenProto(cx, nullptr, error_proto));
+  JSFunction *fn = JS_NewFunction(cx, error_ctor, 0, JSFUN_CONSTRUCTOR, name);
+  if (!error_proto || !proto || !fn) return false;
+  JS::RootedObject ctor(cx, JS_GetFunctionObject(fn));
+  JS::RootedValue name_val(cx, JS::StringValue(JS_NewStringCopyZ(cx, name)));
+  if (!JS_DefineProperty(cx, ctor, "prototype", proto, 0) ||
+      !JS_DefineProperty(cx, proto, "constructor", ctor, 0) ||
+      !JS_DefineProperty(cx, proto, "name", name_val, 0) ||
+      !JS_DefineProperty(cx, engine->global(), name, ctor, 0)) {
+    return false;
+  }
+  *out = new JS::PersistentRooted<JSObject *>(cx, proto);
+  return true;
+}
 
 const JSClass SqlDatabase::class_ = {"SqlDatabase", JSCLASS_HAS_RESERVED_SLOTS(1)};
 
@@ -486,22 +507,7 @@ bool install(api::Engine *engine) {
       !JS_DefineProperty(cx, engine->global(), "SqlDatabase", ctor, 0)) {
     return false;
   }
-
-  // SqlError: `instanceof SqlError` and `instanceof Error` both hold for host errors.
-  JS::RootedObject error_proto(cx, JS::GetRealmErrorPrototype(cx));
-  JS::RootedObject proto(cx, JS_NewObjectWithGivenProto(cx, nullptr, error_proto));
-  JSFunction *fn = JS_NewFunction(cx, sql_error_ctor, 0, JSFUN_CONSTRUCTOR, "SqlError");
-  if (!error_proto || !proto || !fn) return false;
-  JS::RootedObject error_ctor(cx, JS_GetFunctionObject(fn));
-  JS::RootedValue name(cx, JS::StringValue(JS_NewStringCopyZ(cx, "SqlError")));
-  if (!JS_DefineProperty(cx, error_ctor, "prototype", proto, 0) ||
-      !JS_DefineProperty(cx, proto, "constructor", error_ctor, 0) ||
-      !JS_DefineProperty(cx, proto, "name", name, 0) ||
-      !JS_DefineProperty(cx, engine->global(), "SqlError", error_ctor, 0)) {
-    return false;
-  }
-  sql_error_proto = new JS::PersistentRooted<JSObject *>(cx, proto);
-  return true;
+  return define_error_class(engine, "SqlError", &sql_error_proto);
 }
 
 } // namespace fastedge::db_sql

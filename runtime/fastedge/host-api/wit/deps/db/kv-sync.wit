@@ -1,0 +1,66 @@
+package gcore:db@0.1.0;
+
+/// FastEdge Database KV interface (synchronous variant).
+///
+/// Regional, durable, strongly consistent key-value storage, writable from applications.
+/// Not to be confused with:
+/// - Edge Storage (`gcore:fastedge/key-value`): read-only from apps, replicated to every edge.
+/// - `gcore:fastedge/cache-sync`: local to one PoP, not durable.
+///
+/// Applications name a binding (e.g. "main"); the host maps it to a backend. Backend, location and
+/// credentials are invisible to the application, so a binding can move between backends without
+/// code changes.
+///
+/// Every call is a network round trip to a regional database. Calls are subject to host limits
+/// (timeout, key/value size, operations per batch). Exceeding them returns `error::timeout` or
+/// `error::limit`.
+interface kv-sync {
+  use kv-types.{kv-value, set-options, op, op-result, error};
+
+  /// FastEdge Database KV resource.
+  resource database {
+    /// Open the database bound to `name`.
+    ///
+    /// `error::no-such-database` will be raised if the `name` is not recognized.
+    open: static func(name: string) -> result<database, error>;
+
+    /// Get the value of `key`.
+    ///
+    /// Returns `ok(none)` if the key does not exist or has expired.
+    get: func(key: string) -> result<option<kv-value>, error>;
+
+    /// Check whether `key` exists (and has not expired), without fetching its value.
+    exists: func(key: string) -> result<bool, error>;
+
+    /// Set `key` to `value`, subject to `options.condition`.
+    ///
+    /// Returns `ok(true)` if the value was written, `ok(false)` if the condition was not met.
+    set: func(key: string, value: kv-value, options: set-options) -> result<bool, error>;
+
+    /// Delete `key`.
+    ///
+    /// Returns `ok(true)` if the key existed, `ok(false)` otherwise.
+    delete: func(key: string) -> result<bool, error>;
+
+    /// Add `delta` to the integer stored at `key`. `delta` may be negative.
+    ///
+    /// A missing key is treated as `0`. Does not change the key's expiry.
+    /// Returns the new value. Fails with `error::operation` if the stored value is not a decimal
+    /// 64-bit integer or the result would overflow.
+    incr: func(key: string, delta: s64) -> result<s64, error>;
+
+    /// Set the expiry of `key` to `ttl-ms` milliseconds from now.
+    ///
+    /// Returns `ok(true)` if the key exists and the expiry was set, `ok(false)` if it does not exist.
+    expire: func(key: string, ttl-ms: u64) -> result<bool, error>;
+
+    /// Run several operations atomically: all are applied or none are, and no other client
+    /// observes or interleaves with a partial batch.
+    ///
+    /// Operations see the effects of earlier operations in the same batch.
+    /// A `set` whose condition is not met is not a failure: it returns `set(false)` and the batch
+    /// continues. Any other failing operation aborts the whole batch with `error::operation`,
+    /// whose `op-index` identifies the operation.
+    batch: func(ops: list<op>) -> result<list<op-result>, error>;
+  }
+}
