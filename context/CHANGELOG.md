@@ -19,7 +19,8 @@ Submodule moved from our fork (`godronus/gcore/integration`, 0.3.0 + 4 patches) 
 ### Verification
 - Runtime builds (9.9 MB, was 10.6 MB). Unit 458/458, integration 88/88.
 - Test app under local `fastedge-run` (wasmtime 48): echo, env, outbound fetch, secret pass; Response.clone tests 1-6, 8, 9 pass in isolation. Tests 7-8 of the guard self-fetch the app's own origin, which `fastedge-run` can't serve locally (NetworkError), so the full guard only runs on a deployed app.
-- Not yet: live edge deploy (`deploy.yaml` `test_prod_invocation`).
+- Preprod edge (2026-10-27, test app deployed as `sdk-js-sm040-test-app`): echo, env, outbound fetch, secret pass; Response.clone tests 1-9 all correct (incl. 128 KiB multi-chunk self-fetch). On the Free plan the Response.clone handler sometimes hits the execution budget (`3010`); the same app on the published 2.7.0 runtime does too (old 12/20 vs new 15/20 completed), so not a regression.
+- Response.clone test kept as a permanent regression test (no longer a patch guard).
 
 ---
 

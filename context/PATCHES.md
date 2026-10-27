@@ -70,8 +70,6 @@ Also delete any prod-invocation test guard that was added for the patch:
 
 ## Current test guards
 
-| Patch | Guard files | Remove when |
-|-------|-------------|-------------|
-| Response.clone() | `handlers/response-clone.ts` (tests 1–9), `checks/response-clone.ts`, `handlers/multi-chunk-source.ts` (multi-chunk source self-fetched by tests 7–9), `RESPONSE_CLONE` + `MULTI_CHUNK_SOURCE` in `routes.ts`, and both `test-app.ts` registrations | **Due now** — #312 is in v0.4.0 (submodule bumped 2026-10-27). Kept until this bump is validated on the edge, then remove |
-
-The `response-clone` guard covers: basic clone + metadata (1), constructed getReader mutation guard (2), incoming `text()` (3) and getReader mutation guard (4), consumed/locked `TypeError` (5–6), host-backed multi-chunk mutation guard (7), cancel-one-branch (8), and read-header-then-clone (9, guards the Headers-immutable clone path).
+None. The Response.clone guard (`handlers/response-clone.ts`, `checks/response-clone.ts`,
+`handlers/multi-chunk-source.ts`) is kept as a permanent regression test now that #312 is
+upstream (validated on the preprod edge with v0.4.0, 2026-10-27); it is no longer a patch guard.
