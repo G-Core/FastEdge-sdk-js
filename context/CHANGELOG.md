@@ -5,6 +5,30 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-27] — db: async `fastedge::db/kv` over `gcore:db/kv` (branch `feat/db-interface-kv-async`)
+
+### Overview
+`KvDatabase` methods start the host call and return a pending Promise; a `KvTask` (StarlingMonkey
+`AsyncTask`) per call waits on the host future's pollable and settles it. JS API unchanged.
+
+### Decisions
+- Async WIT is the plain `gcore:db/kv` interface: `database.execute(op)` / `batch(ops)` return
+  pollable futures (one future type per call shape instead of one per method); the runtime world
+  `reactor-async` imports it beside `gcore:db/sql`.
+- Measured on fastedge-run against Upstash (median of 7, warm connections): 1 `get` 48 ms;
+  3 `get`s via `Promise.all` 48 ms; 3 awaited in turn 147 ms. Each extra concurrent call opens a
+  new HTTPS connection the first time (~100 ms TLS), so cold concurrency costs more.
+- Argument errors reject the returned Promise (as async `db/sql`).
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface-kv-async` 09f4443; bindings regenerated
+- `runtime/fastedge/builtins/db-kv.cpp` — `KvTask`, `start_op` (`execute`), `start_batch`
+- `types/fastedge-db-kv.d.ts` — concurrency / ordering note
+- Merge of `feat/db-interface-kv`: async `db-sql.cpp` keeps its promise settle as `settle_promise`;
+  the shared `settle` / error class from the kv branch stay exported
+
+---
+
 ## [2026-10-27] — POC: `fastedge::db/kv` (gcore:db/kv-sync@0.1.0)
 
 ### Overview

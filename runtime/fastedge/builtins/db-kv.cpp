@@ -1,5 +1,6 @@
-// `fastedge::db/kv`: `KvDatabase` + `KvError` over `gcore:db/kv-sync@0.1.0`.
-// ponytail: host calls are synchronous; methods return already-settled Promises (like Cache).
+// `fastedge::db/kv`: `KvDatabase` + `KvError` over `gcore:db/kv@0.1.0` (async).
+// Each method starts the host call and returns a Promise; an AsyncTask settles it when the host
+// future's pollable is ready, so calls run concurrently with each other and with `fetch`.
 #include "cache.h"
 #include "db-sql.h"
 #include "encode.h"
@@ -11,6 +12,7 @@
 
 #include <js/Array.h>
 #include <js/Promise.h>
+#include <js/TracingAPI.h>
 
 namespace {
 
@@ -31,7 +33,7 @@ JSString *new_string(JSContext *cx, const uint8_t *ptr, size_t len) {
 }
 
 // Host error -> pending KvError exception. Always returns false.
-bool throw_kv_error(JSContext *cx, gcore_db_kv_sync_error_t &err) {
+bool throw_kv_error(JSContext *cx, gcore_db_kv_types_error_t &err) {
   static const char *KINDS[] = {"config", "access-denied", "config",    "connection",
                                 "timeout", "limit",        "operation", "internal"};
   static const char *MESSAGES[] = {"no such database", "access denied", "", "",
@@ -67,7 +69,7 @@ bool throw_kv_error(JSContext *cx, gcore_db_kv_sync_error_t &err) {
     // The generated op_error_free (wit-bindgen 0.52) doesn't free `code`.
     bindings_option_string_free(&op.code);
   }
-  gcore_db_kv_sync_error_free(&err);
+  gcore_db_kv_types_error_free(&err);
   if (ok) {
     JS::RootedValue exc(cx, JS::ObjectValue(*obj));
     JS_SetPendingException(cx, exc);
@@ -192,7 +194,7 @@ bool from_result(JSContext *cx, const gcore_db_kv_types_op_result_t &r,
   }
 }
 
-bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_kv_sync_borrow_database_t &out) {
+bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_kv_borrow_database_t &out) {
   JS::RootedObject self(cx, args.thisv().isObject() ? &args.thisv().toObject() : nullptr);
   if (!self || !JS_InstanceOf(cx, self, &kv_database_class, nullptr)) {
     JS_ReportErrorUTF8(cx, "Invalid KvDatabase instance");
@@ -202,51 +204,122 @@ bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_kv_sync_borrow_data
   return true;
 }
 
-// Run one op with its own host function (cheaper than a batch of one).
-bool execute(JSContext *cx, JS::CallArgs &args, uint8_t tag, JS::HandleValue value,
-             JS::HandleValue options, JS::HandleValue delta, JS::MutableHandleValue result) {
-  gcore_db_kv_sync_borrow_database_t db;
+// Settles `promise`: `value` on success, the pending exception otherwise.
+bool settle_promise(JSContext *cx, JS::HandleObject promise, bool ok, JS::HandleValue value) {
+  if (ok) return JS::ResolvePromise(cx, promise, value);
+  JS::RootedValue exc(cx);
+  if (!JS_GetPendingException(cx, &exc)) return false; // uncatchable (e.g. OOM)
+  JS_ClearPendingException(cx);
+  return JS::RejectPromise(cx, promise, exc);
+}
+
+// A started execute/batch. Holds the host future; settles `promise_` once its pollable is ready.
+class KvTask final : public api::AsyncTask {
+  JS::Heap<JSObject *> promise_;
+  int32_t future_;
+  bool batch_;
+
+  void drop_future() {
+    if (batch_) {
+      gcore_db_kv_future_batch_result_drop_own({future_});
+    } else {
+      gcore_db_kv_future_op_result_drop_own({future_});
+    }
+  }
+
+  bool result(JSContext *cx, JS::MutableHandleValue out) {
+    if (batch_) {
+      gcore_db_kv_result_list_op_result_error_t res{};
+      if (!gcore_db_kv_method_future_batch_result_get({future_}, &res)) {
+        JS_ReportErrorUTF8(cx, "database result not ready");
+        return false;
+      }
+      if (res.is_err) return throw_kv_error(cx, res.val.err);
+      JS::RootedObject arr(cx, JS::NewArrayObject(cx, res.val.ok.len));
+      bool ok = arr != nullptr;
+      JS::RootedValue v(cx);
+      for (size_t i = 0; ok && i < res.val.ok.len; i++) {
+        ok = from_result(cx, res.val.ok.ptr[i], &v) && JS_SetElement(cx, arr, i, v);
+      }
+      gcore_db_kv_list_op_result_free(&res.val.ok);
+      if (ok) out.setObject(*arr);
+      return ok;
+    }
+    gcore_db_kv_result_op_result_error_t res{};
+    if (!gcore_db_kv_method_future_op_result_get({future_}, &res)) {
+      JS_ReportErrorUTF8(cx, "database result not ready");
+      return false;
+    }
+    if (res.is_err) return throw_kv_error(cx, res.val.err);
+    bool ok = from_result(cx, res.val.ok, out);
+    gcore_db_kv_types_op_result_free(&res.val.ok);
+    return ok;
+  }
+
+public:
+  KvTask(JS::HandleObject promise, int32_t future, bool batch)
+      : promise_(promise), future_(future), batch_(batch) {
+    handle_ = batch ? gcore_db_kv_method_future_batch_result_subscribe({future}).__handle
+                    : gcore_db_kv_method_future_op_result_subscribe({future}).__handle;
+  }
+
+  bool run(api::Engine *engine) override {
+    JSContext *cx = engine->cx();
+    // The pollable is a child of the future: drop it first.
+    wasi_io_poll_pollable_drop_own({handle_});
+    handle_ = INVALID_POLLABLE_HANDLE;
+    JS::RootedObject promise(cx, promise_);
+    JS::RootedValue value(cx);
+    bool ok = result(cx, &value);
+    drop_future();
+    return settle_promise(cx, promise, ok, value);
+  }
+
+  bool cancel(api::Engine *engine) override {
+    if (handle_ != INVALID_POLLABLE_HANDLE) {
+      wasi_io_poll_pollable_drop_own({handle_});
+      handle_ = INVALID_POLLABLE_HANDLE;
+      drop_future();
+    }
+    return true;
+  }
+
+  void trace(JSTracer *trc) override { JS::TraceEdge(trc, &promise_, "KvTask promise"); }
+};
+
+// Queues a task for host future `future` and returns its Promise in `args.rval()`.
+bool start(JSContext *cx, JS::CallArgs &args, int32_t future, bool batch) {
+  JS::RootedObject promise(cx, JS::NewPromiseObject(cx, nullptr));
+  if (!promise) {
+    // Don't leak the host call: it would otherwise run to completion unobserved.
+    if (batch) {
+      gcore_db_kv_future_batch_result_drop_own({future});
+    } else {
+      gcore_db_kv_future_op_result_drop_own({future});
+    }
+    return false;
+  }
+  api::Engine::queue_async_task(new KvTask(promise, future, batch));
+  args.rval().setObject(*promise);
+  return true;
+}
+
+// Start one op (`execute`); its result is the op's own result case.
+bool start_op(JSContext *cx, JS::CallArgs &args, uint8_t tag, JS::HandleValue value,
+              JS::HandleValue options, JS::HandleValue delta) {
+  gcore_db_kv_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   Keep keep;
   gcore_db_kv_types_op_t op{};
   if (!to_op(cx, tag, args.get(0), value, options, delta, op, keep)) return false;
-
-  gcore_db_kv_types_op_result_t r{};
-  r.tag = tag; // op and op-result variants list the same cases in the same order
-  gcore_db_kv_sync_error_t err{};
-  bool ok;
-  switch (tag) {
-  case GCORE_DB_KV_TYPES_OP_GET:
-    ok = gcore_db_kv_sync_method_database_get(db, &op.val.get, &r.val.get, &err);
-    break;
-  case GCORE_DB_KV_TYPES_OP_EXISTS:
-    ok = gcore_db_kv_sync_method_database_exists(db, &op.val.exists, &r.val.exists, &err);
-    break;
-  case GCORE_DB_KV_TYPES_OP_SET:
-    ok = gcore_db_kv_sync_method_database_set(db, &op.val.set.key, &op.val.set.value,
-                                              &op.val.set.options, &r.val.set, &err);
-    break;
-  case GCORE_DB_KV_TYPES_OP_DELETE:
-    ok = gcore_db_kv_sync_method_database_delete(db, &op.val.delete_, &r.val.delete_, &err);
-    break;
-  case GCORE_DB_KV_TYPES_OP_INCR:
-    ok = gcore_db_kv_sync_method_database_incr(db, &op.val.incr.key, op.val.incr.delta,
-                                               &r.val.incr, &err);
-    break;
-  default:
-    ok = gcore_db_kv_sync_method_database_expire(db, &op.val.expire.key, op.val.expire.ttl_ms,
-                                                 &r.val.expire, &err);
-  }
-  if (!ok) return throw_kv_error(cx, err);
-  ok = from_result(cx, r, result);
-  gcore_db_kv_types_op_result_free(&r);
-  return ok;
+  auto future = gcore_db_kv_method_database_execute(db, &op);
+  return start(cx, args, future.__handle, false);
 }
 
 const char *OP_NAMES[] = {"get", "exists", "set", "delete", "incr", "expire"};
 
-bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result) {
-  gcore_db_kv_sync_borrow_database_t db;
+bool start_batch(JSContext *cx, JS::CallArgs &args) {
+  gcore_db_kv_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   bool is_array = false;
   JS::RootedObject list(cx, args[0].isObject() ? &args[0].toObject() : nullptr);
@@ -298,51 +371,34 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
     }
   }
 
-  gcore_db_kv_sync_list_op_t ops_ws{ops.data(), ops.size()};
-  gcore_db_kv_sync_list_op_result_t ret{};
-  gcore_db_kv_sync_error_t err{};
-  if (!gcore_db_kv_sync_method_database_batch(db, &ops_ws, &ret, &err)) {
-    return throw_kv_error(cx, err);
-  }
-  JS::RootedObject out(cx, JS::NewArrayObject(cx, ret.len));
-  bool ok = out != nullptr;
-  JS::RootedValue v(cx);
-  for (size_t i = 0; ok && i < ret.len; i++) {
-    ok = from_result(cx, ret.ptr[i], &v) && JS_SetElement(cx, out, i, v);
-  }
-  gcore_db_kv_sync_list_op_result_free(&ret);
-  if (!ok) return false;
-  result.setObject(*out);
-  return true;
+  gcore_db_kv_list_op_t ops_ws{ops.data(), ops.size()};
+  auto future = gcore_db_kv_method_database_batch(db, &ops_ws);
+  return start(cx, args, future.__handle, true);
 }
 
+// Argument errors reject the returned Promise rather than throw synchronously.
 #define KV_METHOD(fn, min, body)                                                                   \
   bool fn(JSContext *cx, unsigned argc, JS::Value *vp) {                                           \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);                                              \
     if (!args.requireAtLeast(cx, #fn, min)) return false;                                          \
-    JS::RootedValue result(cx);                                                                    \
     JS::RootedValue none(cx);                                                                      \
-    return fastedge::db_sql::settle(cx, args, (body), result);                                     \
+    return (body) || fastedge::db_sql::settle(cx, args, false, none);                              \
   }
 
 // get(key) -> Promise<KvEntry | null>
-KV_METHOD(get, 1, execute(cx, args, GCORE_DB_KV_TYPES_OP_GET, none, none, none, &result))
+KV_METHOD(get, 1, start_op(cx, args, GCORE_DB_KV_TYPES_OP_GET, none, none, none))
 // exists(key) -> Promise<boolean>
-KV_METHOD(exists, 1, execute(cx, args, GCORE_DB_KV_TYPES_OP_EXISTS, none, none, none, &result))
+KV_METHOD(exists, 1, start_op(cx, args, GCORE_DB_KV_TYPES_OP_EXISTS, none, none, none))
 // set(key, value, { ttl | ttlMs | expiresAt, ifNotExists, ifExists }?) -> Promise<boolean>
-KV_METHOD(set, 2,
-          execute(cx, args, GCORE_DB_KV_TYPES_OP_SET, args[1], args.get(2), none, &result))
+KV_METHOD(set, 2, start_op(cx, args, GCORE_DB_KV_TYPES_OP_SET, args[1], args.get(2), none))
 // delete(key) -> Promise<boolean>
-KV_METHOD(delete_op, 1,
-          execute(cx, args, GCORE_DB_KV_TYPES_OP_DELETE, none, none, none, &result))
+KV_METHOD(delete_op, 1, start_op(cx, args, GCORE_DB_KV_TYPES_OP_DELETE, none, none, none))
 // incr(key, delta = 1) -> Promise<number>
-KV_METHOD(incr, 1,
-          execute(cx, args, GCORE_DB_KV_TYPES_OP_INCR, none, none, args.get(1), &result))
+KV_METHOD(incr, 1, start_op(cx, args, GCORE_DB_KV_TYPES_OP_INCR, none, none, args.get(1)))
 // expire(key, { ttl | ttlMs | expiresAt }) -> Promise<boolean>
-KV_METHOD(expire, 2,
-          execute(cx, args, GCORE_DB_KV_TYPES_OP_EXPIRE, none, args[1], none, &result))
+KV_METHOD(expire, 2, start_op(cx, args, GCORE_DB_KV_TYPES_OP_EXPIRE, none, args[1], none))
 // batch([{ op, key, value?, options?, delta? }]) -> Promise<result[]>; atomic.
-KV_METHOD(batch, 1, run_batch(cx, args, &result))
+KV_METHOD(batch, 1, start_batch(cx, args))
 
 const JSFunctionSpec methods[] = {
     JS_FN("get", get, 1, JSPROP_ENUMERATE),       JS_FN("exists", exists, 1, JSPROP_ENUMERATE),
@@ -361,9 +417,9 @@ bool open_db(JSContext *cx, unsigned argc, JS::Value *vp) {
   if (!name) return false;
 
   bindings_string_t name_ws{(uint8_t *)name.ptr.get(), name.len};
-  gcore_db_kv_sync_own_database_t db{};
-  gcore_db_kv_sync_error_t err{};
-  if (!gcore_db_kv_sync_static_database_open(&name_ws, &db, &err)) return throw_kv_error(cx, err);
+  gcore_db_kv_own_database_t db{};
+  gcore_db_kv_types_error_t err{};
+  if (!gcore_db_kv_static_database_open(&name_ws, &db, &err)) return throw_kv_error(cx, err);
 
   JS::RootedObject obj(cx, JS_NewObjectWithGivenProto(cx, &kv_database_class, nullptr));
   if (!obj || !JS_DefineFunctions(cx, obj, methods)) return false;

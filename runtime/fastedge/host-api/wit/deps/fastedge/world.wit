@@ -11,8 +11,9 @@ world reactor {
 
 }
 
-/// `reactor` plus the asynchronous `gcore:db/sql` (needs `wasi:io`).
+/// `reactor` plus the asynchronous `gcore:db/sql` and `gcore:db/kv` (need `wasi:io`).
 world reactor-async {
     include reactor;
     import gcore:db/sql@0.1.0;
+    import gcore:db/kv@0.1.0;
 }

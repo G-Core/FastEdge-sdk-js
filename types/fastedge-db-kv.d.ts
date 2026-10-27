@@ -77,7 +77,10 @@ declare module 'fastedge::db/kv' {
    * the POP-local `Cache`. The connection details stay with the host; the app only knows the
    * binding name.
    *
-   * Every call is a round trip to the database.
+   * Every call is a round trip to the database. Calls start at once and run concurrently with each
+   * other and with `fetch`, so `Promise.all` of several calls takes about one round trip. Calls you
+   * have not awaited may run in any order: await a write before relying on it, and use `batch` for
+   * ordered or atomic work.
    *
    * Within one request, reads see the request's own writes. Other requests may see a write only
    * after it has replicated (eventually, for a database with read replicas in other regions).
