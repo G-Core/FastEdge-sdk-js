@@ -17,6 +17,7 @@ Spike of the SQL database binding: apps query a customer-owned Postgres (Neon) b
 - `es-bundle.ts`: `fastedge::db/sql` re-exports `SqlDatabase` and `SqlError` (same pattern as `fastedge::kv`)
 - `types/fastedge-db-sql.d.ts` (`SqlDatabase`, `SqlError`, `SqlResult<T>`, `SqlParam`, `SqlValue`), referenced from `types/index.d.ts`
 - `examples/db-sql`: Drizzle over `fastedge::db/sql` + drizzle-kit migrations (`drizzle/0000_init`, `0001_seed`); same table, data and responses as sdk-rust `examples/http/wasi/db_sql`
+- **Release order:** every app built with this SDK imports `gcore:db/sql@0.1.0`, so hosts without it fail with `530 fastedge: context error` (incl. the `fastedge-run` bundled in `@gcoredev/fastedge-test`; `cross-platform-build.test.js` component-import runtime tests fail until it is updated). Release only after the engine ships `gcore:db/sql` everywhere.
 - No docs/tests yet (spike). Drizzle works via `drizzle-orm/pg-proxy` (see coordinator `db-integration/`)
 
 ---
