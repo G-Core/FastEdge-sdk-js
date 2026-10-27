@@ -13,8 +13,8 @@ Spike of the SQL database binding: apps query a customer-owned Postgres (Neon) b
 ### Changes
 - `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface` (`gcore:db/sql@0.1.0` in `deps/db`)
 - `merge-wit-bindings.js`: hoists FastEdge-wit `deps/*` to `wit/deps/` so wit-bindgen resolves them
-- New builtin `builtins/db-sql.cpp` (`globalThis.__fastedgeDbSql`: raw `open`/`query`/`batch`, sync host calls)
-- `es-bundle.ts`: virtual module `fastedge::db/sql` (`SqlDatabase`, `SqlError`, type mapping, `rowMode: 'array'`)
+- New builtin `builtins/db-sql.{h,cpp}`: globals `SqlDatabase` (`open`, `query`, `batch` -> Promises; sync host calls) and `SqlError` (real `Error`, `kind`/`code`/`detail`/`hint`/`constraint`); type mapping (int8 -> string, json parsed, bytea -> Uint8Array) and `rowMode: 'array'` in C++
+- `es-bundle.ts`: `fastedge::db/sql` re-exports `SqlDatabase` and `SqlError` (same pattern as `fastedge::kv`)
 - No types/docs/tests yet (spike). Drizzle works via `drizzle-orm/pg-proxy` (see coordinator `db-integration/`)
 
 ---
