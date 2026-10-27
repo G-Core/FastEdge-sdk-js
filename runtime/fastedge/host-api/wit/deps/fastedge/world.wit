@@ -7,6 +7,7 @@ world reactor {
     import utils;
     import cache-sync;
     import gcore:db/sql-sync@0.1.0;
+    import gcore:db/kv-sync@0.1.0;
 
 }
 

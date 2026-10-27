@@ -488,6 +488,209 @@ typedef struct {
   } val;
 } gcore_db_sql_sync_result_list_query_result_error_t;
 
+// Values are bytes, like `key-value.value` and `cache-types.payload`. Named `kv-value`, not
+// `value`: C bindings (wit-bindgen 0.52) name `option<value>` globally, so it would collide
+// with `key-value`'s.
+// 
+// v1 restriction: values must be valid UTF-8 (current backends can't store arbitrary bytes over
+// their HTTP APIs). Writing a non-UTF-8 value fails with `error::limit`. Lifting this
+// restriction later does not change the interface.
+typedef struct gcore_db_kv_types_kv_value_t {
+  uint8_t   *ptr;
+  size_t len;
+} gcore_db_kv_types_kv_value_t;
+
+// When `set` writes.
+typedef uint8_t gcore_db_kv_types_set_condition_t;
+
+// Always write.
+#define GCORE_DB_KV_TYPES_SET_CONDITION_ALWAYS 0
+// Write only if the key does not exist.
+#define GCORE_DB_KV_TYPES_SET_CONDITION_IF_NOT_EXISTS 1
+// Write only if the key exists.
+#define GCORE_DB_KV_TYPES_SET_CONDITION_IF_EXISTS 2
+
+// Options for `set`.
+typedef struct gcore_db_kv_types_set_options_t {
+  // Expire the key after this many milliseconds. `none`: no expiry.
+  // A successful `set` always replaces the key's previous expiry.
+  bindings_option_u64_t   ttl_ms;
+  gcore_db_kv_types_set_condition_t   condition;
+} gcore_db_kv_types_set_options_t;
+
+typedef struct gcore_db_kv_types_set_op_t {
+  bindings_string_t   key;
+  gcore_db_kv_types_kv_value_t   value;
+  gcore_db_kv_types_set_options_t   options;
+} gcore_db_kv_types_set_op_t;
+
+typedef struct gcore_db_kv_types_incr_op_t {
+  bindings_string_t   key;
+  int64_t   delta;
+} gcore_db_kv_types_incr_op_t;
+
+typedef struct gcore_db_kv_types_expire_op_t {
+  bindings_string_t   key;
+  uint64_t   ttl_ms;
+} gcore_db_kv_types_expire_op_t;
+
+// One operation in a batch. Same semantics as the method of the same name.
+typedef struct gcore_db_kv_types_op_t {
+  uint8_t tag;
+  union {
+    bindings_string_t     get;
+    bindings_string_t     exists;
+    gcore_db_kv_types_set_op_t     set;
+    bindings_string_t     delete_;
+    gcore_db_kv_types_incr_op_t     incr;
+    gcore_db_kv_types_expire_op_t     expire;
+  } val;
+} gcore_db_kv_types_op_t;
+
+#define GCORE_DB_KV_TYPES_OP_GET 0
+#define GCORE_DB_KV_TYPES_OP_EXISTS 1
+#define GCORE_DB_KV_TYPES_OP_SET 2
+#define GCORE_DB_KV_TYPES_OP_DELETE 3
+#define GCORE_DB_KV_TYPES_OP_INCR 4
+#define GCORE_DB_KV_TYPES_OP_EXPIRE 5
+
+typedef struct {
+  bool is_some;
+  gcore_db_kv_types_kv_value_t val;
+} bindings_option_kv_value_t;
+
+// Result of one batch operation, in the same order as the operations.
+typedef struct gcore_db_kv_types_op_result_t {
+  uint8_t tag;
+  union {
+    bindings_option_kv_value_t     get;
+    bool     exists;
+    bool     set;
+    bool     delete_;
+    int64_t     incr;
+    bool     expire;
+  } val;
+} gcore_db_kv_types_op_result_t;
+
+#define GCORE_DB_KV_TYPES_OP_RESULT_GET 0
+#define GCORE_DB_KV_TYPES_OP_RESULT_EXISTS 1
+#define GCORE_DB_KV_TYPES_OP_RESULT_SET 2
+#define GCORE_DB_KV_TYPES_OP_RESULT_DELETE 3
+#define GCORE_DB_KV_TYPES_OP_RESULT_INCR 4
+#define GCORE_DB_KV_TYPES_OP_RESULT_EXPIRE 5
+
+typedef struct {
+  bool is_some;
+  uint32_t val;
+} bindings_option_u32_t;
+
+// Error details reported by the backend.
+typedef struct gcore_db_kv_types_op_error_t {
+  // Index of the failing operation in a batch. `none` outside `batch`.
+  bindings_option_u32_t   op_index;
+  // Backend error code when one is available (e.g. Redis "WRONGTYPE", "ERR").
+  bindings_option_string_t   code;
+  bindings_string_t   message;
+} gcore_db_kv_types_op_error_t;
+
+// The set of errors which may be raised by functions in this interface
+typedef struct gcore_db_kv_types_error_t {
+  uint8_t tag;
+  union {
+    bindings_string_t     config;
+    bindings_string_t     connection;
+    bindings_string_t     limit;
+    gcore_db_kv_types_op_error_t     operation;
+  } val;
+} gcore_db_kv_types_error_t;
+
+// The host does not recognize the database binding requested.
+#define GCORE_DB_KV_TYPES_ERROR_NO_SUCH_DATABASE 0
+// The requesting component does not have access to the specified database or operation
+// (which may or may not exist), e.g. a write through a read-only binding.
+#define GCORE_DB_KV_TYPES_ERROR_ACCESS_DENIED 1
+// The binding is misconfigured (e.g. bad credentials). Not retryable without a configuration
+// change.
+#define GCORE_DB_KV_TYPES_ERROR_CONFIG 2
+// The database could not be reached (network, DNS, TLS, backend unavailable).
+#define GCORE_DB_KV_TYPES_ERROR_CONNECTION 3
+// The call exceeded the host's time limit. The operation may or may not have been applied.
+#define GCORE_DB_KV_TYPES_ERROR_TIMEOUT 4
+// A host or backend limit was exceeded (e.g. key/value size, operations per batch).
+#define GCORE_DB_KV_TYPES_ERROR_LIMIT 5
+// An operation failed (e.g. `incr` on a non-integer value).
+#define GCORE_DB_KV_TYPES_ERROR_OPERATION 6
+// Some unexpected internal error has occurred.
+#define GCORE_DB_KV_TYPES_ERROR_INTERNAL_ERROR 7
+
+typedef gcore_db_kv_types_kv_value_t gcore_db_kv_sync_kv_value_t;
+
+typedef gcore_db_kv_types_set_options_t gcore_db_kv_sync_set_options_t;
+
+typedef gcore_db_kv_types_op_t gcore_db_kv_sync_op_t;
+
+typedef gcore_db_kv_types_op_result_t gcore_db_kv_sync_op_result_t;
+
+typedef gcore_db_kv_types_error_t gcore_db_kv_sync_error_t;
+
+typedef struct gcore_db_kv_sync_own_database_t {
+  int32_t __handle;
+} gcore_db_kv_sync_own_database_t;
+
+typedef struct gcore_db_kv_sync_borrow_database_t {
+  int32_t __handle;
+} gcore_db_kv_sync_borrow_database_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_kv_sync_own_database_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_own_database_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bindings_option_kv_value_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_option_kv_value_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bool ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_bool_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    int64_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_s64_error_t;
+
+typedef struct {
+  gcore_db_kv_sync_op_t *ptr;
+  size_t len;
+} gcore_db_kv_sync_list_op_t;
+
+typedef struct {
+  gcore_db_kv_sync_op_result_t *ptr;
+  size_t len;
+} gcore_db_kv_sync_list_op_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_kv_sync_list_op_result_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_list_op_result_error_t;
+
 typedef struct {
   bindings_string_t f0;
   bindings_string_t f1;
@@ -1329,11 +1532,6 @@ typedef struct wasi_http_types_tls_alert_received_payload_t {
   bindings_option_string_t   alert_message;
 } wasi_http_types_tls_alert_received_payload_t;
 
-typedef struct {
-  bool is_some;
-  uint32_t val;
-} bindings_option_u32_t;
-
 // Defines the case payload type for `HTTP-response-{header,trailer}-size` above:
 typedef struct wasi_http_types_field_size_payload_t {
   bindings_option_string_t   field_name;
@@ -1875,6 +2073,44 @@ extern bool gcore_db_sql_sync_method_database_query(gcore_db_sql_sync_borrow_dat
 // Returns one `query-result` per statement, in order. On failure nothing is committed
 // and the error of the failing statement is returned.
 extern bool gcore_db_sql_sync_method_database_batch(gcore_db_sql_sync_borrow_database_t self, gcore_db_sql_sync_list_statement_t *statements, gcore_db_sql_sync_list_query_result_t *ret, gcore_db_sql_sync_error_t *err);
+
+// Imported Functions from `gcore:db/kv-sync@0.1.0`
+// Open the database bound to `name`.
+// 
+// `error::no-such-database` will be raised if the `name` is not recognized.
+extern bool gcore_db_kv_sync_static_database_open(bindings_string_t *name, gcore_db_kv_sync_own_database_t *ret, gcore_db_kv_sync_error_t *err);
+// Get the value of `key`.
+// 
+// Returns `ok(none)` if the key does not exist or has expired.
+extern bool gcore_db_kv_sync_method_database_get(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, bindings_option_kv_value_t *ret, gcore_db_kv_sync_error_t *err);
+// Check whether `key` exists (and has not expired), without fetching its value.
+extern bool gcore_db_kv_sync_method_database_exists(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, bool *ret, gcore_db_kv_sync_error_t *err);
+// Set `key` to `value`, subject to `options.condition`.
+// 
+// Returns `ok(true)` if the value was written, `ok(false)` if the condition was not met.
+extern bool gcore_db_kv_sync_method_database_set(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, gcore_db_kv_sync_kv_value_t *value, gcore_db_kv_sync_set_options_t *options, bool *ret, gcore_db_kv_sync_error_t *err);
+// Delete `key`.
+// 
+// Returns `ok(true)` if the key existed, `ok(false)` otherwise.
+extern bool gcore_db_kv_sync_method_database_delete(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, bool *ret, gcore_db_kv_sync_error_t *err);
+// Add `delta` to the integer stored at `key`. `delta` may be negative.
+// 
+// A missing key is treated as `0`. Does not change the key's expiry.
+// Returns the new value. Fails with `error::operation` if the stored value is not a decimal
+// 64-bit integer or the result would overflow.
+extern bool gcore_db_kv_sync_method_database_incr(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, int64_t delta, int64_t *ret, gcore_db_kv_sync_error_t *err);
+// Set the expiry of `key` to `ttl-ms` milliseconds from now.
+// 
+// Returns `ok(true)` if the key exists and the expiry was set, `ok(false)` if it does not exist.
+extern bool gcore_db_kv_sync_method_database_expire(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, uint64_t ttl_ms, bool *ret, gcore_db_kv_sync_error_t *err);
+// Run several operations atomically: all are applied or none are, and no other client
+// observes or interleaves with a partial batch.
+// 
+// Operations see the effects of earlier operations in the same batch.
+// A `set` whose condition is not met is not a failure: it returns `set(false)` and the batch
+// continues. Any other failing operation aborts the whole batch with `error::operation`,
+// whose `op-index` identifies the operation.
+extern bool gcore_db_kv_sync_method_database_batch(gcore_db_kv_sync_borrow_database_t self, gcore_db_kv_sync_list_op_t *ops, gcore_db_kv_sync_list_op_result_t *ret, gcore_db_kv_sync_error_t *err);
 
 // Imported Functions from `wasi:cli/environment@0.2.3`
 // Get the POSIX-style environment variables.
@@ -2537,6 +2773,54 @@ void gcore_db_sql_sync_list_query_result_free(gcore_db_sql_sync_list_query_resul
 
 void gcore_db_sql_sync_result_list_query_result_error_free(gcore_db_sql_sync_result_list_query_result_error_t *ptr);
 
+void gcore_db_kv_types_kv_value_free(gcore_db_kv_types_kv_value_t *ptr);
+
+void gcore_db_kv_types_set_op_free(gcore_db_kv_types_set_op_t *ptr);
+
+void gcore_db_kv_types_incr_op_free(gcore_db_kv_types_incr_op_t *ptr);
+
+void gcore_db_kv_types_expire_op_free(gcore_db_kv_types_expire_op_t *ptr);
+
+void gcore_db_kv_types_op_free(gcore_db_kv_types_op_t *ptr);
+
+void bindings_option_kv_value_free(bindings_option_kv_value_t *ptr);
+
+void gcore_db_kv_types_op_result_free(gcore_db_kv_types_op_result_t *ptr);
+
+void bindings_option_u32_free(bindings_option_u32_t *ptr);
+
+void gcore_db_kv_types_op_error_free(gcore_db_kv_types_op_error_t *ptr);
+
+void gcore_db_kv_types_error_free(gcore_db_kv_types_error_t *ptr);
+
+void gcore_db_kv_sync_kv_value_free(gcore_db_kv_sync_kv_value_t *ptr);
+
+void gcore_db_kv_sync_op_free(gcore_db_kv_sync_op_t *ptr);
+
+void gcore_db_kv_sync_op_result_free(gcore_db_kv_sync_op_result_t *ptr);
+
+void gcore_db_kv_sync_error_free(gcore_db_kv_sync_error_t *ptr);
+
+extern void gcore_db_kv_sync_database_drop_own(gcore_db_kv_sync_own_database_t handle);
+
+extern void gcore_db_kv_sync_database_drop_borrow(gcore_db_kv_sync_borrow_database_t handle);
+
+extern gcore_db_kv_sync_borrow_database_t gcore_db_kv_sync_borrow_database(gcore_db_kv_sync_own_database_t handle);
+
+void gcore_db_kv_sync_result_own_database_error_free(gcore_db_kv_sync_result_own_database_error_t *ptr);
+
+void gcore_db_kv_sync_result_option_kv_value_error_free(gcore_db_kv_sync_result_option_kv_value_error_t *ptr);
+
+void gcore_db_kv_sync_result_bool_error_free(gcore_db_kv_sync_result_bool_error_t *ptr);
+
+void gcore_db_kv_sync_result_s64_error_free(gcore_db_kv_sync_result_s64_error_t *ptr);
+
+void gcore_db_kv_sync_list_op_free(gcore_db_kv_sync_list_op_t *ptr);
+
+void gcore_db_kv_sync_list_op_result_free(gcore_db_kv_sync_list_op_result_t *ptr);
+
+void gcore_db_kv_sync_result_list_op_result_error_free(gcore_db_kv_sync_result_list_op_result_error_t *ptr);
+
 void bindings_tuple2_string_string_free(bindings_tuple2_string_string_t *ptr);
 
 void bindings_list_tuple2_string_string_free(bindings_list_tuple2_string_string_t *ptr);
@@ -2748,10 +3032,6 @@ void wasi_http_types_dns_error_payload_free(wasi_http_types_dns_error_payload_t 
 void bindings_option_u8_free(bindings_option_u8_t *ptr);
 
 void wasi_http_types_tls_alert_received_payload_free(wasi_http_types_tls_alert_received_payload_t *ptr);
-
-void bindings_option_u32_free(bindings_option_u32_t *ptr);
-
-void wasi_http_types_field_size_payload_free(wasi_http_types_field_size_payload_t *ptr);
 
 void wasi_http_types_option_field_size_payload_free(wasi_http_types_option_field_size_payload_t *ptr);
 

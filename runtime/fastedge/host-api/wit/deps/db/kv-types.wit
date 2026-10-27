@@ -1,0 +1,98 @@
+package gcore:db@0.1.0;
+
+/// Shared types for the Database KV interfaces.
+interface kv-types {
+  /// Values are bytes, like `key-value.value` and `cache-types.payload`. Named `kv-value`, not
+  /// `value`: C bindings (wit-bindgen 0.52) name `option<value>` globally, so it would collide
+  /// with `key-value`'s.
+  ///
+  /// v1 restriction: values must be valid UTF-8 (current backends can't store arbitrary bytes over
+  /// their HTTP APIs). Writing a non-UTF-8 value fails with `error::limit`. Lifting this
+  /// restriction later does not change the interface.
+  type kv-value = list<u8>;
+
+  /// When `set` writes.
+  enum set-condition {
+    /// Always write.
+    always,
+    /// Write only if the key does not exist.
+    if-not-exists,
+    /// Write only if the key exists.
+    if-exists,
+  }
+
+  /// Options for `set`.
+  record set-options {
+    /// Expire the key after this many milliseconds. `none`: no expiry.
+    /// A successful `set` always replaces the key's previous expiry.
+    ttl-ms: option<u64>,
+    condition: set-condition,
+  }
+
+  record set-op {
+    key: string,
+    value: kv-value,
+    options: set-options,
+  }
+
+  record incr-op {
+    key: string,
+    delta: s64,
+  }
+
+  record expire-op {
+    key: string,
+    ttl-ms: u64,
+  }
+
+  /// One operation in a batch. Same semantics as the method of the same name.
+  variant op {
+    get(string),
+    exists(string),
+    set(set-op),
+    delete(string),
+    incr(incr-op),
+    expire(expire-op),
+  }
+
+  /// Result of one batch operation, in the same order as the operations.
+  variant op-result {
+    get(option<kv-value>),
+    exists(bool),
+    set(bool),
+    delete(bool),
+    incr(s64),
+    expire(bool),
+  }
+
+  /// Error details reported by the backend.
+  record op-error {
+    /// Index of the failing operation in a batch. `none` outside `batch`.
+    op-index: option<u32>,
+    /// Backend error code when one is available (e.g. Redis "WRONGTYPE", "ERR").
+    code: option<string>,
+    message: string,
+  }
+
+  /// The set of errors which may be raised by functions in this interface
+  variant error {
+    /// The host does not recognize the database binding requested.
+    no-such-database,
+    /// The requesting component does not have access to the specified database or operation
+    /// (which may or may not exist), e.g. a write through a read-only binding.
+    access-denied,
+    /// The binding is misconfigured (e.g. bad credentials). Not retryable without a configuration
+    /// change.
+    config(string),
+    /// The database could not be reached (network, DNS, TLS, backend unavailable).
+    connection(string),
+    /// The call exceeded the host's time limit. The operation may or may not have been applied.
+    timeout,
+    /// A host or backend limit was exceeded (e.g. key/value size, operations per batch).
+    limit(string),
+    /// An operation failed (e.g. `incr` on a non-integer value).
+    operation(op-error),
+    /// Some unexpected internal error has occurred.
+    internal-error,
+  }
+}

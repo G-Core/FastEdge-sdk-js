@@ -59,6 +59,15 @@ describe('es-bundle - fastedge:: namespace resolver', () => {
     expect(out).not.toContain('globalThis.fastedge.Cache');
   });
 
+  it('resolves fastedge::db/kv to globalThis.KvDatabase and KvError', async () => {
+    expect.assertions(2);
+    const out = await bundle(
+      `import { KvDatabase, KvError } from 'fastedge::db/kv'; export { KvDatabase, KvError };`,
+    );
+    expect(out).toContain('globalThis.KvDatabase');
+    expect(out).toContain('globalThis.KvError');
+  });
+
   it('returns empty contents for unknown fastedge:: imports', async () => {
     expect.assertions(2);
     const out = await bundle(`import * as unknown from 'fastedge::unknown'; export { unknown };`);

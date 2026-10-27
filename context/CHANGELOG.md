@@ -5,6 +5,35 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-27] — POC: `fastedge::db/kv` (gcore:db/kv-sync@0.1.0)
+
+### Overview
+Database KV binding (regional, durable, writable; Upstash Redis in the POC): `KvDatabase` by
+binding name; the host holds the credentials. Mirrors `Cache` (instance methods on an opened
+binding).
+
+### Decisions
+- Sync host calls, already-settled Promises (as `db/sql` and `Cache`). Plain `kv` is reserved for an
+  async interface (`feat/db-interface-kv-async`).
+- Reuse in place: `CacheEntry` (get results), `WriteOptions` TTL parsing and value coercion are
+  exported from `cache.cpp` (`cache.h`); the host-error class and `settle` from `db-sql.cpp`.
+- WIT type is `kv-value`, not `value`: wit-bindgen 0.52 C names `option<value>` globally, which
+  collided with `key-value`'s and generated code that didn't compile.
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface-kv` ca89dc6; bindings regenerated
+- New builtin `builtins/db-kv.cpp`: globals `KvDatabase` (`open`; `get`, `exists`, `set`, `delete`,
+  `incr`, `expire`, `batch` → Promises) and `KvError` (`kind`, `code`, `opIndex`)
+- `cache.cpp` / new `cache.h`: `new_entry`, `ttl_ms_option`, `value_bytes`;
+  `db-sql.{h,cpp}`: `define_error_class`, `new_error`, `settle` shared
+- `es-bundle.ts`: `fastedge::db/kv` re-exports `KvDatabase`, `KvError` (+ test)
+- `types/fastedge-db-kv.d.ts`, referenced from `types/index.d.ts`
+- `examples/db-kv`: same keys, limits and responses as sdk-rust `examples/http/wasi/db_kv`
+- **Release order:** every app built with this SDK also imports `gcore:db/kv-sync@0.1.0`; ship the
+  engine with `kv-sync` on every edge first (same constraint as `sql-sync`).
+
+---
+
 ## [2026-10-27] — db: async `fastedge::db/sql` over `gcore:db/sql` (branch `feat/db-interface-async`)
 
 ### Overview
