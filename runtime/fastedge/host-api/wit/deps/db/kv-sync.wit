@@ -2,7 +2,12 @@ package gcore:db@0.1.0;
 
 /// FastEdge Database KV interface (synchronous variant).
 ///
-/// Regional, durable, strongly consistent key-value storage, writable from applications.
+/// Regional, durable key-value storage, writable from applications.
+///
+/// Consistency: within one request, reads see that request's earlier writes (read-your-writes).
+/// Other requests, possibly on other edges, see a write once it has replicated: immediately for a
+/// database in one region, eventually for one with read replicas in other regions. `batch` is
+/// atomic either way.
 /// Not to be confused with:
 /// - Edge Storage (`gcore:fastedge/key-value`): read-only from apps, replicated to every edge.
 /// - `gcore:fastedge/cache-sync`: local to one PoP, not durable.

@@ -79,6 +79,9 @@ declare module 'fastedge::db/kv' {
    *
    * Every call is a round trip to the database.
    *
+   * Within one request, reads see the request's own writes. Other requests may see a write only
+   * after it has replicated (eventually, for a database with read replicas in other regions).
+   *
    * @example
    * ```js
    * /// <reference types="@gcoredev/fastedge-sdk-js" />
