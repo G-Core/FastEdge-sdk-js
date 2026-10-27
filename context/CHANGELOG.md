@@ -5,6 +5,20 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-27] — POC: `fastedge::db/sql` (gcore:db/sql@0.1.0)
+
+### Overview
+Spike of the SQL database binding: apps query a customer-owned Postgres (Neon) by binding name; the host holds the credentials.
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface` (`gcore:db/sql@0.1.0` in `deps/db`)
+- `merge-wit-bindings.js`: hoists FastEdge-wit `deps/*` to `wit/deps/` so wit-bindgen resolves them
+- New builtin `builtins/db-sql.cpp` (`globalThis.__fastedgeDbSql`: raw `open`/`query`/`batch`, sync host calls)
+- `es-bundle.ts`: virtual module `fastedge::db/sql` (`SqlDatabase`, `SqlError`, type mapping, `rowMode: 'array'`)
+- No types/docs/tests yet (spike). Drizzle works via `drizzle-orm/pg-proxy` (see coordinator `db-integration/`)
+
+---
+
 ## [2026-10-27] — StarlingMonkey v0.4.0 (no fork) + wit-bindgen 0.52.0
 
 ### Overview

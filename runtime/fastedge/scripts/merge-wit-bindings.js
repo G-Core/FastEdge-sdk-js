@@ -65,6 +65,12 @@ function mergeFastEdgeWitFiles() {
   const fastedgeDepsDir = path.join(witDir, 'deps/fastedge');
   fs.mkdirSync(fastedgeDepsDir, { recursive: true });
   copyFilesRecursively(fastedgeWitDir, fastedgeDepsDir);
+  // FastEdge-wit's own deps (e.g. gcore:db) must sit at wit/deps/ for wit-bindgen to resolve them.
+  const nestedDepsDir = path.join(fastedgeDepsDir, 'deps');
+  if (fs.existsSync(nestedDepsDir)) {
+    copyFilesRecursively(nestedDepsDir, path.join(witDir, 'deps'));
+    fs.rmSync(nestedDepsDir, { recursive: true });
+  }
   // Remove the files we dont use in FastEdge-sdk-js
   removeFastEdgeDepsWeDontUse(fastedgeDepsDir);
   // Remove extra files from submodule

@@ -42,6 +42,51 @@ const fastedgePackagePlugin: Plugin = {
             `,
           };
         }
+        case 'db/sql': {
+          // POC: public API over the raw `__fastedgeDbSql` builtin (runtime/fastedge/builtins/db-sql.cpp).
+          return {
+            contents: `
+            const raw = globalThis.__fastedgeDbSql;
+            const JSON_OIDS = [114, 3802];
+            export class SqlError extends Error {
+              constructor(e) { super(e.message); this.name = 'SqlError'; Object.assign(this, e); }
+            }
+            const call = (fn) => {
+              try { return fn(); } catch (e) { throw e instanceof Error ? e : new SqlError(e); }
+            };
+            const param = (v) =>
+              v instanceof Date ? v.toISOString()
+              : v !== null && typeof v === 'object' && !(v instanceof Uint8Array) ? JSON.stringify(v)
+              : v;
+            const toResult = (r, arrayMode) => {
+              const columns = r.columns.map(([name, typeOid]) => ({ name, typeOid }));
+              const value = (v, c) =>
+                v === null ? v
+                : JSON_OIDS.includes(c.typeOid) ? JSON.parse(v)
+                : typeof v === 'bigint' ? String(v)
+                : v;
+              const rows = r.rows.map((row) => arrayMode
+                ? row.map((v, i) => value(v, columns[i]))
+                : Object.fromEntries(columns.map((c, i) => [c.name, value(row[i], c)])));
+              return { rows, rowCount: r.rowCount, columns };
+            };
+            export class SqlDatabase {
+              #handle;
+              constructor(handle) { this.#handle = handle; }
+              static open(name) { return new SqlDatabase(call(() => raw.open(name))); }
+              async query(sql, params = [], options = {}) {
+                const r = call(() => raw.query(this.#handle, sql, params.map(param)));
+                return toResult(r, options.rowMode === 'array');
+              }
+              async batch(statements, options = {}) {
+                const rs = call(() => raw.batch(this.#handle,
+                  statements.map((s) => [s.sql, (s.params ?? []).map(param)])));
+                return rs.map((r) => toResult(r, options.rowMode === 'array'));
+              }
+            }
+            `,
+          };
+        }
         default: {
           return { contents: '' };
         }
