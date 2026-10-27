@@ -1,18 +1,7 @@
 package gcore:db@0.1.0;
 
-/// FastEdge SQL interface (synchronous variant).
-///
-/// The contract is PostgreSQL: dialect, `$1`-style positional parameters and SQLSTATE error codes.
-/// Applications name a binding (e.g. "main"); the host maps it to a backend. Backend, location and
-/// credentials are invisible to the application, so a binding can move between backends without
-/// code changes.
-///
-/// Every call is a network round trip to a regional database. There is no session state between
-/// calls: each `query` auto-commits and each `batch` is its own transaction.
-///
-/// Calls are subject to host limits (timeout, response size, statements per batch). Exceeding
-/// them returns `error::timeout` or `error::limit`.
-interface sql {
+/// Shared types for the SQL interfaces.
+interface sql-types {
   /// A parameter or result value.
   ///
   /// Results use the narrowest variant that is lossless:
@@ -75,26 +64,7 @@ interface sql {
     constraint: option<string>,
   }
 
-  /// FastEdge SQL database resource.
-  resource database {
-    /// Open the database bound to `name`.
-    ///
-    /// `error::no-such-database` will be raised if the `name` is not recognized.
-    open: static func(name: string) -> result<database, error>;
-
-    /// Run one statement with positional parameters (`$1`, `$2`, ...). Auto-commits.
-    ///
-    /// `sql` must contain exactly one statement.
-    query: func(sql: string, params: list<value>) -> result<query-result, error>;
-
-    /// Run several statements in one transaction. Either all commit or none do.
-    ///
-    /// Returns one `query-result` per statement, in order. On failure nothing is committed
-    /// and the error of the failing statement is returned.
-    batch: func(statements: list<statement>) -> result<list<query-result>, error>;
-  }
-
-  /// The set of errors which may be raised by functions in this interface
+  /// The set of errors which may be raised by the SQL interfaces.
   variant error {
     /// The host does not recognize the database binding requested.
     no-such-database,

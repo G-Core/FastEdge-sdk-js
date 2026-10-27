@@ -6,6 +6,6 @@ world reactor {
     import key-value;
     import utils;
     import cache-sync;
-    import gcore:db/sql@0.1.0;
+    import gcore:db/sql-sync@0.1.0;
 
 }

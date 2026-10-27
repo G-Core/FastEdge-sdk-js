@@ -5,6 +5,25 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-27] — db: builtin binds `gcore:db/sql-sync` (WIT split)
+
+### Overview
+FastEdge-wit split `gcore:db/sql` into `sql-types` + `sql-sync` (like `cache-types` / `cache-sync`).
+The JS API (`fastedge::db/sql`) is unchanged.
+
+### Decisions
+- MVP stays sync. Plain `sql` is reserved for an async (pollable) interface; JS is expected to move
+  to it on `feat/db-interface-async` if it measures better (Promise.all concurrency).
+- Release order still applies, now for `gcore:db/sql-sync@0.1.0` (and `sql-types`): engine on all
+  edges → fastedge-test → this SDK.
+
+### Changes
+- `runtime/FastEdge-wit` → 83a7d08; bindings regenerated (wit-bindgen 0.52.0)
+- `runtime/fastedge/builtins/db-sql.{h,cpp}` — `gcore_db_sql_*` → `gcore_db_sql_sync_*`, data types
+  and variant tags from `gcore_db_sql_types_*`
+
+---
+
 ## [2026-10-27] — POC: `fastedge::db/sql` (gcore:db/sql@0.1.0)
 
 ### Overview

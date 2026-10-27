@@ -1,4 +1,4 @@
-// `fastedge::db/sql`: `SqlDatabase` + `SqlError` over `gcore:db/sql@0.1.0`.
+// `fastedge::db/sql`: `SqlDatabase` + `SqlError` over `gcore:db/sql-sync@0.1.0`.
 // ponytail: host calls are synchronous; query/batch return already-settled Promises (like Cache).
 #include "db-sql.h"
 #include "encode.h"
@@ -60,20 +60,20 @@ JSObject *new_sql_error(JSContext *cx, const char *kind, JS::HandleString messag
 }
 
 // Host error -> pending SqlError exception. Always returns false.
-bool throw_sql_error(JSContext *cx, gcore_db_sql_error_t &err) {
+bool throw_sql_error(JSContext *cx, gcore_db_sql_sync_error_t &err) {
   static const char *KINDS[] = {"config", "access-denied", "config", "connection",
                                 "timeout", "limit",         "query",  "internal"};
   static const char *MESSAGES[] = {"no such database", "access denied", "", "",
                                    "timeout",          "",              "", "internal error"};
-  const gcore_db_sql_db_error_t *db_err = err.tag == GCORE_DB_SQL_ERROR_CONFIG  ? &err.val.config
-                                          : err.tag == GCORE_DB_SQL_ERROR_QUERY ? &err.val.query
+  const gcore_db_sql_types_db_error_t *db_err = err.tag == GCORE_DB_SQL_TYPES_ERROR_CONFIG  ? &err.val.config
+                                          : err.tag == GCORE_DB_SQL_TYPES_ERROR_QUERY ? &err.val.query
                                                                                 : nullptr;
   JS::RootedString message(cx);
   if (db_err) {
     message = new_string(cx, db_err->message.ptr, db_err->message.len);
-  } else if (err.tag == GCORE_DB_SQL_ERROR_CONNECTION) {
+  } else if (err.tag == GCORE_DB_SQL_TYPES_ERROR_CONNECTION) {
     message = new_string(cx, err.val.connection.ptr, err.val.connection.len);
-  } else if (err.tag == GCORE_DB_SQL_ERROR_LIMIT) {
+  } else if (err.tag == GCORE_DB_SQL_TYPES_ERROR_LIMIT) {
     message = new_string(cx, err.val.limit.ptr, err.val.limit.len);
   } else {
     message = JS_NewStringCopyZ(cx, MESSAGES[err.tag]);
@@ -88,13 +88,13 @@ bool throw_sql_error(JSContext *cx, gcore_db_sql_error_t &err) {
   }
   if (db_err) {
     // The generated db_error_free (wit-bindgen 0.30 and 0.52) only frees `message`.
-    auto *e = const_cast<gcore_db_sql_db_error_t *>(db_err);
+    auto *e = const_cast<gcore_db_sql_types_db_error_t *>(db_err);
     bindings_option_string_free(&e->code);
     bindings_option_string_free(&e->detail);
     bindings_option_string_free(&e->hint);
     bindings_option_string_free(&e->constraint);
   }
-  gcore_db_sql_error_free(&err);
+  gcore_db_sql_sync_error_free(&err);
   if (ok) {
     JS::RootedValue exc(cx, JS::ObjectValue(*obj));
     JS_SetPendingException(cx, exc);
@@ -126,29 +126,29 @@ bool append_u16(const char16_t *buf, uint32_t len, void *data) {
 // JS param -> WIT value: null/undefined, boolean, number, bigint (int8), Uint8Array (bytea),
 // Date (ISO text), other objects (JSON text), anything else as text. Strings/bytes are owned by
 // `keep`/`bytes` until the host call returns.
-bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_value_t &out,
+bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_sync_value_t &out,
               std::vector<host_api::HostString> &keep, std::vector<std::vector<uint8_t>> &bytes) {
   if (v.isNullOrUndefined()) {
-    out.tag = GCORE_DB_SQL_VALUE_NULL;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_NULL;
     return true;
   }
   if (v.isBoolean()) {
-    out.tag = GCORE_DB_SQL_VALUE_BOOLEAN;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_BOOLEAN;
     out.val.boolean = v.toBoolean();
     return true;
   }
   if (v.isInt32()) {
-    out.tag = GCORE_DB_SQL_VALUE_INT32;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_INT32;
     out.val.int32 = v.toInt32();
     return true;
   }
   if (v.isNumber()) {
-    out.tag = GCORE_DB_SQL_VALUE_FLOAT64;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_FLOAT64;
     out.val.float64 = v.toNumber();
     return true;
   }
   if (v.isBigInt()) {
-    out.tag = GCORE_DB_SQL_VALUE_INT64;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_INT64;
     out.val.int64 = JS::ToBigInt64(v.toBigInt());
     return true;
   }
@@ -162,7 +162,7 @@ bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_value_t &out,
         bool is_shared;
         std::memcpy(buf.data(), JS_GetArrayBufferViewData(obj, &is_shared, noGC), buf.size());
       }
-      out.tag = GCORE_DB_SQL_VALUE_BYTES;
+      out.tag = GCORE_DB_SQL_TYPES_VALUE_BYTES;
       out.val.bytes = {buf.data(), buf.size()};
       return true;
     }
@@ -185,12 +185,12 @@ bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_value_t &out,
   if (!str) return false;
   auto &s = keep.emplace_back(core::encode(cx, str));
   if (!s) return false;
-  out.tag = GCORE_DB_SQL_VALUE_TEXT;
+  out.tag = GCORE_DB_SQL_TYPES_VALUE_TEXT;
   out.val.text = {(uint8_t *)s.ptr.get(), s.len};
   return true;
 }
 
-bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_sql_value_t> &out,
+bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_sql_sync_value_t> &out,
                std::vector<host_api::HostString> &keep,
                std::vector<std::vector<uint8_t>> &bytes) {
   if (arr_val.isUndefined()) return true;
@@ -212,27 +212,27 @@ bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_sql_
 
 // WIT value -> JS, per the `fastedge::db/sql` type mapping: int8 as string (no precision loss),
 // json/jsonb parsed, bytea as Uint8Array, numeric/text as string.
-bool from_value(JSContext *cx, const gcore_db_sql_value_t &v, JS::MutableHandleValue out) {
+bool from_value(JSContext *cx, const gcore_db_sql_sync_value_t &v, JS::MutableHandleValue out) {
   switch (v.tag) {
-  case GCORE_DB_SQL_VALUE_NULL:
+  case GCORE_DB_SQL_TYPES_VALUE_NULL:
     out.setNull();
     return true;
-  case GCORE_DB_SQL_VALUE_BOOLEAN:
+  case GCORE_DB_SQL_TYPES_VALUE_BOOLEAN:
     out.setBoolean(v.val.boolean);
     return true;
-  case GCORE_DB_SQL_VALUE_INT32:
+  case GCORE_DB_SQL_TYPES_VALUE_INT32:
     out.setInt32(v.val.int32);
     return true;
-  case GCORE_DB_SQL_VALUE_FLOAT64:
+  case GCORE_DB_SQL_TYPES_VALUE_FLOAT64:
     out.setDouble(v.val.float64);
     return true;
-  case GCORE_DB_SQL_VALUE_INT64: {
+  case GCORE_DB_SQL_TYPES_VALUE_INT64: {
     JSString *str = JS_NewStringCopyZ(cx, std::to_string(v.val.int64).c_str());
     if (!str) return false;
     out.setString(str);
     return true;
   }
-  case GCORE_DB_SQL_VALUE_BYTES: {
+  case GCORE_DB_SQL_TYPES_VALUE_BYTES: {
     JS::RootedObject arr(cx, JS_NewUint8Array(cx, v.val.bytes.len));
     if (!arr) return false;
     {
@@ -244,7 +244,7 @@ bool from_value(JSContext *cx, const gcore_db_sql_value_t &v, JS::MutableHandleV
     out.setObject(*arr);
     return true;
   }
-  case GCORE_DB_SQL_VALUE_JSON: {
+  case GCORE_DB_SQL_TYPES_VALUE_JSON: {
     JS::RootedString str(cx, new_string(cx, v.val.json.ptr, v.val.json.len));
     return str && JS_ParseJSON(cx, str, out);
   }
@@ -259,7 +259,7 @@ bool from_value(JSContext *cx, const gcore_db_sql_value_t &v, JS::MutableHandleV
 
 // `{ rows, rowCount, columns: [{ name, typeOid }] }`; rows are objects keyed by column name,
 // or arrays in column order with `rowMode: 'array'`.
-JSObject *from_result(JSContext *cx, const gcore_db_sql_query_result_t &r, bool array_mode) {
+JSObject *from_result(JSContext *cx, const gcore_db_sql_sync_query_result_t &r, bool array_mode) {
   JS::RootedObject obj(cx, JS_NewPlainObject(cx));
   JS::RootedObject columns(cx, JS::NewArrayObject(cx, r.columns.len));
   JS::RootedObject rows(cx, JS::NewArrayObject(cx, r.rows.len));
@@ -315,7 +315,7 @@ bool array_mode(JSContext *cx, JS::HandleValue options, bool *out) {
   return !mode.isString() || JS_StringEqualsLiteral(cx, mode.toString(), "array", out);
 }
 
-bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_borrow_database_t &out) {
+bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_sync_borrow_database_t &out) {
   JS::RootedObject self(cx, args.thisv().isObject() ? &args.thisv().toObject() : nullptr);
   if (!self || !JS_InstanceOf(cx, self, &SqlDatabase::class_, nullptr)) {
     JS_ReportErrorUTF8(cx, "Invalid SqlDatabase instance");
@@ -326,7 +326,7 @@ bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_borrow_database
 }
 
 bool run_query(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result) {
-  gcore_db_sql_borrow_database_t db;
+  gcore_db_sql_sync_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   JS::RootedString sql_str(cx, JS::ToString(cx, args[0]));
   if (!sql_str) return false;
@@ -335,27 +335,27 @@ bool run_query(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
   bool rows_as_arrays;
   if (!array_mode(cx, args.get(2), &rows_as_arrays)) return false;
 
-  std::vector<gcore_db_sql_value_t> params;
+  std::vector<gcore_db_sql_sync_value_t> params;
   std::vector<host_api::HostString> keep;
   std::vector<std::vector<uint8_t>> bytes;
   if (!to_params(cx, args.get(1), params, keep, bytes)) return false;
 
   bindings_string_t sql_ws{(uint8_t *)sql.ptr.get(), sql.len};
-  gcore_db_sql_list_value_t params_ws{params.data(), params.size()};
-  gcore_db_sql_query_result_t ret{};
-  gcore_db_sql_error_t err{};
-  if (!gcore_db_sql_method_database_query(db, &sql_ws, &params_ws, &ret, &err)) {
+  gcore_db_sql_sync_list_value_t params_ws{params.data(), params.size()};
+  gcore_db_sql_sync_query_result_t ret{};
+  gcore_db_sql_sync_error_t err{};
+  if (!gcore_db_sql_sync_method_database_query(db, &sql_ws, &params_ws, &ret, &err)) {
     return throw_sql_error(cx, err);
   }
   JSObject *obj = from_result(cx, ret, rows_as_arrays);
-  gcore_db_sql_query_result_free(&ret);
+  gcore_db_sql_sync_query_result_free(&ret);
   if (!obj) return false;
   result.setObject(*obj);
   return true;
 }
 
 bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result) {
-  gcore_db_sql_borrow_database_t db;
+  gcore_db_sql_sync_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   bool rows_as_arrays;
   if (!array_mode(cx, args.get(1), &rows_as_arrays)) return false;
@@ -370,8 +370,8 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
 
   std::vector<host_api::HostString> keep;
   std::vector<std::vector<uint8_t>> bytes;
-  std::vector<std::vector<gcore_db_sql_value_t>> params(len);
-  std::vector<gcore_db_sql_statement_t> stmts(len);
+  std::vector<std::vector<gcore_db_sql_sync_value_t>> params(len);
+  std::vector<gcore_db_sql_sync_statement_t> stmts(len);
   JS::RootedValue el(cx), sql_val(cx), params_val(cx);
   for (uint32_t i = 0; i < len; i++) {
     if (!JS_GetElement(cx, list, i, &el)) return false;
@@ -395,10 +395,10 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
     stmts[i] = {sql_ws, {params[i].data(), params[i].size()}};
   }
 
-  gcore_db_sql_list_statement_t stmts_ws{stmts.data(), stmts.size()};
-  gcore_db_sql_list_query_result_t ret{};
-  gcore_db_sql_error_t err{};
-  if (!gcore_db_sql_method_database_batch(db, &stmts_ws, &ret, &err)) {
+  gcore_db_sql_sync_list_statement_t stmts_ws{stmts.data(), stmts.size()};
+  gcore_db_sql_sync_list_query_result_t ret{};
+  gcore_db_sql_sync_error_t err{};
+  if (!gcore_db_sql_sync_method_database_batch(db, &stmts_ws, &ret, &err)) {
     return throw_sql_error(cx, err);
   }
   JS::RootedObject out(cx, JS::NewArrayObject(cx, ret.len));
@@ -412,7 +412,7 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
       ok = JS_SetElement(cx, out, i, v);
     }
   }
-  gcore_db_sql_list_query_result_free(&ret);
+  gcore_db_sql_sync_list_query_result_free(&ret);
   if (!ok) return false;
   result.setObject(*out);
   return true;
@@ -450,9 +450,9 @@ bool SqlDatabase::open(JSContext *cx, unsigned argc, JS::Value *vp) {
   if (!name) return false;
 
   bindings_string_t name_ws{(uint8_t *)name.ptr.get(), name.len};
-  gcore_db_sql_own_database_t db{};
-  gcore_db_sql_error_t err{};
-  if (!gcore_db_sql_static_database_open(&name_ws, &db, &err)) return throw_sql_error(cx, err);
+  gcore_db_sql_sync_own_database_t db{};
+  gcore_db_sql_sync_error_t err{};
+  if (!gcore_db_sql_sync_static_database_open(&name_ws, &db, &err)) return throw_sql_error(cx, err);
 
   JS::RootedObject obj(cx, JS_NewObjectWithGivenProto(cx, &SqlDatabase::class_, nullptr));
   if (!obj || !JS_DefineFunctions(cx, obj, SqlDatabase::methods)) return false;

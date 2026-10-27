@@ -4,7 +4,7 @@
 
 namespace fastedge::db_sql {
 
-// `fastedge::db/sql`: SQL database bound by name (`gcore:db/sql@0.1.0`).
+// `fastedge::db/sql`: SQL database bound by name (`gcore:db/sql-sync@0.1.0`).
 class SqlDatabase : public builtins::BuiltinNoConstructor<SqlDatabase> {
 public:
   static constexpr const char *class_name = "SqlDatabase";
