@@ -16,6 +16,7 @@ Spike of the SQL database binding: apps query a customer-owned Postgres (Neon) b
 - New builtin `builtins/db-sql.{h,cpp}`: globals `SqlDatabase` (`open`, `query`, `batch` -> Promises; sync host calls) and `SqlError` (real `Error`, `kind`/`code`/`detail`/`hint`/`constraint`); type mapping (int8 -> string, json parsed, bytea -> Uint8Array) and `rowMode: 'array'` in C++
 - `es-bundle.ts`: `fastedge::db/sql` re-exports `SqlDatabase` and `SqlError` (same pattern as `fastedge::kv`)
 - `types/fastedge-db-sql.d.ts` (`SqlDatabase`, `SqlError`, `SqlResult<T>`, `SqlParam`, `SqlValue`), referenced from `types/index.d.ts`
+- `examples/db-sql`: Drizzle over `fastedge::db/sql` + drizzle-kit migrations (`drizzle/0000_init`, `0001_seed`); same table, data and responses as sdk-rust `examples/http/wasi/db_sql`
 - No docs/tests yet (spike). Drizzle works via `drizzle-orm/pg-proxy` (see coordinator `db-integration/`)
 
 ---
