@@ -5,6 +5,25 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-27] — StarlingMonkey v0.4.0 (no fork) + wit-bindgen 0.52.0
+
+### Overview
+Submodule moved from our fork (`godronus/gcore/integration`, 0.3.0 + 4 patches) to vanilla upstream `starlingmonkey-v0.4.0`; host-api bindings regenerated with wit-bindgen 0.52.0 (was pinned to 0.30.0).
+
+### Changes
+- `runtime/StarlingMonkey` → `starlingmonkey-v0.4.0` (`d7283bb`). All 4 fork patches are upstream (Response.clone #312, Blob.type #313, WPT baseline superseded); verified line-by-line. v0.4.0 also brings crypto fixes (HMAC use-after-free, Ed25519, key usages), URL / form-data / console fixes, FinalizationRegistry cleanup.
+- `runtime/fastedge/host-api/bindings/*` regenerated with wit-bindgen 0.52.0 (same version StarlingMonkey uses for its default wasi-0.2.10 host API, compiled against the same `wasi-0.2.0/host_api.cpp`). WASI stays 0.2.3. The 0.37.0 unaligned-offset regression is absent (offsets via `sizeof(void*)`).
+- `context/PATCHES.md`: no patches; former fork commits mapped to upstream PRs. Response.clone test guard removal marked due after edge validation.
+- `context/development/BUILD_SYSTEM.md`: required wit-bindgen is now 0.52.0; 0.30/0.37 history kept.
+
+### Verification
+- Runtime builds (9.9 MB, was 10.6 MB). Unit 458/458, integration 88/88.
+- Test app under local `fastedge-run` (wasmtime 48): echo, env, outbound fetch, secret pass; Response.clone tests 1-6, 8, 9 pass in isolation. Tests 7-8 of the guard self-fetch the app's own origin, which `fastedge-run` can't serve locally (NetworkError), so the full guard only runs on a deployed app.
+- Preprod edge (2026-10-27, test app deployed as `sdk-js-sm040-test-app`): echo, env, outbound fetch, secret pass; Response.clone tests 1-9 all correct (incl. 128 KiB multi-chunk self-fetch). On the Free plan the Response.clone handler sometimes hits the execution budget (`3010`); the same app on the published 2.7.0 runtime does too (old 12/20 vs new 15/20 completed), so not a regression.
+- Response.clone test kept as a permanent regression test (no longer a patch guard).
+
+---
+
 ## [2026-10-21] — fastedge-build: import Wasm components by WIT interface
 
 ### Overview
