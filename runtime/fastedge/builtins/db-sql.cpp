@@ -86,6 +86,14 @@ bool throw_sql_error(JSContext *cx, gcore_db_sql_error_t &err) {
          set_opt_str(cx, obj, "hint", db_err->hint) &&
          set_opt_str(cx, obj, "constraint", db_err->constraint);
   }
+  if (db_err) {
+    // The generated db_error_free (wit-bindgen 0.30 and 0.52) only frees `message`.
+    auto *e = const_cast<gcore_db_sql_db_error_t *>(db_err);
+    bindings_option_string_free(&e->code);
+    bindings_option_string_free(&e->detail);
+    bindings_option_string_free(&e->hint);
+    bindings_option_string_free(&e->constraint);
+  }
   gcore_db_sql_error_free(&err);
   if (ok) {
     JS::RootedValue exc(cx, JS::ObjectValue(*obj));
@@ -380,8 +388,11 @@ bool run_batch(JSContext *cx, JS::CallArgs &args, JS::MutableHandleValue result)
     if (!sql_str) return false;
     auto &sql = keep.emplace_back(core::encode(cx, sql_str));
     if (!sql) return false;
+    // Take the pointer now: to_params appends to `keep`, which invalidates `sql`. The buffer
+    // itself is heap-owned by the HostString and survives the vector growing.
+    bindings_string_t sql_ws{(uint8_t *)sql.ptr.get(), sql.len};
     if (!to_params(cx, params_val, params[i], keep, bytes)) return false;
-    stmts[i] = {{(uint8_t *)sql.ptr.get(), sql.len}, {params[i].data(), params[i].size()}};
+    stmts[i] = {sql_ws, {params[i].data(), params[i].size()}};
   }
 
   gcore_db_sql_list_statement_t stmts_ws{stmts.data(), stmts.size()};
