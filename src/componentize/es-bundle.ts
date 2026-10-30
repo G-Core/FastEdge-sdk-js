@@ -42,6 +42,22 @@ const fastedgePackagePlugin: Plugin = {
             `,
           };
         }
+        case 'db/sql': {
+          return {
+            contents: `
+            export const SqlDatabase = globalThis.SqlDatabase;
+            export const SqlError = globalThis.SqlError;
+            `,
+          };
+        }
+        case 'db/kv': {
+          return {
+            contents: `
+            export const KvDatabase = globalThis.KvDatabase;
+            export const KvError = globalThis.KvError;
+            `,
+          };
+        }
         default: {
           return { contents: '' };
         }

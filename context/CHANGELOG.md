@@ -5,6 +5,137 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-10-27] — db: async `fastedge::db/kv` over `gcore:db/kv` (branch `feat/db-interface-kv-async`)
+
+### Overview
+`KvDatabase` methods start the host call and return a pending Promise; a `KvTask` (StarlingMonkey
+`AsyncTask`) per call waits on the host future's pollable and settles it. JS API unchanged.
+
+### Decisions
+- Async WIT is the plain `gcore:db/kv` interface: `database.execute(op)` / `batch(ops)` return
+  pollable futures (one future type per call shape instead of one per method); the runtime world
+  `reactor-async` imports it beside `gcore:db/sql`.
+- Measured on fastedge-run against Upstash (median of 7, warm connections): 1 `get` 48 ms;
+  3 `get`s via `Promise.all` 48 ms; 3 awaited in turn 147 ms. Each extra concurrent call opens a
+  new HTTPS connection the first time (~100 ms TLS), so cold concurrency costs more.
+- Argument errors reject the returned Promise (as async `db/sql`).
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface-kv-async` 09f4443; bindings regenerated
+- `runtime/fastedge/builtins/db-kv.cpp` — `KvTask`, `start_op` (`execute`), `start_batch`
+- `types/fastedge-db-kv.d.ts` — concurrency / ordering note
+- Merge of `feat/db-interface-kv`: async `db-sql.cpp` keeps its promise settle as `settle_promise`;
+  the shared `settle` / error class from the kv branch stay exported
+
+---
+
+## [2026-10-27] — POC: `fastedge::db/kv` (gcore:db/kv-sync@0.1.0)
+
+### Overview
+Database KV binding (regional, durable, writable; Upstash Redis in the POC): `KvDatabase` by
+binding name; the host holds the credentials. Mirrors `Cache` (instance methods on an opened
+binding).
+
+### Decisions
+- Sync host calls, already-settled Promises (as `db/sql` and `Cache`). Plain `kv` is reserved for an
+  async interface (`feat/db-interface-kv-async`).
+- Reuse in place: `CacheEntry` (get results), `WriteOptions` TTL parsing and value coercion are
+  exported from `cache.cpp` (`cache.h`); the host-error class and `settle` from `db-sql.cpp`.
+- WIT type is `kv-value`, not `value`: wit-bindgen 0.52 C names `option<value>` globally, which
+  collided with `key-value`'s and generated code that didn't compile.
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface-kv` ca89dc6; bindings regenerated
+- New builtin `builtins/db-kv.cpp`: globals `KvDatabase` (`open`; `get`, `exists`, `set`, `delete`,
+  `incr`, `expire`, `batch` → Promises) and `KvError` (`kind`, `code`, `opIndex`)
+- `cache.cpp` / new `cache.h`: `new_entry`, `ttl_ms_option`, `value_bytes`;
+  `db-sql.{h,cpp}`: `define_error_class`, `new_error`, `settle` shared
+- `es-bundle.ts`: `fastedge::db/kv` re-exports `KvDatabase`, `KvError` (+ test)
+- `types/fastedge-db-kv.d.ts`, referenced from `types/index.d.ts`
+- `examples/db-kv`: same keys, limits and responses as sdk-rust `examples/http/wasi/db_kv`
+- **Release order:** every app built with this SDK also imports `gcore:db/kv-sync@0.1.0`; ship the
+  engine with `kv-sync` on every edge first (same constraint as `sql-sync`).
+
+---
+
+## [2026-10-27] — db: async `fastedge::db/sql` over `gcore:db/sql` (branch `feat/db-interface-async`)
+
+### Overview
+`SqlDatabase.query` / `batch` start the host call and return a pending Promise; a StarlingMonkey
+`AsyncTask` per call waits on the host future's pollable and settles it. JS API unchanged.
+
+### Decisions
+- Async WIT is the plain `gcore:db/sql` interface (pollable futures, wasi:io 0.2.3) beside
+  `sql-sync`; the runtime includes world `gcore:fastedge/reactor-async`. Rust stays on `sql-sync`.
+- Measured on fastedge-run against Neon (median of 7, query = `pg_sleep(0.1)` + round trip):
+  1 query sync 312 ms / async 326 ms (noise); 3 queries via `Promise.all` sync 617 ms / async 319 ms.
+- Calls not awaited may run in any order (documented in the types).
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface-async`; bindings regenerated
+- `runtime/fastedge/builtins/db-sql.cpp` — `SqlTask` (AsyncTask), `start_query` / `start_batch`;
+  argument errors reject the returned Promise
+- `merge-wit-bindings.js` — includes `reactor-async`; skips FastEdge-wit's `deps/io` (StarlingMonkey
+  host-apis already provide `wasi:io@0.2.3`)
+- `types/fastedge-db-sql.d.ts` — concurrency / ordering note
+
+---
+
+## [2026-10-27] — db: builtin binds `gcore:db/sql-sync` (WIT split)
+
+### Overview
+FastEdge-wit split `gcore:db/sql` into `sql-types` + `sql-sync` (like `cache-types` / `cache-sync`).
+The JS API (`fastedge::db/sql`) is unchanged.
+
+### Decisions
+- MVP stays sync. Plain `sql` is reserved for an async (pollable) interface; JS is expected to move
+  to it on `feat/db-interface-async` if it measures better (Promise.all concurrency).
+- Release order still applies, now for `gcore:db/sql-sync@0.1.0` (and `sql-types`): engine on all
+  edges → fastedge-test → this SDK.
+
+### Changes
+- `runtime/FastEdge-wit` → 83a7d08; bindings regenerated (wit-bindgen 0.52.0)
+- `runtime/fastedge/builtins/db-sql.{h,cpp}` — `gcore_db_sql_*` → `gcore_db_sql_sync_*`, data types
+  and variant tags from `gcore_db_sql_types_*`
+
+---
+
+## [2026-10-27] — POC: `fastedge::db/sql` (gcore:db/sql@0.1.0)
+
+### Overview
+Spike of the SQL database binding: apps query a customer-owned Postgres (Neon) by binding name; the host holds the credentials.
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface` (`gcore:db/sql@0.1.0` in `deps/db`)
+- `merge-wit-bindings.js`: hoists FastEdge-wit `deps/*` to `wit/deps/` so wit-bindgen resolves them
+- New builtin `builtins/db-sql.{h,cpp}`: globals `SqlDatabase` (`open`, `query`, `batch` -> Promises; sync host calls) and `SqlError` (real `Error`, `kind`/`code`/`detail`/`hint`/`constraint`); type mapping (int8 -> string, json parsed, bytea -> Uint8Array) and `rowMode: 'array'` in C++
+- `es-bundle.ts`: `fastedge::db/sql` re-exports `SqlDatabase` and `SqlError` (same pattern as `fastedge::kv`)
+- `types/fastedge-db-sql.d.ts` (`SqlDatabase`, `SqlError`, `SqlResult<T>`, `SqlParam`, `SqlValue`), referenced from `types/index.d.ts`
+- `examples/db-sql`: Drizzle over `fastedge::db/sql` + drizzle-kit migrations (`drizzle/0000_init`, `0001_seed`); same table, data and responses as sdk-rust `examples/http/wasi/db_sql`
+- **Release order:** every app built with this SDK imports `gcore:db/sql@0.1.0`, so hosts without it fail with `530 fastedge: context error` (incl. the `fastedge-run` bundled in `@gcoredev/fastedge-test`; `cross-platform-build.test.js` component-import runtime tests fail until it is updated). Release only after the engine ships `gcore:db/sql` everywhere.
+- No docs/tests yet (spike). Drizzle works via `drizzle-orm/pg-proxy` (see coordinator `db-integration/`)
+
+---
+
+## [2026-10-27] — StarlingMonkey v0.4.0 (no fork) + wit-bindgen 0.52.0
+
+### Overview
+Submodule moved from our fork (`godronus/gcore/integration`, 0.3.0 + 4 patches) to vanilla upstream `starlingmonkey-v0.4.0`; host-api bindings regenerated with wit-bindgen 0.52.0 (was pinned to 0.30.0).
+
+### Changes
+- `runtime/StarlingMonkey` → `starlingmonkey-v0.4.0` (`d7283bb`). All 4 fork patches are upstream (Response.clone #312, Blob.type #313, WPT baseline superseded); verified line-by-line. v0.4.0 also brings crypto fixes (HMAC use-after-free, Ed25519, key usages), URL / form-data / console fixes, FinalizationRegistry cleanup.
+- `runtime/fastedge/host-api/bindings/*` regenerated with wit-bindgen 0.52.0 (same version StarlingMonkey uses for its default wasi-0.2.10 host API, compiled against the same `wasi-0.2.0/host_api.cpp`). WASI stays 0.2.3. The 0.37.0 unaligned-offset regression is absent (offsets via `sizeof(void*)`).
+- `context/PATCHES.md`: no patches; former fork commits mapped to upstream PRs. Response.clone test guard removal marked due after edge validation.
+- `context/development/BUILD_SYSTEM.md`: required wit-bindgen is now 0.52.0; 0.30/0.37 history kept.
+
+### Verification
+- Runtime builds (9.9 MB, was 10.6 MB). Unit 458/458, integration 88/88.
+- Test app under local `fastedge-run` (wasmtime 48): echo, env, outbound fetch, secret pass; Response.clone tests 1-6, 8, 9 pass in isolation. Tests 7-8 of the guard self-fetch the app's own origin, which `fastedge-run` can't serve locally (NetworkError), so the full guard only runs on a deployed app.
+- Preprod edge (2026-10-27, test app deployed as `sdk-js-sm040-test-app`): echo, env, outbound fetch, secret pass; Response.clone tests 1-9 all correct (incl. 128 KiB multi-chunk self-fetch). On the Free plan the Response.clone handler sometimes hits the execution budget (`3010`); the same app on the published 2.7.0 runtime does too (old 12/20 vs new 15/20 completed), so not a regression.
+- Response.clone test kept as a permanent regression test (no longer a patch guard).
+
+---
+
 ## [2026-10-21] — fastedge-build: import Wasm components by WIT interface
 
 ### Overview

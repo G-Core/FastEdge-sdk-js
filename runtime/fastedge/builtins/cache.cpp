@@ -1,4 +1,4 @@
-#include "builtin.h"
+#include "cache.h"
 #include "encode.h"
 
 #include "../host-api/include/fastedge_host_api.h"
@@ -1257,6 +1257,18 @@ bool install(api::Engine *engine) {
   }
 
   return true;
+}
+
+JSObject *new_entry(JSContext *cx, const uint8_t *bytes, size_t len) {
+  return CacheEntry::create(cx, bytes, len);
+}
+
+bool ttl_ms_option(JSContext *cx, JS::HandleValue options, std::optional<uint64_t> *out) {
+  return build_ttl_ms(cx, options, out);
+}
+
+bool value_bytes(JSContext *cx, JS::HandleValue value, std::vector<uint8_t> *out, bool *done) {
+  return try_sync_coerce_bytes(cx, value, out, done);
 }
 
 }  // namespace fastedge::cache

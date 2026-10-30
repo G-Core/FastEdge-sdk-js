@@ -1,0 +1,48 @@
+package gcore:db@0.1.0;
+
+/// FastEdge SQL interface (asynchronous variant).
+///
+/// Same contract as `sql-sync`, but `query` and `batch` return at once with a future, so a guest can
+/// run several calls concurrently (`wasi:io/poll`) and keep doing other work while they run.
+///
+/// Calls already started run independently: their order of execution is not guaranteed. Wait for a
+/// result before relying on its effects, and use `batch` for ordered or atomic work. Dropping a
+/// future before it resolves abandons the result; the statement may or may not have been applied.
+interface sql {
+  use wasi:io/poll@0.2.3.{pollable};
+  use sql-types.{value, query-result, statement, error};
+
+  /// FastEdge SQL database resource.
+  resource database {
+    /// Open the database bound to `name`.
+    ///
+    /// `error::no-such-database` will be raised if the `name` is not recognized.
+    open: static func(name: string) -> result<database, error>;
+
+    /// Start one statement with positional parameters (`$1`, `$2`, ...). Auto-commits.
+    ///
+    /// `sql` must contain exactly one statement.
+    query: func(sql: string, params: list<value>) -> future-query-result;
+
+    /// Start several statements in one transaction. Either all commit or none do.
+    batch: func(statements: list<statement>) -> future-batch-result;
+  }
+
+  /// The pending result of `database.query`.
+  resource future-query-result {
+    /// Ready when the result is available.
+    subscribe: func() -> pollable;
+    /// The result, once ready; `none` before that. Returns the result only once: later calls
+    /// return `some(err(error::internal-error))`.
+    get: func() -> option<result<query-result, error>>;
+  }
+
+  /// The pending result of `database.batch`: one `query-result` per statement, in order.
+  resource future-batch-result {
+    /// Ready when the result is available.
+    subscribe: func() -> pollable;
+    /// The result, once ready; `none` before that. Returns the result only once: later calls
+    /// return `some(err(error::internal-error))`.
+    get: func() -> option<result<list<query-result>, error>>;
+  }
+}

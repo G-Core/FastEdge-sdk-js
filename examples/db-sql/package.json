@@ -1,0 +1,19 @@
+{
+  "name": "fastedge-example-db-sql",
+  "version": "1.0.0",
+  "description": "FastEdge JS example: query a bound PostgreSQL database with Drizzle over fastedge::db/sql",
+  "type": "module",
+  "scripts": {
+    "build": "fastedge-build -c",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@gcoredev/fastedge-sdk-js": "^2.7.0",
+    "drizzle-orm": "~0.44.7"
+  },
+  "devDependencies": {
+    "@neondatabase/serverless": "^1.0.0",
+    "drizzle-kit": "~0.31.0"
+  }
+}

@@ -6,5 +6,14 @@ world reactor {
     import key-value;
     import utils;
     import cache-sync;
+    import gcore:db/sql-sync@0.1.0;
+    import gcore:db/kv-sync@0.1.0;
 
+}
+
+/// `reactor` plus the asynchronous `gcore:db/sql` and `gcore:db/kv` (need `wasi:io`).
+world reactor-async {
+    include reactor;
+    import gcore:db/sql@0.1.0;
+    import gcore:db/kv@0.1.0;
 }

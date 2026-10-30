@@ -1,0 +1,88 @@
+package gcore:db@0.1.0;
+
+/// Shared types for the SQL interfaces.
+interface sql-types {
+  /// A parameter or result value.
+  ///
+  /// Results use the narrowest variant that is lossless:
+  /// - `int2`, `int4` → `int32`
+  /// - `int8` → `int64`
+  /// - `float4`, `float8` → `float64`
+  /// - `numeric` → `numeric` (decimal text, e.g. "12345678901234567890.123")
+  /// - `bool` → `boolean`
+  /// - `json`, `jsonb` → `json` (JSON text)
+  /// - `bytea` → `bytes`
+  /// - everything else (text, varchar, uuid, date/time types, arrays, ...) → `text`, in PostgreSQL
+  ///   text format. `timestamptz` is rendered in UTC. Arrays are PostgreSQL array literals
+  ///   (e.g. "{1,2,3}"). Use `column.type-oid` to interpret them.
+  /// - SQL `NULL` → `null`
+  ///
+  /// Parameters are sent to the database as text; PostgreSQL casts them to the target type.
+  variant value {
+    null,
+    boolean(bool),
+    int32(s32),
+    int64(s64),
+    float64(f64),
+    numeric(string),
+    text(string),
+    bytes(list<u8>),
+    json(string),
+  }
+
+  /// A result column.
+  record column {
+    /// Column name or alias.
+    name: string,
+    /// PostgreSQL type OID (e.g. 23 = int4, 1184 = timestamptz, 1007 = int4[]).
+    type-oid: u32,
+  }
+
+  /// The result of one statement.
+  record query-result {
+    columns: list<column>,
+    /// Rows in column order. Empty for statements that return no rows.
+    rows: list<list<value>>,
+    /// Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE).
+    row-count: u64,
+  }
+
+  /// One statement in a batch.
+  record statement {
+    sql: string,
+    params: list<value>,
+  }
+
+  /// Error details reported by the database.
+  record db-error {
+    /// SQLSTATE code (e.g. "23505" unique_violation), when the database provides one.
+    code: option<string>,
+    message: string,
+    detail: option<string>,
+    hint: option<string>,
+    /// Name of the violated constraint, for constraint errors.
+    constraint: option<string>,
+  }
+
+  /// The set of errors which may be raised by the SQL interfaces.
+  variant error {
+    /// The host does not recognize the database binding requested.
+    no-such-database,
+    /// The requesting component does not have access to the specified database
+    /// (which may or may not exist).
+    access-denied,
+    /// The binding is misconfigured: bad credentials, unknown database name, invalid connection
+    /// settings. Not retryable without a configuration change.
+    config(db-error),
+    /// The database could not be reached (network, DNS, TLS, backend unavailable).
+    connection(string),
+    /// The call exceeded the host's time limit. The statement may or may not have been applied.
+    timeout,
+    /// A host or backend limit was exceeded (e.g. response size, statements per batch).
+    limit(string),
+    /// The database rejected the statement (syntax, constraint, permission, ...).
+    query(db-error),
+    /// Some unexpected internal error has occurred.
+    internal-error,
+  }
+}
