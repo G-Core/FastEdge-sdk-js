@@ -182,6 +182,12 @@ importers:
         specifier: link:../..
         version: link:../..
 
+  examples/db-kv:
+    dependencies:
+      '@gcoredev/fastedge-sdk-js':
+        specifier: link:../..
+        version: link:../..
+
   examples/db-sql:
     dependencies:
       '@gcoredev/fastedge-sdk-js':

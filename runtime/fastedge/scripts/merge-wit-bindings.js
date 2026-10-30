@@ -5,7 +5,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const HOST_VERSIONS = ['0.2.0', '0.2.2', '0.2.3'];
+// Only 0.2.3: the async gcore:db interfaces use wasi:io/poll@0.2.3, deduplicated below against
+// StarlingMonkey's own wasi:io, which must be the same version.
+const HOST_VERSIONS = ['0.2.3'];
 const dirname = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../');
 const witDir = path.join(dirname, 'host-api/wit');
 const starlingHostApisDir = path.resolve(dirname, '../StarlingMonkey/host-apis');

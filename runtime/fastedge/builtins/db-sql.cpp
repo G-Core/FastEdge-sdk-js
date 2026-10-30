@@ -129,7 +129,11 @@ bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_value_t &out,
   }
   if (v.isBigInt()) {
     out.tag = GCORE_DB_SQL_TYPES_VALUE_INT64;
-    out.val.int64 = JS::ToBigInt64(v.toBigInt());
+    // ToBigInt64 wraps modulo 2^64; a value outside int64 must fail, not change.
+    if (!JS::BigIntFits(v.toBigInt(), &out.val.int64)) {
+      JS_ReportErrorASCII(cx, "BigInt parameter does not fit in a signed 64-bit integer");
+      return false;
+    }
     return true;
   }
   JS::RootedValue text(cx, v);
@@ -267,8 +271,9 @@ JSObject *from_result(JSContext *cx, const gcore_db_sql_query_result_t &r, bool 
     if (!out) return nullptr;
     for (size_t j = 0; j < row.len && j < names.length(); j++) {
       if (!from_value(cx, row.ptr[j], &cell)) return nullptr;
+      // Define, not set: a column named `__proto__` must become a field, not hit the setter.
       if (array_mode ? !JS_SetElement(cx, out, j, cell)
-                     : !JS_SetPropertyById(cx, out, names[j], cell)) {
+                     : !JS_DefinePropertyById(cx, out, names[j], cell, JSPROP_ENUMERATE)) {
         return nullptr;
       }
     }
