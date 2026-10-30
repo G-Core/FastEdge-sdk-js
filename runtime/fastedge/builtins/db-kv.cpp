@@ -196,7 +196,9 @@ bool from_result(JSContext *cx, const gcore_db_kv_types_op_result_t &r,
 
 bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_kv_borrow_database_t &out) {
   JS::RootedObject self(cx, args.thisv().isObject() ? &args.thisv().toObject() : nullptr);
-  if (!self || !JS_InstanceOf(cx, self, &kv_database_class, nullptr)) {
+  // The exported KvDatabase object shares the class but has no handle: require one.
+  if (!self || !JS_InstanceOf(cx, self, &kv_database_class, nullptr) ||
+      !JS::GetReservedSlot(self, 0).isInt32()) {
     JS_ReportErrorUTF8(cx, "Invalid KvDatabase instance");
     return false;
   }

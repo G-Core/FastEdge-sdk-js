@@ -302,7 +302,9 @@ bool array_mode(JSContext *cx, JS::HandleValue options, bool *out) {
 
 bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_borrow_database_t &out) {
   JS::RootedObject self(cx, args.thisv().isObject() ? &args.thisv().toObject() : nullptr);
-  if (!self || !JS_InstanceOf(cx, self, &SqlDatabase::class_, nullptr)) {
+  // The exported SqlDatabase object shares the class but has no handle: require one.
+  if (!self || !JS_InstanceOf(cx, self, &SqlDatabase::class_, nullptr) ||
+      !JS::GetReservedSlot(self, 0).isInt32()) {
     JS_ReportErrorUTF8(cx, "Invalid SqlDatabase instance");
     return false;
   }
