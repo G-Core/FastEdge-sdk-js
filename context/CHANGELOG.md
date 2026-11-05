@@ -20,6 +20,10 @@ When this file grows large, use grep to search — don't read linearly.
   the known codes, accepts any other)
 - `src/componentize/__tests__/es-bundle.test.ts` — `db/sql` and `db/postgres` mapping tests
 - `examples/db-sql-postgres` — imports `fastedge::db/postgres` (responses unchanged)
+- `types/fastedge-db-postgres.d.ts` — extension and user-defined types (pgvector, PostGIS, enums) work as text
+  (`$1::vector` casts); `PostgresColumn.typeName` is empty for them
+- `fastedge-plugin-source/.generation-config.md` — `SDK_API.md` covers `fastedge::db/sql`, `db/postgres` and
+  `db/kv`; `docs/SDK_API.md` regenerated
 
 ### Notes
 - The host does not check a binding's dialect; the module names it for readers, agents and tooling

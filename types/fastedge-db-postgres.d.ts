@@ -32,11 +32,20 @@ declare module 'fastedge::db/postgres' {
    * | `timestamptz` | `string`, PostgreSQL text format in UTC |
    * | anything else (dates, uuid, arrays, enums, ...) | `string`, PostgreSQL text format |
    * | `NULL` | `null` |
+   *
+   * Extension and user-defined types (pgvector `vector`, PostGIS `geometry`, enums, domains) work
+   * as text: send them as text parameters, casting in SQL where PostgreSQL cannot infer the type
+   * (e.g. `order by embedding <-> $1::vector`), and they come back as a `string` in PostgreSQL's
+   * text format (`"[0.1,0.2]"` for a vector).
    */
   export type PostgresValue = SqlValue;
   /** A parsed `json` / `jsonb` value. */
   export type PostgresJson = SqlJson;
-  /** A result column; `typeName` is PostgreSQL's (e.g. `'int4'`, `'timestamptz'`, `'int4[]'`). */
+  /**
+   * A result column. `typeName` is PostgreSQL's name for a built-in type (e.g. `'int4'`,
+   * `'timestamptz'`, `'int4[]'`); it is empty for extension and user-defined types (pgvector
+   * `vector`, PostGIS `geometry`, enums, domains).
+   */
   export type PostgresColumn = SqlColumn;
   export type PostgresResult<T = Record<string, PostgresValue>> = SqlResult<T>;
   export type PostgresStatement = SqlStatement;

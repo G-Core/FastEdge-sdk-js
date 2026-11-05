@@ -8,7 +8,7 @@
         "docs/SDK_API.md"
       ],
       "required": true,
-      "description": "Runtime APIs — environment variables, secrets, KV store, Cache, Web APIs available in WASM"
+      "description": "Runtime APIs — environment variables, secrets, KV store, Cache, databases (db/sql, db/postgres, db/kv), Web APIs available in WASM"
     },
     "build-cli": {
       "files": [
