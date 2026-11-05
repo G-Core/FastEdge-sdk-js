@@ -59,6 +59,27 @@ describe('es-bundle - fastedge:: namespace resolver', () => {
     expect(out).not.toContain('globalThis.fastedge.Cache');
   });
 
+  it('resolves fastedge::db/sql to globalThis.SqlDatabase and SqlError', async () => {
+    expect.assertions(2);
+    const out = await bundle(
+      `import { SqlDatabase, SqlError } from 'fastedge::db/sql'; export { SqlDatabase, SqlError };`,
+    );
+    expect(out).toContain('globalThis.SqlDatabase');
+    expect(out).toContain('globalThis.SqlError');
+  });
+
+  it('resolves fastedge::db/postgres to the db/sql builtins plus SQLSTATE', async () => {
+    expect.assertions(4);
+    const out = await bundle(
+      `import { PostgresDatabase, PostgresError, SQLSTATE } from 'fastedge::db/postgres';
+       export { PostgresDatabase, PostgresError, SQLSTATE };`,
+    );
+    expect(out).toContain('globalThis.SqlDatabase');
+    expect(out).toContain('globalThis.SqlError');
+    expect(out).toMatch(/UNIQUE_VIOLATION: ["']23505["']/u);
+    expect(out).toMatch(/UNDEFINED_TABLE: ["']42P01["']/u);
+  });
+
   it('resolves fastedge::db/kv to globalThis.KvDatabase and KvError', async () => {
     expect.assertions(2);
     const out = await bundle(

@@ -5,6 +5,25 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-11-05] — db: `fastedge::db/postgres` (PostgreSQL module over `gcore:db/sql`)
+
+### Overview
+`fastedge::db/postgres` exports the `db/sql` builtins under PostgreSQL names (`PostgresDatabase`,
+`PostgresError`) plus a `SQLSTATE` constants object. Bundler-only: no runtime rebuild, no WIT change.
+
+### Changes
+- `src/componentize/es-bundle.ts` — `db/postgres` case: `PostgresDatabase = globalThis.SqlDatabase`,
+  `PostgresError = globalThis.SqlError` (same classes, so `instanceof` matches either), frozen
+  `SQLSTATE` (19 codes from PostgreSQL's `errcodes.txt`, REL_17_STABLE)
+- `types/fastedge-db-postgres.d.ts` (referenced from `types/index.d.ts`) — `Postgres*` aliases of the
+  `Sql*` types, typed `SQLSTATE`, `PostgresError.code: PostgresSqlState | (string & {})` (autocompletes
+  the known codes, accepts any other)
+- `src/componentize/__tests__/es-bundle.test.ts` — `db/sql` and `db/postgres` mapping tests
+- `examples/db-sql-postgres` — imports `fastedge::db/postgres` (responses unchanged)
+
+### Notes
+- The host does not check a binding's dialect; the module names it for readers, agents and tooling
+
 ## [2026-11-05] — db: dialect-neutral SQL; column `typeName`; example `db-sql-postgres`
 
 ### Overview
