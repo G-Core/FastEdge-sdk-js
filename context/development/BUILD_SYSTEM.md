@@ -195,7 +195,7 @@ After installing, `pnpm run generate:wit-world` (and the underlying `pnpm run wi
 Until 2026-10-27 the bindings were pinned to 0.30.0 because of the 0.37.0 regression below. 0.52.0
 generates these offsets from `sizeof(void*)` (e.g. `ptr + sizeof(void*)` = `ptr + 4` on wasm32),
 matching 0.30.0's layout. 0.30.0 also predates the WIT `float32`/`float64` -> `f32`/`f64` rename and
-still treats `float64` as a keyword (it rejected `gcore:db/postgres-types`'s `float64` case unless escaped as
+still treats `float64` as a keyword (it rejected `gcore:db/sql-types`'s `float64` case unless escaped as
 `%float64`); 0.52.0 does not.
 
 #### Why not 0.37.0

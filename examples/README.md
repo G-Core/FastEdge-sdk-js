@@ -28,7 +28,7 @@ network using
 | [geo-redirect](./geo-redirect/)                               | Redirect requests by country code using env vars                                                                                        |
 | [kv-store](./kv-store/)                                       | Query a KV Store via URL params — get/scan/zrange/zscan/bfExists                                                                        |
 | [cache](./cache/)                                             | POP-local cache patterns — per-IP rate limiting, origin-cache proxy, JSON memoisation                                                   |
-| [db-postgres](./db-postgres/)                                 | Query a bound PostgreSQL database with Drizzle over `fastedge::db/postgres`, migrations with drizzle-kit (same as the Rust `db_postgres` example) |
+| [db-sql-postgres](./db-sql-postgres/)                         | Query a bound SQL database (PostgreSQL) with Drizzle over `fastedge::db/sql`, migrations with drizzle-kit (same as the Rust `db_sql_postgres` example) |
 | [db-kv](./db-kv/)                                             | Per-user rate limit and visit counter in a bound Database KV over `fastedge::db/kv`, one atomic batch (same as the Rust `db_kv` example)|
 | [template-invoice](./template-invoice/)                       | HTML invoice rendered server-side using Handlebars templates                                                                            |
 | [template-invoice-ab-testing](./template-invoice-ab-testing/) | Template invoice with logo and font variants driven by A/B test headers                                                                 |

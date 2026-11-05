@@ -39,21 +39,20 @@ typedef struct {
 
 // A parameter or result value.
 // 
-// Results use the narrowest variant that is lossless:
-// - `int2`, `int4` → `int32`
-// - `int8` → `int64`
-// - `float4`, `float8` → `float64`
-// - `numeric` → `numeric` (decimal text, e.g. "12345678901234567890.123")
-// - `bool` → `boolean`
-// - `json`, `jsonb` → `json` (JSON text)
-// - `bytea` → `bytes`
-// - everything else (text, varchar, uuid, date/time types, arrays, ...) → `text`, in PostgreSQL
-//   text format. `timestamptz` is rendered in UTC. Arrays are PostgreSQL array literals
-//   (e.g. "{1,2,3}"). Use `column.type-oid` to interpret them.
+// Results use the narrowest variant that holds the column's type without loss:
+// - 16- and 32-bit integers → `int32`; 64-bit integers → `int64`
+// - floating point → `float64`
+// - exact decimals → `numeric` (decimal text, e.g. "12345678901234567890.123")
+// - booleans → `boolean`
+// - JSON → `json` (JSON text)
+// - binary → `bytes`
+// - everything else (text, UUIDs, dates and times, arrays, ...) → `text`, in the database's
+//   own text format. Use `column.type-name` to interpret it.
 // - SQL `NULL` → `null`
 // 
-// Parameters are sent to the database as text; PostgreSQL casts them to the target type.
-typedef struct gcore_db_postgres_types_value_t {
+// How each database's types map onto these variants is documented per backend. Parameters are
+// converted to the target column type by the database, as its dialect does.
+typedef struct gcore_db_sql_types_value_t {
   uint8_t tag;
   union {
     bool     boolean;
@@ -65,184 +64,187 @@ typedef struct gcore_db_postgres_types_value_t {
     bindings_list_u8_t     bytes;
     bindings_string_t     json;
   } val;
-} gcore_db_postgres_types_value_t;
+} gcore_db_sql_types_value_t;
 
-#define GCORE_DB_POSTGRES_TYPES_VALUE_NULL 0
-#define GCORE_DB_POSTGRES_TYPES_VALUE_BOOLEAN 1
-#define GCORE_DB_POSTGRES_TYPES_VALUE_INT32 2
-#define GCORE_DB_POSTGRES_TYPES_VALUE_INT64 3
-#define GCORE_DB_POSTGRES_TYPES_VALUE_FLOAT64 4
-#define GCORE_DB_POSTGRES_TYPES_VALUE_NUMERIC 5
-#define GCORE_DB_POSTGRES_TYPES_VALUE_TEXT 6
-#define GCORE_DB_POSTGRES_TYPES_VALUE_BYTES 7
-#define GCORE_DB_POSTGRES_TYPES_VALUE_JSON 8
+#define GCORE_DB_SQL_TYPES_VALUE_NULL 0
+#define GCORE_DB_SQL_TYPES_VALUE_BOOLEAN 1
+#define GCORE_DB_SQL_TYPES_VALUE_INT32 2
+#define GCORE_DB_SQL_TYPES_VALUE_INT64 3
+#define GCORE_DB_SQL_TYPES_VALUE_FLOAT64 4
+#define GCORE_DB_SQL_TYPES_VALUE_NUMERIC 5
+#define GCORE_DB_SQL_TYPES_VALUE_TEXT 6
+#define GCORE_DB_SQL_TYPES_VALUE_BYTES 7
+#define GCORE_DB_SQL_TYPES_VALUE_JSON 8
 
 // A result column.
-typedef struct gcore_db_postgres_types_column_t {
+typedef struct gcore_db_sql_types_column_t {
   // Column name or alias.
   bindings_string_t   name;
-  // PostgreSQL type OID (e.g. 23 = int4, 1184 = timestamptz, 1007 = int4[]).
-  uint32_t   type_oid;
-} gcore_db_postgres_types_column_t;
+  // The database's name for the column's type, in lower case (e.g. "int4", "timestamptz",
+  // "int4[]" for PostgreSQL; the declared type, e.g. "integer", for SQLite). Empty when the
+  // backend does not report a type the host can name.
+  bindings_string_t   type_name;
+} gcore_db_sql_types_column_t;
 
 typedef struct {
-  gcore_db_postgres_types_column_t *ptr;
+  gcore_db_sql_types_column_t *ptr;
   size_t len;
-} gcore_db_postgres_types_list_column_t;
+} gcore_db_sql_types_list_column_t;
 
 typedef struct {
-  gcore_db_postgres_types_value_t *ptr;
+  gcore_db_sql_types_value_t *ptr;
   size_t len;
-} gcore_db_postgres_types_list_value_t;
+} gcore_db_sql_types_list_value_t;
 
 typedef struct {
-  gcore_db_postgres_types_list_value_t *ptr;
+  gcore_db_sql_types_list_value_t *ptr;
   size_t len;
-} gcore_db_postgres_types_list_list_value_t;
+} gcore_db_sql_types_list_list_value_t;
 
 // The result of one statement.
-typedef struct gcore_db_postgres_types_query_result_t {
-  gcore_db_postgres_types_list_column_t   columns;
+typedef struct gcore_db_sql_types_query_result_t {
+  gcore_db_sql_types_list_column_t   columns;
   // Rows in column order. Empty for statements that return no rows.
-  gcore_db_postgres_types_list_list_value_t   rows;
+  gcore_db_sql_types_list_list_value_t   rows;
   // Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE).
   uint64_t   row_count;
-} gcore_db_postgres_types_query_result_t;
+} gcore_db_sql_types_query_result_t;
 
 // One statement in a batch.
-typedef struct gcore_db_postgres_types_statement_t {
+typedef struct gcore_db_sql_types_statement_t {
   bindings_string_t   sql;
-  gcore_db_postgres_types_list_value_t   params;
-} gcore_db_postgres_types_statement_t;
+  gcore_db_sql_types_list_value_t   params;
+} gcore_db_sql_types_statement_t;
 
 typedef struct {
   bool is_some;
   bindings_string_t val;
 } bindings_option_string_t;
 
-// Error details reported by the database.
-typedef struct gcore_db_postgres_types_db_error_t {
-  // SQLSTATE code (e.g. "23505" unique_violation), when the database provides one.
+// Error details reported by the database. Fields are set when the database reports them.
+typedef struct gcore_db_sql_types_db_error_t {
+  // The database's own error code: the SQLSTATE for PostgreSQL (e.g. "23505", unique
+  // violation), the extended result code name for SQLite (e.g. "SQLITE_CONSTRAINT_UNIQUE").
   bindings_option_string_t   code;
   bindings_string_t   message;
   bindings_option_string_t   detail;
   bindings_option_string_t   hint;
   // Name of the violated constraint, for constraint errors.
   bindings_option_string_t   constraint;
-} gcore_db_postgres_types_db_error_t;
+} gcore_db_sql_types_db_error_t;
 
-// The set of errors which may be raised by the PostgreSQL interfaces.
-typedef struct gcore_db_postgres_types_error_t {
+// The set of errors which may be raised by the SQL interfaces.
+typedef struct gcore_db_sql_types_error_t {
   uint8_t tag;
   union {
-    gcore_db_postgres_types_db_error_t     config;
+    gcore_db_sql_types_db_error_t     config;
     bindings_string_t     connection;
     bindings_string_t     limit;
-    gcore_db_postgres_types_db_error_t     query;
+    gcore_db_sql_types_db_error_t     query;
   } val;
-} gcore_db_postgres_types_error_t;
+} gcore_db_sql_types_error_t;
 
 // The host does not recognize the database binding requested.
-#define GCORE_DB_POSTGRES_TYPES_ERROR_NO_SUCH_DATABASE 0
+#define GCORE_DB_SQL_TYPES_ERROR_NO_SUCH_DATABASE 0
 // The requesting component does not have access to the specified database
 // (which may or may not exist).
-#define GCORE_DB_POSTGRES_TYPES_ERROR_ACCESS_DENIED 1
+#define GCORE_DB_SQL_TYPES_ERROR_ACCESS_DENIED 1
 // The binding is misconfigured: bad credentials, unknown database name, invalid connection
 // settings. Not retryable without a configuration change.
-#define GCORE_DB_POSTGRES_TYPES_ERROR_CONFIG 2
+#define GCORE_DB_SQL_TYPES_ERROR_CONFIG 2
 // The database could not be reached (network, DNS, TLS, backend unavailable).
-#define GCORE_DB_POSTGRES_TYPES_ERROR_CONNECTION 3
+#define GCORE_DB_SQL_TYPES_ERROR_CONNECTION 3
 // The call exceeded the host's time limit. The statement may or may not have been applied.
-#define GCORE_DB_POSTGRES_TYPES_ERROR_TIMEOUT 4
+#define GCORE_DB_SQL_TYPES_ERROR_TIMEOUT 4
 // A host or backend limit was exceeded (e.g. response size, statements per batch).
-#define GCORE_DB_POSTGRES_TYPES_ERROR_LIMIT 5
+#define GCORE_DB_SQL_TYPES_ERROR_LIMIT 5
 // The database rejected the statement (syntax, constraint, permission, ...).
-#define GCORE_DB_POSTGRES_TYPES_ERROR_QUERY 6
+#define GCORE_DB_SQL_TYPES_ERROR_QUERY 6
 // Some unexpected internal error has occurred.
-#define GCORE_DB_POSTGRES_TYPES_ERROR_INTERNAL_ERROR 7
+#define GCORE_DB_SQL_TYPES_ERROR_INTERNAL_ERROR 7
 
-typedef gcore_db_postgres_types_value_t gcore_db_postgres_value_t;
+typedef gcore_db_sql_types_value_t gcore_db_sql_value_t;
 
-typedef gcore_db_postgres_types_query_result_t gcore_db_postgres_query_result_t;
+typedef gcore_db_sql_types_query_result_t gcore_db_sql_query_result_t;
 
-typedef gcore_db_postgres_types_statement_t gcore_db_postgres_statement_t;
+typedef gcore_db_sql_types_statement_t gcore_db_sql_statement_t;
 
-typedef gcore_db_postgres_types_error_t gcore_db_postgres_error_t;
+typedef gcore_db_sql_types_error_t gcore_db_sql_error_t;
 
-typedef struct gcore_db_postgres_own_database_t {
+typedef struct gcore_db_sql_own_database_t {
   int32_t __handle;
-} gcore_db_postgres_own_database_t;
+} gcore_db_sql_own_database_t;
 
-typedef struct gcore_db_postgres_borrow_database_t {
+typedef struct gcore_db_sql_borrow_database_t {
   int32_t __handle;
-} gcore_db_postgres_borrow_database_t;
+} gcore_db_sql_borrow_database_t;
 
-typedef struct gcore_db_postgres_own_future_query_result_t {
+typedef struct gcore_db_sql_own_future_query_result_t {
   int32_t __handle;
-} gcore_db_postgres_own_future_query_result_t;
+} gcore_db_sql_own_future_query_result_t;
 
-typedef struct gcore_db_postgres_borrow_future_query_result_t {
+typedef struct gcore_db_sql_borrow_future_query_result_t {
   int32_t __handle;
-} gcore_db_postgres_borrow_future_query_result_t;
+} gcore_db_sql_borrow_future_query_result_t;
 
-typedef struct gcore_db_postgres_own_future_batch_result_t {
+typedef struct gcore_db_sql_own_future_batch_result_t {
   int32_t __handle;
-} gcore_db_postgres_own_future_batch_result_t;
+} gcore_db_sql_own_future_batch_result_t;
 
-typedef struct gcore_db_postgres_borrow_future_batch_result_t {
+typedef struct gcore_db_sql_borrow_future_batch_result_t {
   int32_t __handle;
-} gcore_db_postgres_borrow_future_batch_result_t;
+} gcore_db_sql_borrow_future_batch_result_t;
 
 typedef struct {
   bool is_err;
   union {
-    gcore_db_postgres_own_database_t ok;
-    gcore_db_postgres_error_t err;
+    gcore_db_sql_own_database_t ok;
+    gcore_db_sql_error_t err;
   } val;
-} gcore_db_postgres_result_own_database_error_t;
+} gcore_db_sql_result_own_database_error_t;
 
 typedef struct {
-  gcore_db_postgres_value_t *ptr;
+  gcore_db_sql_value_t *ptr;
   size_t len;
-} gcore_db_postgres_list_value_t;
+} gcore_db_sql_list_value_t;
 
 typedef struct {
-  gcore_db_postgres_statement_t *ptr;
+  gcore_db_sql_statement_t *ptr;
   size_t len;
-} gcore_db_postgres_list_statement_t;
+} gcore_db_sql_list_statement_t;
 
-typedef wasi_io_poll_own_pollable_t gcore_db_postgres_own_pollable_t;
+typedef wasi_io_poll_own_pollable_t gcore_db_sql_own_pollable_t;
 
 typedef struct {
   bool is_err;
   union {
-    gcore_db_postgres_query_result_t ok;
-    gcore_db_postgres_error_t err;
+    gcore_db_sql_query_result_t ok;
+    gcore_db_sql_error_t err;
   } val;
-} gcore_db_postgres_result_query_result_error_t;
+} gcore_db_sql_result_query_result_error_t;
 
 typedef struct {
   bool is_some;
-  gcore_db_postgres_result_query_result_error_t val;
-} gcore_db_postgres_option_result_query_result_error_t;
+  gcore_db_sql_result_query_result_error_t val;
+} gcore_db_sql_option_result_query_result_error_t;
 
 typedef struct {
-  gcore_db_postgres_query_result_t *ptr;
+  gcore_db_sql_query_result_t *ptr;
   size_t len;
-} gcore_db_postgres_list_query_result_t;
+} gcore_db_sql_list_query_result_t;
 
 typedef struct {
   bool is_err;
   union {
-    gcore_db_postgres_list_query_result_t ok;
-    gcore_db_postgres_error_t err;
+    gcore_db_sql_list_query_result_t ok;
+    gcore_db_sql_error_t err;
   } val;
-} gcore_db_postgres_result_list_query_result_error_t;
+} gcore_db_sql_result_list_query_result_error_t;
 
 typedef struct {
   bool is_some;
-  gcore_db_postgres_result_list_query_result_error_t val;
-} gcore_db_postgres_option_result_list_query_result_error_t;
+  gcore_db_sql_result_list_query_result_error_t val;
+} gcore_db_sql_option_result_list_query_result_error_t;
 
 // Values are bytes, like `key-value.value` and `cache-types.payload`. Named `kv-value`, not
 // `value`: C bindings (wit-bindgen 0.52) name `option<value>` globally, so it would collide
@@ -644,60 +646,60 @@ typedef struct {
   } val;
 } gcore_fastedge_cache_sync_result_u64_error_t;
 
-typedef gcore_db_postgres_types_value_t gcore_db_postgres_sync_value_t;
+typedef gcore_db_sql_types_value_t gcore_db_sql_sync_value_t;
 
-typedef gcore_db_postgres_types_query_result_t gcore_db_postgres_sync_query_result_t;
+typedef gcore_db_sql_types_query_result_t gcore_db_sql_sync_query_result_t;
 
-typedef gcore_db_postgres_types_statement_t gcore_db_postgres_sync_statement_t;
+typedef gcore_db_sql_types_statement_t gcore_db_sql_sync_statement_t;
 
-typedef gcore_db_postgres_types_error_t gcore_db_postgres_sync_error_t;
+typedef gcore_db_sql_types_error_t gcore_db_sql_sync_error_t;
 
-typedef struct gcore_db_postgres_sync_own_database_t {
+typedef struct gcore_db_sql_sync_own_database_t {
   int32_t __handle;
-} gcore_db_postgres_sync_own_database_t;
+} gcore_db_sql_sync_own_database_t;
 
-typedef struct gcore_db_postgres_sync_borrow_database_t {
+typedef struct gcore_db_sql_sync_borrow_database_t {
   int32_t __handle;
-} gcore_db_postgres_sync_borrow_database_t;
+} gcore_db_sql_sync_borrow_database_t;
 
 typedef struct {
   bool is_err;
   union {
-    gcore_db_postgres_sync_own_database_t ok;
-    gcore_db_postgres_sync_error_t err;
+    gcore_db_sql_sync_own_database_t ok;
+    gcore_db_sql_sync_error_t err;
   } val;
-} gcore_db_postgres_sync_result_own_database_error_t;
+} gcore_db_sql_sync_result_own_database_error_t;
 
 typedef struct {
-  gcore_db_postgres_sync_value_t *ptr;
+  gcore_db_sql_sync_value_t *ptr;
   size_t len;
-} gcore_db_postgres_sync_list_value_t;
+} gcore_db_sql_sync_list_value_t;
 
 typedef struct {
   bool is_err;
   union {
-    gcore_db_postgres_sync_query_result_t ok;
-    gcore_db_postgres_sync_error_t err;
+    gcore_db_sql_sync_query_result_t ok;
+    gcore_db_sql_sync_error_t err;
   } val;
-} gcore_db_postgres_sync_result_query_result_error_t;
+} gcore_db_sql_sync_result_query_result_error_t;
 
 typedef struct {
-  gcore_db_postgres_sync_statement_t *ptr;
+  gcore_db_sql_sync_statement_t *ptr;
   size_t len;
-} gcore_db_postgres_sync_list_statement_t;
+} gcore_db_sql_sync_list_statement_t;
 
 typedef struct {
-  gcore_db_postgres_sync_query_result_t *ptr;
+  gcore_db_sql_sync_query_result_t *ptr;
   size_t len;
-} gcore_db_postgres_sync_list_query_result_t;
+} gcore_db_sql_sync_list_query_result_t;
 
 typedef struct {
   bool is_err;
   union {
-    gcore_db_postgres_sync_list_query_result_t ok;
-    gcore_db_postgres_sync_error_t err;
+    gcore_db_sql_sync_list_query_result_t ok;
+    gcore_db_sql_sync_error_t err;
   } val;
-} gcore_db_postgres_sync_result_list_query_result_error_t;
+} gcore_db_sql_sync_result_list_query_result_error_t;
 
 typedef gcore_db_kv_types_kv_value_t gcore_db_kv_sync_kv_value_t;
 
@@ -2002,27 +2004,28 @@ extern bool wasi_io_poll_method_pollable_ready(wasi_io_poll_borrow_pollable_t se
 extern void wasi_io_poll_method_pollable_block(wasi_io_poll_borrow_pollable_t self);
 extern void wasi_io_poll_poll(wasi_io_poll_list_borrow_pollable_t *in, bindings_list_u32_t *ret);
 
-// Imported Functions from `gcore:db/postgres@0.1.0`
+// Imported Functions from `gcore:db/sql@0.1.0`
 // Open the database bound to `name`.
 // 
 // `error::no-such-database` will be raised if the `name` is not recognized.
-extern bool gcore_db_postgres_static_database_open(bindings_string_t *name, gcore_db_postgres_own_database_t *ret, gcore_db_postgres_error_t *err);
-// Start one statement with positional parameters (`$1`, `$2`, ...). Auto-commits.
+extern bool gcore_db_sql_static_database_open(bindings_string_t *name, gcore_db_sql_own_database_t *ret, gcore_db_sql_error_t *err);
+// Start one statement with positional parameters, in the database's placeholder syntax.
+// Auto-commits.
 // 
 // `sql` must contain exactly one statement.
-extern gcore_db_postgres_own_future_query_result_t gcore_db_postgres_method_database_query(gcore_db_postgres_borrow_database_t self, bindings_string_t *sql, gcore_db_postgres_list_value_t *params);
+extern gcore_db_sql_own_future_query_result_t gcore_db_sql_method_database_query(gcore_db_sql_borrow_database_t self, bindings_string_t *sql, gcore_db_sql_list_value_t *params);
 // Start several statements in one transaction. Either all commit or none do.
-extern gcore_db_postgres_own_future_batch_result_t gcore_db_postgres_method_database_batch(gcore_db_postgres_borrow_database_t self, gcore_db_postgres_list_statement_t *statements);
+extern gcore_db_sql_own_future_batch_result_t gcore_db_sql_method_database_batch(gcore_db_sql_borrow_database_t self, gcore_db_sql_list_statement_t *statements);
 // Ready when the result is available.
-extern gcore_db_postgres_own_pollable_t gcore_db_postgres_method_future_query_result_subscribe(gcore_db_postgres_borrow_future_query_result_t self);
+extern gcore_db_sql_own_pollable_t gcore_db_sql_method_future_query_result_subscribe(gcore_db_sql_borrow_future_query_result_t self);
 // The result, once ready; `none` before that. Returns the result only once: later calls
 // return `some(err(error::internal-error))`.
-extern bool gcore_db_postgres_method_future_query_result_get(gcore_db_postgres_borrow_future_query_result_t self, gcore_db_postgres_result_query_result_error_t *ret);
+extern bool gcore_db_sql_method_future_query_result_get(gcore_db_sql_borrow_future_query_result_t self, gcore_db_sql_result_query_result_error_t *ret);
 // Ready when the result is available.
-extern gcore_db_postgres_own_pollable_t gcore_db_postgres_method_future_batch_result_subscribe(gcore_db_postgres_borrow_future_batch_result_t self);
+extern gcore_db_sql_own_pollable_t gcore_db_sql_method_future_batch_result_subscribe(gcore_db_sql_borrow_future_batch_result_t self);
 // The result, once ready; `none` before that. Returns the result only once: later calls
 // return `some(err(error::internal-error))`.
-extern bool gcore_db_postgres_method_future_batch_result_get(gcore_db_postgres_borrow_future_batch_result_t self, gcore_db_postgres_result_list_query_result_error_t *ret);
+extern bool gcore_db_sql_method_future_batch_result_get(gcore_db_sql_borrow_future_batch_result_t self, gcore_db_sql_result_list_query_result_error_t *ret);
 
 // Imported Functions from `gcore:db/kv@0.1.0`
 // Open the database bound to `name`.
@@ -2156,20 +2159,21 @@ extern bool gcore_fastedge_cache_sync_purge(uint64_t *ret, gcore_fastedge_cache_
 // operation fails.
 extern bool gcore_fastedge_cache_sync_purge_prefix(bindings_string_t *prefix, uint64_t *ret, gcore_fastedge_cache_sync_error_t *err);
 
-// Imported Functions from `gcore:db/postgres-sync@0.1.0`
+// Imported Functions from `gcore:db/sql-sync@0.1.0`
 // Open the database bound to `name`.
 // 
 // `error::no-such-database` will be raised if the `name` is not recognized.
-extern bool gcore_db_postgres_sync_static_database_open(bindings_string_t *name, gcore_db_postgres_sync_own_database_t *ret, gcore_db_postgres_sync_error_t *err);
-// Run one statement with positional parameters (`$1`, `$2`, ...). Auto-commits.
+extern bool gcore_db_sql_sync_static_database_open(bindings_string_t *name, gcore_db_sql_sync_own_database_t *ret, gcore_db_sql_sync_error_t *err);
+// Run one statement with positional parameters, in the database's placeholder syntax
+// (`$1`, `$2`, ... for PostgreSQL; `?` for SQLite). Auto-commits.
 // 
 // `sql` must contain exactly one statement.
-extern bool gcore_db_postgres_sync_method_database_query(gcore_db_postgres_sync_borrow_database_t self, bindings_string_t *sql, gcore_db_postgres_sync_list_value_t *params, gcore_db_postgres_sync_query_result_t *ret, gcore_db_postgres_sync_error_t *err);
+extern bool gcore_db_sql_sync_method_database_query(gcore_db_sql_sync_borrow_database_t self, bindings_string_t *sql, gcore_db_sql_sync_list_value_t *params, gcore_db_sql_sync_query_result_t *ret, gcore_db_sql_sync_error_t *err);
 // Run several statements in one transaction. Either all commit or none do.
 // 
 // Returns one `query-result` per statement, in order. On failure nothing is committed
 // and the error of the failing statement is returned.
-extern bool gcore_db_postgres_sync_method_database_batch(gcore_db_postgres_sync_borrow_database_t self, gcore_db_postgres_sync_list_statement_t *statements, gcore_db_postgres_sync_list_query_result_t *ret, gcore_db_postgres_sync_error_t *err);
+extern bool gcore_db_sql_sync_method_database_batch(gcore_db_sql_sync_borrow_database_t self, gcore_db_sql_sync_list_statement_t *statements, gcore_db_sql_sync_list_query_result_t *ret, gcore_db_sql_sync_error_t *err);
 
 // Imported Functions from `gcore:db/kv-sync@0.1.0`
 // Open the database bound to `name`.
@@ -2728,67 +2732,67 @@ void bindings_list_u32_free(bindings_list_u32_t *ptr);
 
 void bindings_list_u8_free(bindings_list_u8_t *ptr);
 
-void gcore_db_postgres_types_value_free(gcore_db_postgres_types_value_t *ptr);
+void gcore_db_sql_types_value_free(gcore_db_sql_types_value_t *ptr);
 
-void gcore_db_postgres_types_column_free(gcore_db_postgres_types_column_t *ptr);
+void gcore_db_sql_types_column_free(gcore_db_sql_types_column_t *ptr);
 
-void gcore_db_postgres_types_list_column_free(gcore_db_postgres_types_list_column_t *ptr);
+void gcore_db_sql_types_list_column_free(gcore_db_sql_types_list_column_t *ptr);
 
-void gcore_db_postgres_types_list_value_free(gcore_db_postgres_types_list_value_t *ptr);
+void gcore_db_sql_types_list_value_free(gcore_db_sql_types_list_value_t *ptr);
 
-void gcore_db_postgres_types_list_list_value_free(gcore_db_postgres_types_list_list_value_t *ptr);
+void gcore_db_sql_types_list_list_value_free(gcore_db_sql_types_list_list_value_t *ptr);
 
-void gcore_db_postgres_types_query_result_free(gcore_db_postgres_types_query_result_t *ptr);
+void gcore_db_sql_types_query_result_free(gcore_db_sql_types_query_result_t *ptr);
 
-void gcore_db_postgres_types_statement_free(gcore_db_postgres_types_statement_t *ptr);
+void gcore_db_sql_types_statement_free(gcore_db_sql_types_statement_t *ptr);
 
 void bindings_option_string_free(bindings_option_string_t *ptr);
 
-void gcore_db_postgres_types_db_error_free(gcore_db_postgres_types_db_error_t *ptr);
+void gcore_db_sql_types_db_error_free(gcore_db_sql_types_db_error_t *ptr);
 
-void gcore_db_postgres_types_error_free(gcore_db_postgres_types_error_t *ptr);
+void gcore_db_sql_types_error_free(gcore_db_sql_types_error_t *ptr);
 
-void gcore_db_postgres_value_free(gcore_db_postgres_value_t *ptr);
+void gcore_db_sql_value_free(gcore_db_sql_value_t *ptr);
 
-void gcore_db_postgres_query_result_free(gcore_db_postgres_query_result_t *ptr);
+void gcore_db_sql_query_result_free(gcore_db_sql_query_result_t *ptr);
 
-void gcore_db_postgres_statement_free(gcore_db_postgres_statement_t *ptr);
+void gcore_db_sql_statement_free(gcore_db_sql_statement_t *ptr);
 
-void gcore_db_postgres_error_free(gcore_db_postgres_error_t *ptr);
+void gcore_db_sql_error_free(gcore_db_sql_error_t *ptr);
 
-extern void gcore_db_postgres_database_drop_own(gcore_db_postgres_own_database_t handle);
+extern void gcore_db_sql_database_drop_own(gcore_db_sql_own_database_t handle);
 
-extern void gcore_db_postgres_database_drop_borrow(gcore_db_postgres_borrow_database_t handle);
+extern void gcore_db_sql_database_drop_borrow(gcore_db_sql_borrow_database_t handle);
 
-extern gcore_db_postgres_borrow_database_t gcore_db_postgres_borrow_database(gcore_db_postgres_own_database_t handle);
+extern gcore_db_sql_borrow_database_t gcore_db_sql_borrow_database(gcore_db_sql_own_database_t handle);
 
-extern void gcore_db_postgres_future_query_result_drop_own(gcore_db_postgres_own_future_query_result_t handle);
+extern void gcore_db_sql_future_query_result_drop_own(gcore_db_sql_own_future_query_result_t handle);
 
-extern void gcore_db_postgres_future_query_result_drop_borrow(gcore_db_postgres_borrow_future_query_result_t handle);
+extern void gcore_db_sql_future_query_result_drop_borrow(gcore_db_sql_borrow_future_query_result_t handle);
 
-extern gcore_db_postgres_borrow_future_query_result_t gcore_db_postgres_borrow_future_query_result(gcore_db_postgres_own_future_query_result_t handle);
+extern gcore_db_sql_borrow_future_query_result_t gcore_db_sql_borrow_future_query_result(gcore_db_sql_own_future_query_result_t handle);
 
-extern void gcore_db_postgres_future_batch_result_drop_own(gcore_db_postgres_own_future_batch_result_t handle);
+extern void gcore_db_sql_future_batch_result_drop_own(gcore_db_sql_own_future_batch_result_t handle);
 
-extern void gcore_db_postgres_future_batch_result_drop_borrow(gcore_db_postgres_borrow_future_batch_result_t handle);
+extern void gcore_db_sql_future_batch_result_drop_borrow(gcore_db_sql_borrow_future_batch_result_t handle);
 
-extern gcore_db_postgres_borrow_future_batch_result_t gcore_db_postgres_borrow_future_batch_result(gcore_db_postgres_own_future_batch_result_t handle);
+extern gcore_db_sql_borrow_future_batch_result_t gcore_db_sql_borrow_future_batch_result(gcore_db_sql_own_future_batch_result_t handle);
 
-void gcore_db_postgres_result_own_database_error_free(gcore_db_postgres_result_own_database_error_t *ptr);
+void gcore_db_sql_result_own_database_error_free(gcore_db_sql_result_own_database_error_t *ptr);
 
-void gcore_db_postgres_list_value_free(gcore_db_postgres_list_value_t *ptr);
+void gcore_db_sql_list_value_free(gcore_db_sql_list_value_t *ptr);
 
-void gcore_db_postgres_list_statement_free(gcore_db_postgres_list_statement_t *ptr);
+void gcore_db_sql_list_statement_free(gcore_db_sql_list_statement_t *ptr);
 
-void gcore_db_postgres_result_query_result_error_free(gcore_db_postgres_result_query_result_error_t *ptr);
+void gcore_db_sql_result_query_result_error_free(gcore_db_sql_result_query_result_error_t *ptr);
 
-void gcore_db_postgres_option_result_query_result_error_free(gcore_db_postgres_option_result_query_result_error_t *ptr);
+void gcore_db_sql_option_result_query_result_error_free(gcore_db_sql_option_result_query_result_error_t *ptr);
 
-void gcore_db_postgres_list_query_result_free(gcore_db_postgres_list_query_result_t *ptr);
+void gcore_db_sql_list_query_result_free(gcore_db_sql_list_query_result_t *ptr);
 
-void gcore_db_postgres_result_list_query_result_error_free(gcore_db_postgres_result_list_query_result_error_t *ptr);
+void gcore_db_sql_result_list_query_result_error_free(gcore_db_sql_result_list_query_result_error_t *ptr);
 
-void gcore_db_postgres_option_result_list_query_result_error_free(gcore_db_postgres_option_result_list_query_result_error_t *ptr);
+void gcore_db_sql_option_result_list_query_result_error_free(gcore_db_sql_option_result_list_query_result_error_t *ptr);
 
 void gcore_db_kv_types_kv_value_free(gcore_db_kv_types_kv_value_t *ptr);
 
@@ -2904,31 +2908,31 @@ void gcore_fastedge_cache_sync_result_s64_error_free(gcore_fastedge_cache_sync_r
 
 void gcore_fastedge_cache_sync_result_u64_error_free(gcore_fastedge_cache_sync_result_u64_error_t *ptr);
 
-void gcore_db_postgres_sync_value_free(gcore_db_postgres_sync_value_t *ptr);
+void gcore_db_sql_sync_value_free(gcore_db_sql_sync_value_t *ptr);
 
-void gcore_db_postgres_sync_query_result_free(gcore_db_postgres_sync_query_result_t *ptr);
+void gcore_db_sql_sync_query_result_free(gcore_db_sql_sync_query_result_t *ptr);
 
-void gcore_db_postgres_sync_statement_free(gcore_db_postgres_sync_statement_t *ptr);
+void gcore_db_sql_sync_statement_free(gcore_db_sql_sync_statement_t *ptr);
 
-void gcore_db_postgres_sync_error_free(gcore_db_postgres_sync_error_t *ptr);
+void gcore_db_sql_sync_error_free(gcore_db_sql_sync_error_t *ptr);
 
-extern void gcore_db_postgres_sync_database_drop_own(gcore_db_postgres_sync_own_database_t handle);
+extern void gcore_db_sql_sync_database_drop_own(gcore_db_sql_sync_own_database_t handle);
 
-extern void gcore_db_postgres_sync_database_drop_borrow(gcore_db_postgres_sync_borrow_database_t handle);
+extern void gcore_db_sql_sync_database_drop_borrow(gcore_db_sql_sync_borrow_database_t handle);
 
-extern gcore_db_postgres_sync_borrow_database_t gcore_db_postgres_sync_borrow_database(gcore_db_postgres_sync_own_database_t handle);
+extern gcore_db_sql_sync_borrow_database_t gcore_db_sql_sync_borrow_database(gcore_db_sql_sync_own_database_t handle);
 
-void gcore_db_postgres_sync_result_own_database_error_free(gcore_db_postgres_sync_result_own_database_error_t *ptr);
+void gcore_db_sql_sync_result_own_database_error_free(gcore_db_sql_sync_result_own_database_error_t *ptr);
 
-void gcore_db_postgres_sync_list_value_free(gcore_db_postgres_sync_list_value_t *ptr);
+void gcore_db_sql_sync_list_value_free(gcore_db_sql_sync_list_value_t *ptr);
 
-void gcore_db_postgres_sync_result_query_result_error_free(gcore_db_postgres_sync_result_query_result_error_t *ptr);
+void gcore_db_sql_sync_result_query_result_error_free(gcore_db_sql_sync_result_query_result_error_t *ptr);
 
-void gcore_db_postgres_sync_list_statement_free(gcore_db_postgres_sync_list_statement_t *ptr);
+void gcore_db_sql_sync_list_statement_free(gcore_db_sql_sync_list_statement_t *ptr);
 
-void gcore_db_postgres_sync_list_query_result_free(gcore_db_postgres_sync_list_query_result_t *ptr);
+void gcore_db_sql_sync_list_query_result_free(gcore_db_sql_sync_list_query_result_t *ptr);
 
-void gcore_db_postgres_sync_result_list_query_result_error_free(gcore_db_postgres_sync_result_list_query_result_error_t *ptr);
+void gcore_db_sql_sync_result_list_query_result_error_free(gcore_db_sql_sync_result_list_query_result_error_t *ptr);
 
 void gcore_db_kv_sync_kv_value_free(gcore_db_kv_sync_kv_value_t *ptr);
 

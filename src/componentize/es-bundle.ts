@@ -42,11 +42,11 @@ const fastedgePackagePlugin: Plugin = {
             `,
           };
         }
-        case 'db/postgres': {
+        case 'db/sql': {
           return {
             contents: `
-            export const PostgresDatabase = globalThis.PostgresDatabase;
-            export const PostgresError = globalThis.PostgresError;
+            export const SqlDatabase = globalThis.SqlDatabase;
+            export const SqlError = globalThis.SqlError;
             `,
           };
         }

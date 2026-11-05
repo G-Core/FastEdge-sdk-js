@@ -1,25 +1,26 @@
 package gcore:db@0.1.0;
 
-/// FastEdge PostgreSQL interface (asynchronous variant).
+/// FastEdge SQL interface (asynchronous variant).
 ///
-/// Same contract as `postgres-sync`, but `query` and `batch` return at once with a future, so a guest can
+/// Same contract as `sql-sync`, but `query` and `batch` return at once with a future, so a guest can
 /// run several calls concurrently (`wasi:io/poll`) and keep doing other work while they run.
 ///
 /// Calls already started run independently: their order of execution is not guaranteed. Wait for a
 /// result before relying on its effects, and use `batch` for ordered or atomic work. Dropping a
 /// future before it resolves abandons the result; the statement may or may not have been applied.
-interface postgres {
+interface sql {
   use wasi:io/poll@0.2.3.{pollable};
-  use postgres-types.{value, query-result, statement, error};
+  use sql-types.{value, query-result, statement, error};
 
-  /// FastEdge PostgreSQL database resource.
+  /// FastEdge SQL database resource.
   resource database {
     /// Open the database bound to `name`.
     ///
     /// `error::no-such-database` will be raised if the `name` is not recognized.
     open: static func(name: string) -> result<database, error>;
 
-    /// Start one statement with positional parameters (`$1`, `$2`, ...). Auto-commits.
+    /// Start one statement with positional parameters, in the database's placeholder syntax.
+    /// Auto-commits.
     ///
     /// `sql` must contain exactly one statement.
     query: func(sql: string, params: list<value>) -> future-query-result;

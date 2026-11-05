@@ -1,8 +1,8 @@
-// `fastedge::db/postgres`: `PostgresDatabase` + `PostgresError` over `gcore:db/postgres@0.1.0` (async).
+// `fastedge::db/sql`: `SqlDatabase` + `SqlError` over `gcore:db/sql@0.1.0` (async).
 // query/batch start the host call and return a Promise; an AsyncTask settles it when the host
 // future's pollable is ready, so calls run concurrently with each other and with `fetch`.
 #include "db-common.h"
-#include "db-postgres.h"
+#include "db-sql.h"
 #include "encode.h"
 #include "../host-api/bindings/bindings.h"
 
@@ -22,12 +22,12 @@
 #include <js/experimental/TypedData.h>
 #include <js/TracingAPI.h>
 
-using fastedge::db_postgres::PostgresDatabase;
+using fastedge::db_sql::SqlDatabase;
 
 namespace {
 
-// `PostgresError.prototype`; inherits `Error.prototype`.
-JS::PersistentRooted<JSObject *> *postgres_error_proto;
+// `SqlError.prototype`; inherits `Error.prototype`.
+JS::PersistentRooted<JSObject *> *sql_error_proto;
 
 JSString *new_string(JSContext *cx, const uint8_t *ptr, size_t len) {
   return JS_NewStringCopyUTF8N(cx, JS::UTF8Chars(reinterpret_cast<const char *>(ptr), len));
@@ -45,26 +45,26 @@ bool set_opt_str(JSContext *cx, JS::HandleObject obj, const char *key,
   return !s.is_some || set_str(cx, obj, key, s.val);
 }
 
-// Host error -> pending PostgresError exception. Always returns false.
-bool throw_postgres_error(JSContext *cx, gcore_db_postgres_error_t &err) {
+// Host error -> pending SqlError exception. Always returns false.
+bool throw_sql_error(JSContext *cx, gcore_db_sql_error_t &err) {
   static const char *KINDS[] = {"config", "access-denied", "config", "connection",
                                 "timeout", "limit",         "query",  "internal"};
   static const char *MESSAGES[] = {"no such database", "access denied", "", "",
                                    "timeout",          "",              "", "internal error"};
-  const gcore_db_postgres_types_db_error_t *db_err = err.tag == GCORE_DB_POSTGRES_TYPES_ERROR_CONFIG  ? &err.val.config
-                                          : err.tag == GCORE_DB_POSTGRES_TYPES_ERROR_QUERY ? &err.val.query
+  const gcore_db_sql_types_db_error_t *db_err = err.tag == GCORE_DB_SQL_TYPES_ERROR_CONFIG  ? &err.val.config
+                                          : err.tag == GCORE_DB_SQL_TYPES_ERROR_QUERY ? &err.val.query
                                                                                 : nullptr;
   JS::RootedString message(cx);
   if (db_err) {
     message = new_string(cx, db_err->message.ptr, db_err->message.len);
-  } else if (err.tag == GCORE_DB_POSTGRES_TYPES_ERROR_CONNECTION) {
+  } else if (err.tag == GCORE_DB_SQL_TYPES_ERROR_CONNECTION) {
     message = new_string(cx, err.val.connection.ptr, err.val.connection.len);
-  } else if (err.tag == GCORE_DB_POSTGRES_TYPES_ERROR_LIMIT) {
+  } else if (err.tag == GCORE_DB_SQL_TYPES_ERROR_LIMIT) {
     message = new_string(cx, err.val.limit.ptr, err.val.limit.len);
   } else {
     message = JS_NewStringCopyZ(cx, MESSAGES[err.tag]);
   }
-  JS::RootedObject obj(cx, message ? fastedge::db::new_error(cx, *postgres_error_proto,
+  JS::RootedObject obj(cx, message ? fastedge::db::new_error(cx, *sql_error_proto,
                                                                   KINDS[err.tag], message)
                                    : nullptr);
   bool ok = obj != nullptr;
@@ -76,13 +76,13 @@ bool throw_postgres_error(JSContext *cx, gcore_db_postgres_error_t &err) {
   }
   if (db_err) {
     // The generated db_error_free (wit-bindgen 0.30 and 0.52) only frees `message`.
-    auto *e = const_cast<gcore_db_postgres_types_db_error_t *>(db_err);
+    auto *e = const_cast<gcore_db_sql_types_db_error_t *>(db_err);
     bindings_option_string_free(&e->code);
     bindings_option_string_free(&e->detail);
     bindings_option_string_free(&e->hint);
     bindings_option_string_free(&e->constraint);
   }
-  gcore_db_postgres_error_free(&err);
+  gcore_db_sql_error_free(&err);
   if (ok) {
     JS::RootedValue exc(cx, JS::ObjectValue(*obj));
     JS_SetPendingException(cx, exc);
@@ -107,29 +107,29 @@ bool append_u16(const char16_t *buf, uint32_t len, void *data) {
 // JS param -> WIT value: null/undefined, boolean, number, bigint (int8), Uint8Array (bytea),
 // Date (ISO text), other objects (JSON text), anything else as text. Strings/bytes are owned by
 // `keep`/`bytes` until the host call returns.
-bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_postgres_value_t &out,
+bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_sql_value_t &out,
               std::vector<host_api::HostString> &keep, std::vector<std::vector<uint8_t>> &bytes) {
   if (v.isNullOrUndefined()) {
-    out.tag = GCORE_DB_POSTGRES_TYPES_VALUE_NULL;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_NULL;
     return true;
   }
   if (v.isBoolean()) {
-    out.tag = GCORE_DB_POSTGRES_TYPES_VALUE_BOOLEAN;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_BOOLEAN;
     out.val.boolean = v.toBoolean();
     return true;
   }
   if (v.isInt32()) {
-    out.tag = GCORE_DB_POSTGRES_TYPES_VALUE_INT32;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_INT32;
     out.val.int32 = v.toInt32();
     return true;
   }
   if (v.isNumber()) {
-    out.tag = GCORE_DB_POSTGRES_TYPES_VALUE_FLOAT64;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_FLOAT64;
     out.val.float64 = v.toNumber();
     return true;
   }
   if (v.isBigInt()) {
-    out.tag = GCORE_DB_POSTGRES_TYPES_VALUE_INT64;
+    out.tag = GCORE_DB_SQL_TYPES_VALUE_INT64;
     // ToBigInt64 wraps modulo 2^64; a value outside int64 must fail, not change.
     if (!JS::BigIntFits(v.toBigInt(), &out.val.int64)) {
       JS_ReportErrorASCII(cx, "BigInt parameter does not fit in a signed 64-bit integer");
@@ -147,7 +147,7 @@ bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_postgres_value_t &out,
         bool is_shared;
         std::memcpy(buf.data(), JS_GetArrayBufferViewData(obj, &is_shared, noGC), buf.size());
       }
-      out.tag = GCORE_DB_POSTGRES_TYPES_VALUE_BYTES;
+      out.tag = GCORE_DB_SQL_TYPES_VALUE_BYTES;
       out.val.bytes = {buf.data(), buf.size()};
       return true;
     }
@@ -170,12 +170,12 @@ bool to_value(JSContext *cx, JS::HandleValue v, gcore_db_postgres_value_t &out,
   if (!str) return false;
   auto &s = keep.emplace_back(core::encode(cx, str));
   if (!s) return false;
-  out.tag = GCORE_DB_POSTGRES_TYPES_VALUE_TEXT;
+  out.tag = GCORE_DB_SQL_TYPES_VALUE_TEXT;
   out.val.text = {(uint8_t *)s.ptr.get(), s.len};
   return true;
 }
 
-bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_postgres_value_t> &out,
+bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_sql_value_t> &out,
                std::vector<host_api::HostString> &keep,
                std::vector<std::vector<uint8_t>> &bytes) {
   if (arr_val.isUndefined()) return true;
@@ -195,29 +195,29 @@ bool to_params(JSContext *cx, JS::HandleValue arr_val, std::vector<gcore_db_post
   return true;
 }
 
-// WIT value -> JS, per the `fastedge::db/postgres` type mapping: int8 as string (no precision loss),
+// WIT value -> JS, per the `fastedge::db/sql` type mapping: int8 as string (no precision loss),
 // json/jsonb parsed, bytea as Uint8Array, numeric/text as string.
-bool from_value(JSContext *cx, const gcore_db_postgres_value_t &v, JS::MutableHandleValue out) {
+bool from_value(JSContext *cx, const gcore_db_sql_value_t &v, JS::MutableHandleValue out) {
   switch (v.tag) {
-  case GCORE_DB_POSTGRES_TYPES_VALUE_NULL:
+  case GCORE_DB_SQL_TYPES_VALUE_NULL:
     out.setNull();
     return true;
-  case GCORE_DB_POSTGRES_TYPES_VALUE_BOOLEAN:
+  case GCORE_DB_SQL_TYPES_VALUE_BOOLEAN:
     out.setBoolean(v.val.boolean);
     return true;
-  case GCORE_DB_POSTGRES_TYPES_VALUE_INT32:
+  case GCORE_DB_SQL_TYPES_VALUE_INT32:
     out.setInt32(v.val.int32);
     return true;
-  case GCORE_DB_POSTGRES_TYPES_VALUE_FLOAT64:
+  case GCORE_DB_SQL_TYPES_VALUE_FLOAT64:
     out.setDouble(v.val.float64);
     return true;
-  case GCORE_DB_POSTGRES_TYPES_VALUE_INT64: {
+  case GCORE_DB_SQL_TYPES_VALUE_INT64: {
     JSString *str = JS_NewStringCopyZ(cx, std::to_string(v.val.int64).c_str());
     if (!str) return false;
     out.setString(str);
     return true;
   }
-  case GCORE_DB_POSTGRES_TYPES_VALUE_BYTES: {
+  case GCORE_DB_SQL_TYPES_VALUE_BYTES: {
     JS::RootedObject arr(cx, JS_NewUint8Array(cx, v.val.bytes.len));
     if (!arr) return false;
     {
@@ -229,7 +229,7 @@ bool from_value(JSContext *cx, const gcore_db_postgres_value_t &v, JS::MutableHa
     out.setObject(*arr);
     return true;
   }
-  case GCORE_DB_POSTGRES_TYPES_VALUE_JSON: {
+  case GCORE_DB_SQL_TYPES_VALUE_JSON: {
     JS::RootedString str(cx, new_string(cx, v.val.json.ptr, v.val.json.len));
     return str && JS_ParseJSON(cx, str, out);
   }
@@ -242,9 +242,9 @@ bool from_value(JSContext *cx, const gcore_db_postgres_value_t &v, JS::MutableHa
   }
 }
 
-// `{ rows, rowCount, columns: [{ name, typeOid }] }`; rows are objects keyed by column name,
+// `{ rows, rowCount, columns: [{ name, typeName }] }`; rows are objects keyed by column name,
 // or arrays in column order with `rowMode: 'array'`.
-JSObject *from_result(JSContext *cx, const gcore_db_postgres_query_result_t &r, bool array_mode) {
+JSObject *from_result(JSContext *cx, const gcore_db_sql_query_result_t &r, bool array_mode) {
   JS::RootedObject obj(cx, JS_NewPlainObject(cx));
   JS::RootedObject columns(cx, JS::NewArrayObject(cx, r.columns.len));
   JS::RootedObject rows(cx, JS::NewArrayObject(cx, r.rows.len));
@@ -259,8 +259,11 @@ JSObject *from_result(JSContext *cx, const gcore_db_postgres_query_result_t &r, 
     if (!name || !col || !JS_StringToId(cx, name, &id) || !names.append(id)) return nullptr;
     v.setString(name);
     if (!JS_SetProperty(cx, col, "name", v)) return nullptr;
-    v.setNumber(r.columns.ptr[i].type_oid);
-    if (!JS_SetProperty(cx, col, "typeOid", v)) return nullptr;
+    JS::RootedString type_name(
+        cx, new_string(cx, r.columns.ptr[i].type_name.ptr, r.columns.ptr[i].type_name.len));
+    if (!type_name) return nullptr;
+    v.setString(type_name);
+    if (!JS_SetProperty(cx, col, "typeName", v)) return nullptr;
     v.setObject(*col);
     if (!JS_SetElement(cx, columns, i, v)) return nullptr;
   }
@@ -301,12 +304,12 @@ bool array_mode(JSContext *cx, JS::HandleValue options, bool *out) {
   return !mode.isString() || JS_StringEqualsLiteral(cx, mode.toString(), "array", out);
 }
 
-bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_postgres_borrow_database_t &out) {
+bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_sql_borrow_database_t &out) {
   JS::RootedObject self(cx, args.thisv().isObject() ? &args.thisv().toObject() : nullptr);
-  // The exported PostgresDatabase object shares the class but has no handle: require one.
-  if (!self || !JS_InstanceOf(cx, self, &PostgresDatabase::class_, nullptr) ||
+  // The exported SqlDatabase object shares the class but has no handle: require one.
+  if (!self || !JS_InstanceOf(cx, self, &SqlDatabase::class_, nullptr) ||
       !JS::GetReservedSlot(self, 0).isInt32()) {
-    JS_ReportErrorUTF8(cx, "Invalid PostgresDatabase instance");
+    JS_ReportErrorUTF8(cx, "Invalid SqlDatabase instance");
     return false;
   }
   out.__handle = JS::GetReservedSlot(self, 0).toInt32();
@@ -314,17 +317,17 @@ bool this_handle(JSContext *cx, JS::CallArgs &args, gcore_db_postgres_borrow_dat
 }
 
 // Host query result -> JS (frees `ret`).
-bool query_to_js(JSContext *cx, gcore_db_postgres_query_result_t &ret, bool rows_as_arrays,
+bool query_to_js(JSContext *cx, gcore_db_sql_query_result_t &ret, bool rows_as_arrays,
                  JS::MutableHandleValue out) {
   JSObject *obj = from_result(cx, ret, rows_as_arrays);
-  gcore_db_postgres_query_result_free(&ret);
+  gcore_db_sql_query_result_free(&ret);
   if (!obj) return false;
   out.setObject(*obj);
   return true;
 }
 
 // Host batch result -> JS array (frees `ret`).
-bool batch_to_js(JSContext *cx, gcore_db_postgres_list_query_result_t &ret, bool rows_as_arrays,
+bool batch_to_js(JSContext *cx, gcore_db_sql_list_query_result_t &ret, bool rows_as_arrays,
                  JS::MutableHandleValue out) {
   JS::RootedObject arr(cx, JS::NewArrayObject(cx, ret.len));
   bool ok = arr != nullptr;
@@ -337,14 +340,14 @@ bool batch_to_js(JSContext *cx, gcore_db_postgres_list_query_result_t &ret, bool
       ok = JS_SetElement(cx, arr, i, v);
     }
   }
-  gcore_db_postgres_list_query_result_free(&ret);
+  gcore_db_sql_list_query_result_free(&ret);
   if (!ok) return false;
   out.setObject(*arr);
   return true;
 }
 
 // A started query/batch. Holds the host future; settles `promise_` once its pollable is ready.
-class PostgresTask final : public api::AsyncTask {
+class SqlTask final : public api::AsyncTask {
   JS::Heap<JSObject *> promise_;
   int32_t future_;
   bool batch_;
@@ -352,36 +355,36 @@ class PostgresTask final : public api::AsyncTask {
 
   void drop_future() {
     if (batch_) {
-      gcore_db_postgres_future_batch_result_drop_own({future_});
+      gcore_db_sql_future_batch_result_drop_own({future_});
     } else {
-      gcore_db_postgres_future_query_result_drop_own({future_});
+      gcore_db_sql_future_query_result_drop_own({future_});
     }
   }
 
   bool result(JSContext *cx, JS::MutableHandleValue out) {
     if (batch_) {
-      gcore_db_postgres_result_list_query_result_error_t res{};
-      if (!gcore_db_postgres_method_future_batch_result_get({future_}, &res)) {
+      gcore_db_sql_result_list_query_result_error_t res{};
+      if (!gcore_db_sql_method_future_batch_result_get({future_}, &res)) {
         JS_ReportErrorUTF8(cx, "database result not ready");
         return false;
       }
-      if (res.is_err) return throw_postgres_error(cx, res.val.err);
+      if (res.is_err) return throw_sql_error(cx, res.val.err);
       return batch_to_js(cx, res.val.ok, rows_as_arrays_, out);
     }
-    gcore_db_postgres_result_query_result_error_t res{};
-    if (!gcore_db_postgres_method_future_query_result_get({future_}, &res)) {
+    gcore_db_sql_result_query_result_error_t res{};
+    if (!gcore_db_sql_method_future_query_result_get({future_}, &res)) {
       JS_ReportErrorUTF8(cx, "database result not ready");
       return false;
     }
-    if (res.is_err) return throw_postgres_error(cx, res.val.err);
+    if (res.is_err) return throw_sql_error(cx, res.val.err);
     return query_to_js(cx, res.val.ok, rows_as_arrays_, out);
   }
 
 public:
-  PostgresTask(JS::HandleObject promise, int32_t future, bool batch, bool rows_as_arrays)
+  SqlTask(JS::HandleObject promise, int32_t future, bool batch, bool rows_as_arrays)
       : promise_(promise), future_(future), batch_(batch), rows_as_arrays_(rows_as_arrays) {
-    handle_ = batch ? gcore_db_postgres_method_future_batch_result_subscribe({future}).__handle
-                    : gcore_db_postgres_method_future_query_result_subscribe({future}).__handle;
+    handle_ = batch ? gcore_db_sql_method_future_batch_result_subscribe({future}).__handle
+                    : gcore_db_sql_method_future_query_result_subscribe({future}).__handle;
   }
 
   bool run(api::Engine *engine) override {
@@ -404,7 +407,7 @@ public:
     return true;
   }
 
-  void trace(JSTracer *trc) override { JS::TraceEdge(trc, &promise_, "PostgresTask promise"); }
+  void trace(JSTracer *trc) override { JS::TraceEdge(trc, &promise_, "SqlTask promise"); }
 };
 
 // Queues a task for host future `future` and returns its Promise in `args.rval()`.
@@ -413,13 +416,13 @@ bool start(JSContext *cx, JS::CallArgs &args, int32_t future, bool batch, bool r
   if (!promise) {
     // Don't leak the host call: it would otherwise run to completion unobserved.
     if (batch) {
-      gcore_db_postgres_future_batch_result_drop_own({future});
+      gcore_db_sql_future_batch_result_drop_own({future});
     } else {
-      gcore_db_postgres_future_query_result_drop_own({future});
+      gcore_db_sql_future_query_result_drop_own({future});
     }
     return false;
   }
-  api::Engine::queue_async_task(new PostgresTask(promise, future, batch, rows_as_arrays));
+  api::Engine::queue_async_task(new SqlTask(promise, future, batch, rows_as_arrays));
   args.rval().setObject(*promise);
   return true;
 }
@@ -434,7 +437,7 @@ bool reject_pending(JSContext *cx, JS::CallArgs &args) {
 }
 
 bool start_query(JSContext *cx, JS::CallArgs &args) {
-  gcore_db_postgres_borrow_database_t db;
+  gcore_db_sql_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   JS::RootedString sql_str(cx, JS::ToString(cx, args[0]));
   if (!sql_str) return false;
@@ -443,19 +446,19 @@ bool start_query(JSContext *cx, JS::CallArgs &args) {
   bool rows_as_arrays;
   if (!array_mode(cx, args.get(2), &rows_as_arrays)) return false;
 
-  std::vector<gcore_db_postgres_value_t> params;
+  std::vector<gcore_db_sql_value_t> params;
   std::vector<host_api::HostString> keep;
   std::vector<std::vector<uint8_t>> bytes;
   if (!to_params(cx, args.get(1), params, keep, bytes)) return false;
 
   bindings_string_t sql_ws{(uint8_t *)sql.ptr.get(), sql.len};
-  gcore_db_postgres_list_value_t params_ws{params.data(), params.size()};
-  auto future = gcore_db_postgres_method_database_query(db, &sql_ws, &params_ws);
+  gcore_db_sql_list_value_t params_ws{params.data(), params.size()};
+  auto future = gcore_db_sql_method_database_query(db, &sql_ws, &params_ws);
   return start(cx, args, future.__handle, false, rows_as_arrays);
 }
 
 bool start_batch(JSContext *cx, JS::CallArgs &args) {
-  gcore_db_postgres_borrow_database_t db;
+  gcore_db_sql_borrow_database_t db;
   if (!this_handle(cx, args, db)) return false;
   bool rows_as_arrays;
   if (!array_mode(cx, args.get(1), &rows_as_arrays)) return false;
@@ -470,8 +473,8 @@ bool start_batch(JSContext *cx, JS::CallArgs &args) {
 
   std::vector<host_api::HostString> keep;
   std::vector<std::vector<uint8_t>> bytes;
-  std::vector<std::vector<gcore_db_postgres_value_t>> params(len);
-  std::vector<gcore_db_postgres_statement_t> stmts(len);
+  std::vector<std::vector<gcore_db_sql_value_t>> params(len);
+  std::vector<gcore_db_sql_statement_t> stmts(len);
   JS::RootedValue el(cx), sql_val(cx), params_val(cx);
   for (uint32_t i = 0; i < len; i++) {
     if (!JS_GetElement(cx, list, i, &el)) return false;
@@ -495,43 +498,43 @@ bool start_batch(JSContext *cx, JS::CallArgs &args) {
     stmts[i] = {sql_ws, {params[i].data(), params[i].size()}};
   }
 
-  gcore_db_postgres_list_statement_t stmts_ws{stmts.data(), stmts.size()};
-  auto future = gcore_db_postgres_method_database_batch(db, &stmts_ws);
+  gcore_db_sql_list_statement_t stmts_ws{stmts.data(), stmts.size()};
+  auto future = gcore_db_sql_method_database_batch(db, &stmts_ws);
   return start(cx, args, future.__handle, true, rows_as_arrays);
 }
 
 } // namespace
 
-namespace fastedge::db_postgres {
+namespace fastedge::db_sql {
 
-const JSClass PostgresDatabase::class_ = {"PostgresDatabase", JSCLASS_HAS_RESERVED_SLOTS(1)};
+const JSClass SqlDatabase::class_ = {"SqlDatabase", JSCLASS_HAS_RESERVED_SLOTS(1)};
 
-const JSFunctionSpec PostgresDatabase::static_methods[] = {
-    JS_FN("open", PostgresDatabase::open, 1, JSPROP_ENUMERATE),
+const JSFunctionSpec SqlDatabase::static_methods[] = {
+    JS_FN("open", SqlDatabase::open, 1, JSPROP_ENUMERATE),
     JS_FS_END,
 };
 
-const JSFunctionSpec PostgresDatabase::methods[] = {
-    JS_FN("query", PostgresDatabase::query, 1, JSPROP_ENUMERATE),
-    JS_FN("batch", PostgresDatabase::batch, 1, JSPROP_ENUMERATE),
+const JSFunctionSpec SqlDatabase::methods[] = {
+    JS_FN("query", SqlDatabase::query, 1, JSPROP_ENUMERATE),
+    JS_FN("batch", SqlDatabase::batch, 1, JSPROP_ENUMERATE),
     JS_FS_END,
 };
 
-bool PostgresDatabase::open(JSContext *cx, unsigned argc, JS::Value *vp) {
+bool SqlDatabase::open(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-  if (!args.requireAtLeast(cx, "PostgresDatabase.open", 1)) return false;
+  if (!args.requireAtLeast(cx, "SqlDatabase.open", 1)) return false;
   JS::RootedString name_str(cx, JS::ToString(cx, args[0]));
   if (!name_str) return false;
   auto name = core::encode(cx, name_str);
   if (!name) return false;
 
   bindings_string_t name_ws{(uint8_t *)name.ptr.get(), name.len};
-  gcore_db_postgres_own_database_t db{};
-  gcore_db_postgres_error_t err{};
-  if (!gcore_db_postgres_static_database_open(&name_ws, &db, &err)) return throw_postgres_error(cx, err);
+  gcore_db_sql_own_database_t db{};
+  gcore_db_sql_error_t err{};
+  if (!gcore_db_sql_static_database_open(&name_ws, &db, &err)) return throw_sql_error(cx, err);
 
-  JS::RootedObject obj(cx, JS_NewObjectWithGivenProto(cx, &PostgresDatabase::class_, nullptr));
-  if (!obj || !JS_DefineFunctions(cx, obj, PostgresDatabase::methods)) return false;
+  JS::RootedObject obj(cx, JS_NewObjectWithGivenProto(cx, &SqlDatabase::class_, nullptr));
+  if (!obj || !JS_DefineFunctions(cx, obj, SqlDatabase::methods)) return false;
   // ponytail: handle never dropped; the host frees it with the request's store.
   JS::SetReservedSlot(obj, 0, JS::Int32Value(db.__handle));
   args.rval().setObject(*obj);
@@ -539,14 +542,14 @@ bool PostgresDatabase::open(JSContext *cx, unsigned argc, JS::Value *vp) {
 }
 
 // query(sql, params?, { rowMode? }) -> Promise<{ rows, rowCount, columns }>
-bool PostgresDatabase::query(JSContext *cx, unsigned argc, JS::Value *vp) {
+bool SqlDatabase::query(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
   if (!args.requireAtLeast(cx, "query", 1)) return false;
   return start_query(cx, args) || reject_pending(cx, args);
 }
 
 // batch([{ sql, params? }], { rowMode? }) -> Promise<result[]>; one transaction.
-bool PostgresDatabase::batch(JSContext *cx, unsigned argc, JS::Value *vp) {
+bool SqlDatabase::batch(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
   if (!args.requireAtLeast(cx, "batch", 1)) return false;
   return start_batch(cx, args) || reject_pending(cx, args);
@@ -555,12 +558,12 @@ bool PostgresDatabase::batch(JSContext *cx, unsigned argc, JS::Value *vp) {
 bool install(api::Engine *engine) {
   JSContext *cx = engine->cx();
 
-  JS::RootedObject ctor(cx, JS_NewObject(cx, &PostgresDatabase::class_));
-  if (!ctor || !JS_DefineFunctions(cx, ctor, PostgresDatabase::static_methods) ||
-      !JS_DefineProperty(cx, engine->global(), "PostgresDatabase", ctor, 0)) {
+  JS::RootedObject ctor(cx, JS_NewObject(cx, &SqlDatabase::class_));
+  if (!ctor || !JS_DefineFunctions(cx, ctor, SqlDatabase::static_methods) ||
+      !JS_DefineProperty(cx, engine->global(), "SqlDatabase", ctor, 0)) {
     return false;
   }
-  return db::define_error_class(engine, "PostgresError", &postgres_error_proto);
+  return db::define_error_class(engine, "SqlError", &sql_error_proto);
 }
 
-} // namespace fastedge::db_postgres
+} // namespace fastedge::db_sql

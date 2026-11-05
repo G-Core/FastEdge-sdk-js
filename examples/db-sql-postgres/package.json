@@ -1,7 +1,7 @@
 {
-  "name": "fastedge-example-db-postgres",
+  "name": "fastedge-example-db-sql-postgres",
   "version": "1.0.0",
-  "description": "FastEdge JS example: query a bound PostgreSQL database with Drizzle over fastedge::db/postgres",
+  "description": "FastEdge JS example: query a bound SQL database (PostgreSQL) with Drizzle over fastedge::db/sql",
   "type": "module",
   "scripts": {
     "build": "fastedge-build -c",

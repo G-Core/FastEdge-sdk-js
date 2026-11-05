@@ -188,7 +188,7 @@ importers:
         specifier: link:../..
         version: link:../..
 
-  examples/db-postgres:
+  examples/db-sql-postgres:
     dependencies:
       '@gcoredev/fastedge-sdk-js':
         specifier: link:../..

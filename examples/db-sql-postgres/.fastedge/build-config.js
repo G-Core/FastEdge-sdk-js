@@ -2,7 +2,7 @@ const config = {
   type: 'http',
   tsConfigPath: './tsconfig.json',
   entryPoint: 'src/index.ts',
-  wasmOutput: 'dist/db-postgres.wasm',
+  wasmOutput: 'dist/db-sql-postgres.wasm',
 };
 
 const serverConfig = {

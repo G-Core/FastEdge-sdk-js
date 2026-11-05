@@ -1,23 +1,26 @@
 package gcore:db@0.1.0;
 
-/// Shared types for the PostgreSQL interfaces.
-interface postgres-types {
+/// Shared types for the SQL interfaces.
+///
+/// The interfaces are dialect-neutral: the SQL text, its placeholders and its error codes are those
+/// of the database the binding points at. The host chooses the backend from the binding's
+/// configuration; nothing in these interfaces names a dialect.
+interface sql-types {
   /// A parameter or result value.
   ///
-  /// Results use the narrowest variant that is lossless:
-  /// - `int2`, `int4` → `int32`
-  /// - `int8` → `int64`
-  /// - `float4`, `float8` → `float64`
-  /// - `numeric` → `numeric` (decimal text, e.g. "12345678901234567890.123")
-  /// - `bool` → `boolean`
-  /// - `json`, `jsonb` → `json` (JSON text)
-  /// - `bytea` → `bytes`
-  /// - everything else (text, varchar, uuid, date/time types, arrays, ...) → `text`, in PostgreSQL
-  ///   text format. `timestamptz` is rendered in UTC. Arrays are PostgreSQL array literals
-  ///   (e.g. "{1,2,3}"). Use `column.type-oid` to interpret them.
+  /// Results use the narrowest variant that holds the column's type without loss:
+  /// - 16- and 32-bit integers → `int32`; 64-bit integers → `int64`
+  /// - floating point → `float64`
+  /// - exact decimals → `numeric` (decimal text, e.g. "12345678901234567890.123")
+  /// - booleans → `boolean`
+  /// - JSON → `json` (JSON text)
+  /// - binary → `bytes`
+  /// - everything else (text, UUIDs, dates and times, arrays, ...) → `text`, in the database's
+  ///   own text format. Use `column.type-name` to interpret it.
   /// - SQL `NULL` → `null`
   ///
-  /// Parameters are sent to the database as text; PostgreSQL casts them to the target type.
+  /// How each database's types map onto these variants is documented per backend. Parameters are
+  /// converted to the target column type by the database, as its dialect does.
   variant value {
     null,
     boolean(bool),
@@ -34,8 +37,10 @@ interface postgres-types {
   record column {
     /// Column name or alias.
     name: string,
-    /// PostgreSQL type OID (e.g. 23 = int4, 1184 = timestamptz, 1007 = int4[]).
-    type-oid: u32,
+    /// The database's name for the column's type, in lower case (e.g. "int4", "timestamptz",
+    /// "int4[]" for PostgreSQL; the declared type, e.g. "integer", for SQLite). Empty when the
+    /// backend does not report a type the host can name.
+    type-name: string,
   }
 
   /// The result of one statement.
@@ -53,9 +58,10 @@ interface postgres-types {
     params: list<value>,
   }
 
-  /// Error details reported by the database.
+  /// Error details reported by the database. Fields are set when the database reports them.
   record db-error {
-    /// SQLSTATE code (e.g. "23505" unique_violation), when the database provides one.
+    /// The database's own error code: the SQLSTATE for PostgreSQL (e.g. "23505", unique
+    /// violation), the extended result code name for SQLite (e.g. "SQLITE_CONSTRAINT_UNIQUE").
     code: option<string>,
     message: string,
     detail: option<string>,
@@ -64,7 +70,7 @@ interface postgres-types {
     constraint: option<string>,
   }
 
-  /// The set of errors which may be raised by the PostgreSQL interfaces.
+  /// The set of errors which may be raised by the SQL interfaces.
   variant error {
     /// The host does not recognize the database binding requested.
     no-such-database,

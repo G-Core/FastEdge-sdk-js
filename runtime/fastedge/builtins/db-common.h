@@ -1,6 +1,6 @@
 #pragma once
 
-// Helpers shared by the `gcore:db` builtins (`fastedge::db/postgres`, `fastedge::db/kv`).
+// Helpers shared by the `gcore:db` builtins (`fastedge::db/sql`, `fastedge::db/kv`).
 // Header-only so neither builtin depends on the other.
 #include "builtin.h"
 
@@ -12,7 +12,7 @@ namespace fastedge::db {
 
 namespace detail {
 
-// `new PostgresError(...)` / `new KvError(...)` are not supported; instances come from the host.
+// `new SqlError(...)` / `new KvError(...)` are not supported; instances come from the host.
 inline bool error_ctor(JSContext *cx, unsigned argc, JS::Value *vp) {
   JS_ReportErrorUTF8(cx, "Illegal constructor");
   return false;
