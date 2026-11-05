@@ -1,4 +1,4 @@
-declare module 'fastedge::db/sql' {
+declare module 'fastedge::db/postgres' {
   /**
    * A parameter for a `$1`, `$2`, ... placeholder.
    *
@@ -6,7 +6,7 @@ declare module 'fastedge::db/sql' {
    * - `Date` is sent as ISO-8601 text, any other object as JSON text.
    * - Everything else is sent as text and cast by PostgreSQL.
    */
-  export type SqlParam = null | undefined | boolean | number | bigint | string | Uint8Array | Date | object;
+  export type PostgresParam = null | undefined | boolean | number | bigint | string | Uint8Array | Date | object;
 
   /**
    * A result value.
@@ -22,34 +22,34 @@ declare module 'fastedge::db/sql' {
    * | anything else (dates, uuid, arrays, ...) | `string`, PostgreSQL text format |
    * | `NULL` | `null` |
    */
-  export type SqlValue = null | boolean | number | string | Uint8Array | unknown;
+  export type PostgresValue = null | boolean | number | string | Uint8Array | unknown;
 
-  export interface SqlColumn {
+  export interface PostgresColumn {
     /** Column name or alias. */
     name: string;
     /** PostgreSQL type OID (e.g. 23 = int4, 1184 = timestamptz). */
     typeOid: number;
   }
 
-  export interface SqlResult<T = Record<string, SqlValue>> {
+  export interface PostgresResult<T = Record<string, PostgresValue>> {
     /** Rows keyed by column name, or arrays in column order with `rowMode: 'array'`. */
     rows: T[];
     /** Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE). */
     rowCount: number;
-    columns: SqlColumn[];
+    columns: PostgresColumn[];
   }
 
-  export interface SqlStatement {
+  export interface PostgresStatement {
     sql: string;
-    params?: SqlParam[];
+    params?: PostgresParam[];
   }
 
-  export interface SqlQueryOptions {
+  export interface PostgresQueryOptions {
     /** `'array'` returns each row as an array in column order. Default: objects. */
     rowMode?: 'object' | 'array';
   }
 
-  export type SqlErrorKind =
+  export type PostgresErrorKind =
     /** Unknown binding, bad credentials or database name. */
     | 'config'
     | 'access-denied'
@@ -64,9 +64,9 @@ declare module 'fastedge::db/sql' {
     | 'internal';
 
   /** Error from the database or the host. Thrown by `open`, rejected by `query` and `batch`. */
-  export class SqlError extends Error {
-    readonly name: 'SqlError';
-    readonly kind: SqlErrorKind;
+  export class PostgresError extends Error {
+    readonly name: 'PostgresError';
+    readonly kind: PostgresErrorKind;
     /** PostgreSQL SQLSTATE, e.g. `'23505'` unique_violation. Set for most `query` errors. */
     readonly code?: string;
     readonly detail?: string;
@@ -76,7 +76,7 @@ declare module 'fastedge::db/sql' {
   }
 
   /**
-   * A SQL database (PostgreSQL) bound to your application by name. The connection details stay
+   * A PostgreSQL database bound to your application by name. The connection details stay
    * with the host; the app only knows the binding name.
    *
    * `query` and `batch` start at once and run concurrently with each other and with `fetch`, so
@@ -88,15 +88,15 @@ declare module 'fastedge::db/sql' {
    * ```js
    * /// <reference types="@gcoredev/fastedge-sdk-js" />
    *
-   * import { SqlDatabase, SqlError } from "fastedge::db/sql";
+   * import { PostgresDatabase, PostgresError } from "fastedge::db/postgres";
    *
    * async function app(event) {
-   *   const db = SqlDatabase.open("main");
+   *   const db = PostgresDatabase.open("main");
    *   try {
    *     const { rows } = await db.query("select id, email from users where id = $1", [42]);
    *     return Response.json(rows[0] ?? null);
    *   } catch (error) {
-   *     if (error instanceof SqlError && error.code === "42P01") {
+   *     if (error instanceof PostgresError && error.code === "42P01") {
    *       return new Response("Table missing", { status: 500 });
    *     }
    *     throw error;
@@ -106,28 +106,28 @@ declare module 'fastedge::db/sql' {
    * addEventListener("fetch", event => event.respondWith(app(event)));
    * ```
    */
-  export class SqlDatabase {
+  export class PostgresDatabase {
     /**
      * Open the database bound to `name`.
      *
-     * @throws {SqlError} `kind: 'config'` if no database is bound to `name`.
+     * @throws {PostgresError} `kind: 'config'` if no database is bound to `name`.
      */
-    static open(name: string): SqlDatabase;
+    static open(name: string): PostgresDatabase;
 
     /**
      * Run one statement with positional parameters (`$1`, `$2`, ...). Auto-commits.
      * `T` is not checked at runtime.
      */
-    query<T = Record<string, SqlValue>>(
+    query<T = Record<string, PostgresValue>>(
       sql: string,
-      params?: SqlParam[],
-      options?: SqlQueryOptions,
-    ): Promise<SqlResult<T>>;
+      params?: PostgresParam[],
+      options?: PostgresQueryOptions,
+    ): Promise<PostgresResult<T>>;
 
     /**
      * Run several statements in one transaction: all commit or none do. Returns one result per
      * statement, in order.
      */
-    batch(statements: SqlStatement[], options?: SqlQueryOptions): Promise<SqlResult[]>;
+    batch(statements: PostgresStatement[], options?: PostgresQueryOptions): Promise<PostgresResult[]>;
   }
 }

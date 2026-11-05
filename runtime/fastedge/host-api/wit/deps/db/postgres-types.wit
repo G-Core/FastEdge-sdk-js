@@ -1,7 +1,7 @@
 package gcore:db@0.1.0;
 
-/// Shared types for the SQL interfaces.
-interface sql-types {
+/// Shared types for the PostgreSQL interfaces.
+interface postgres-types {
   /// A parameter or result value.
   ///
   /// Results use the narrowest variant that is lossless:
@@ -64,7 +64,7 @@ interface sql-types {
     constraint: option<string>,
   }
 
-  /// The set of errors which may be raised by the SQL interfaces.
+  /// The set of errors which may be raised by the PostgreSQL interfaces.
   variant error {
     /// The host does not recognize the database binding requested.
     no-such-database,

@@ -1,9 +1,9 @@
 [← Back to examples](../README.md)
 
-# SQL database (Drizzle)
+# PostgreSQL database (Drizzle)
 
 Reads users from a PostgreSQL database bound to the app as `main`, using
-[Drizzle](https://orm.drizzle.team) over `fastedge::db/sql`. Same table, data and behaviour as the
+[Drizzle](https://orm.drizzle.team) over `fastedge::db/postgres`. Same table, data and behaviour as the
 Rust example
 ([`examples/http/wasi/db_sql`](https://github.com/G-Core/FastEdge-sdk-rust/tree/main/examples/http/wasi/db_sql)
 in FastEdge-sdk-rust), so the two can be compared side by side.
@@ -13,13 +13,13 @@ in FastEdge-sdk-rust), so the two can be compared side by side.
 | `src/schema.ts`     | The table: TypeScript types for queries, and the source of the migrations           |
 | `drizzle/`          | SQL migrations: `0000_init` generated from `src/schema.ts`, `0001_seed` sample rows |
 | `drizzle.config.ts` | `drizzle-kit` config, used on your machine / CI only                                |
-| `src/db.ts`         | Drizzle `pg-proxy` driver over `SqlDatabase` (the whole glue)                       |
+| `src/db.ts`         | Drizzle `pg-proxy` driver over `PostgresDatabase` (the whole glue)                       |
 | `src/index.ts`      | The app                                                                             |
 
 ## Setup
 
 1. Bind the database: add a secret `FASTEDGE_DB_SQL_main` with the Postgres connection string (e.g.
-   a Neon pooled URL). The app never sees it; the host resolves `SqlDatabase.open('main')`.
+   a Neon pooled URL). The app never sees it; the host resolves `PostgresDatabase.open('main')`.
 2. Apply the migrations from your machine, with the same connection string:
 
 ```sh
@@ -50,8 +50,8 @@ GET /?id=9  → 404 {"error":"not found"}
 
 - Tested with `drizzle-orm` 0.44.7 and `drizzle-kit` 0.31.
 - `db.transaction()` is not supported (each query is a separate request to the database). For atomic
-  multi-statement work use `SqlDatabase.batch([{ sql, params }, …])`, which runs in one transaction.
-- Database errors arrive as `SqlError` (Drizzle's `error.cause`) with `kind` and the PostgreSQL
+  multi-statement work use `PostgresDatabase.batch([{ sql, params }, …])`, which runs in one transaction.
+- Database errors arrive as `PostgresError` (Drizzle's `error.cause`) with `kind` and the PostgreSQL
   SQLSTATE in `code`.
 - `@neondatabase/serverless` is a dev dependency for `drizzle-kit migrate` only; it is not bundled
   into the app.
@@ -60,5 +60,5 @@ GET /?id=9  → 404 {"error":"not found"}
 
 ```sh
 npm run build
-# Output: dist/db-sql.wasm
+# Output: dist/db-postgres.wasm
 ```

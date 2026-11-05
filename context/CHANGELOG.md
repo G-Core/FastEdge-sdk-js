@@ -5,6 +5,24 @@ When this file grows large, use grep to search — don't read linearly.
 
 ---
 
+## [2026-11-05] — db: `fastedge::db/sql` renamed to `fastedge::db/postgres`
+
+### Overview
+FastEdge-wit renamed the SQL interfaces after the engine they describe (`gcore:db/postgres-types`,
+`gcore:db/postgres-sync`, async `gcore:db/postgres`). The contract was already PostgreSQL ($1
+parameters, type OIDs, SQLSTATE); another dialect would get its own interface. The public names
+follow the WIT. Still `0.1.0` (unreleased). Behaviour unchanged.
+
+### Changes
+- `runtime/FastEdge-wit` → FastEdge-wit `feat/db-interface-all` e41118a; bindings regenerated
+  (`gcore_db_sql_*` → `gcore_db_postgres_*`)
+- Module `fastedge::db/sql` → `fastedge::db/postgres`; globals `SqlDatabase` / `SqlError` →
+  `PostgresDatabase` / `PostgresError`; types `Sql*` → `Postgres*`
+  (`types/fastedge-db-postgres.d.ts`, `src/componentize/es-bundle.ts`)
+- `runtime/fastedge/builtins/db-sql.{h,cpp}` — new binding names and JS class names; file names,
+  `fastedge::db_sql` namespace and `SqlTask` kept (internal)
+- `examples/db-sql/` → `examples/db-postgres/`
+
 ## [2026-10-27] — db: async `fastedge::db/kv` over `gcore:db/kv` (branch `feat/db-interface-kv-async`)
 
 ### Overview

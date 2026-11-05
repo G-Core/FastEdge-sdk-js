@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { SqlError } from 'fastedge::db/sql';
+import { PostgresError } from 'fastedge::db/postgres';
 
 import { openDb } from './db';
 import { users } from './schema';
@@ -18,9 +18,9 @@ async function app(event: FetchEvent): Promise<Response> {
     }
     return Response.json(await db.select().from(users).orderBy(users.id));
   } catch (error) {
-    // Drizzle wraps driver errors; the SqlError is the cause.
+    // Drizzle wraps driver errors; the PostgresError is the cause.
     const cause = (error as { cause?: unknown }).cause ?? error;
-    if (cause instanceof SqlError) {
+    if (cause instanceof PostgresError) {
       // e.g. 42P01 (undefined_table): migrations not applied yet
       return Response.json({ error: cause.message, code: cause.code }, { status: 500 });
     }

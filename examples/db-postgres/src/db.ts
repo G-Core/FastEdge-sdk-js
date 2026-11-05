@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/pg-proxy';
-import { SqlDatabase } from 'fastedge::db/sql';
+import { PostgresDatabase } from 'fastedge::db/postgres';
 
 /**
  * Drizzle over the database bound to the app as `name`. The connection string stays with the
@@ -9,7 +9,7 @@ import { SqlDatabase } from 'fastedge::db/sql';
  * columns), otherwise rows as objects.
  */
 export function openDb(name: string) {
-  const sqlDb = SqlDatabase.open(name);
+  const sqlDb = PostgresDatabase.open(name);
   return drizzle(async (sql, params, method) => {
     const { rows } = await sqlDb.query(sql, params, {
       rowMode: method === 'all' ? 'array' : 'object',
