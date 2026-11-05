@@ -3,9 +3,10 @@ package gcore:db@0.1.0;
 /// FastEdge SQL interface (synchronous variant).
 ///
 /// Dialect-neutral: SQL text, placeholders and error codes are those of the bound database (see
-/// `sql-types`). Applications name a binding (e.g. "main"); the host maps it to a backend. Backend, location and
-/// credentials are invisible to the application, so a binding can move between backends without
-/// code changes.
+/// `sql-types`). Applications name a binding (e.g. "main"); the host maps it to a backend.
+/// Location and credentials are invisible to the application, so a binding can move to another
+/// provider of the same SQL dialect (e.g. between PostgreSQL services) without code changes.
+/// Moving it to a database of another dialect means changing the application's SQL.
 ///
 /// Every call is a network round trip to a regional database. There is no session state between
 /// calls: each `query` auto-commits and each `batch` is its own transaction.
