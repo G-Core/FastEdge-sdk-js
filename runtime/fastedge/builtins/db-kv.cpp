@@ -2,7 +2,7 @@
 // Each method starts the host call and returns a Promise; an AsyncTask settles it when the host
 // future's pollable is ready, so calls run concurrently with each other and with `fetch`.
 #include "cache.h"
-#include "db-sql.h"
+#include "db-common.h"
 #include "encode.h"
 #include "../host-api/bindings/bindings.h"
 
@@ -48,7 +48,7 @@ bool throw_kv_error(JSContext *cx, gcore_db_kv_types_error_t &err) {
   JS::RootedString message(cx, text ? new_string(cx, text->ptr, text->len)
                                     : JS_NewStringCopyZ(cx, MESSAGES[err.tag]));
   JS::RootedObject obj(
-      cx, message ? fastedge::db_sql::new_error(cx, *kv_error_proto, KINDS[err.tag], message)
+      cx, message ? fastedge::db::new_error(cx, *kv_error_proto, KINDS[err.tag], message)
                   : nullptr);
   bool ok = obj != nullptr;
   if (err.tag == GCORE_DB_KV_TYPES_ERROR_OPERATION) {
@@ -335,7 +335,7 @@ bool start_batch(JSContext *cx, JS::CallArgs &args) {
   if (len > 50) {
     JS::RootedString msg(cx, JS_NewStringCopyZ(cx, "more than 50 operations in a batch"));
     JS::RootedObject exc(cx,
-                         msg ? fastedge::db_sql::new_error(cx, *kv_error_proto, "limit", msg)
+                         msg ? fastedge::db::new_error(cx, *kv_error_proto, "limit", msg)
                              : nullptr);
     if (exc) {
       JS::RootedValue v(cx, JS::ObjectValue(*exc));
@@ -384,7 +384,7 @@ bool start_batch(JSContext *cx, JS::CallArgs &args) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);                                              \
     if (!args.requireAtLeast(cx, #fn, min)) return false;                                          \
     JS::RootedValue none(cx);                                                                      \
-    return (body) || fastedge::db_sql::settle(cx, args, false, none);                              \
+    return (body) || fastedge::db::settle(cx, args, false, none);                              \
   }
 
 // get(key) -> Promise<KvEntry | null>
@@ -447,7 +447,7 @@ bool install(api::Engine *engine) {
       !JS_DefineProperty(cx, engine->global(), "KvDatabase", ctor, 0)) {
     return false;
   }
-  return db_sql::define_error_class(engine, "KvError", &kv_error_proto);
+  return db::define_error_class(engine, "KvError", &kv_error_proto);
 }
 
 } // namespace fastedge::db_kv

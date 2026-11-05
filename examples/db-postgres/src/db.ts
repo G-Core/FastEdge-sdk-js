@@ -9,9 +9,9 @@ import { PostgresDatabase } from 'fastedge::db/postgres';
  * columns), otherwise rows as objects.
  */
 export function openDb(name: string) {
-  const sqlDb = PostgresDatabase.open(name);
+  const postgresDb = PostgresDatabase.open(name);
   return drizzle(async (sql, params, method) => {
-    const { rows } = await sqlDb.query(sql, params, {
+    const { rows } = await postgresDb.query(sql, params, {
       rowMode: method === 'all' ? 'array' : 'object',
     });
     return { rows };

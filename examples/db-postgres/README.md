@@ -5,7 +5,7 @@
 Reads users from a PostgreSQL database bound to the app as `main`, using
 [Drizzle](https://orm.drizzle.team) over `fastedge::db/postgres`. Same table, data and behaviour as the
 Rust example
-([`examples/http/wasi/db_sql`](https://github.com/G-Core/FastEdge-sdk-rust/tree/main/examples/http/wasi/db_sql)
+([`examples/http/wasi/db_postgres`](https://github.com/G-Core/FastEdge-sdk-rust/tree/main/examples/http/wasi/db_postgres)
 in FastEdge-sdk-rust), so the two can be compared side by side.
 
 | File                | Role                                                                                |
@@ -18,7 +18,7 @@ in FastEdge-sdk-rust), so the two can be compared side by side.
 
 ## Setup
 
-1. Bind the database: add a secret `FASTEDGE_DB_SQL_main` with the Postgres connection string (e.g.
+1. Bind the database: add a secret `FASTEDGE_DB_POSTGRES_main` with the Postgres connection string (e.g.
    a Neon pooled URL). The app never sees it; the host resolves `PostgresDatabase.open('main')`.
 2. Apply the migrations from your machine, with the same connection string:
 

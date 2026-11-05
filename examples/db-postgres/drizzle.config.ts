@@ -1,5 +1,5 @@
 // Migrations run from your machine or CI, never from the app.
-// DATABASE_URL is the same connection string as the app's FASTEDGE_DB_SQL_main secret.
+// DATABASE_URL is the same connection string as the app's FASTEDGE_DB_POSTGRES_main secret.
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({

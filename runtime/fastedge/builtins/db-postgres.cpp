@@ -1,7 +1,8 @@
 // `fastedge::db/postgres`: `PostgresDatabase` + `PostgresError` over `gcore:db/postgres@0.1.0` (async).
 // query/batch start the host call and return a Promise; an AsyncTask settles it when the host
 // future's pollable is ready, so calls run concurrently with each other and with `fetch`.
-#include "db-sql.h"
+#include "db-common.h"
+#include "db-postgres.h"
 #include "encode.h"
 #include "../host-api/bindings/bindings.h"
 
@@ -21,12 +22,12 @@
 #include <js/experimental/TypedData.h>
 #include <js/TracingAPI.h>
 
-using fastedge::db_sql::PostgresDatabase;
+using fastedge::db_postgres::PostgresDatabase;
 
 namespace {
 
 // `PostgresError.prototype`; inherits `Error.prototype`.
-JS::PersistentRooted<JSObject *> *sql_error_proto;
+JS::PersistentRooted<JSObject *> *postgres_error_proto;
 
 JSString *new_string(JSContext *cx, const uint8_t *ptr, size_t len) {
   return JS_NewStringCopyUTF8N(cx, JS::UTF8Chars(reinterpret_cast<const char *>(ptr), len));
@@ -45,7 +46,7 @@ bool set_opt_str(JSContext *cx, JS::HandleObject obj, const char *key,
 }
 
 // Host error -> pending PostgresError exception. Always returns false.
-bool throw_sql_error(JSContext *cx, gcore_db_postgres_error_t &err) {
+bool throw_postgres_error(JSContext *cx, gcore_db_postgres_error_t &err) {
   static const char *KINDS[] = {"config", "access-denied", "config", "connection",
                                 "timeout", "limit",         "query",  "internal"};
   static const char *MESSAGES[] = {"no such database", "access denied", "", "",
@@ -63,7 +64,7 @@ bool throw_sql_error(JSContext *cx, gcore_db_postgres_error_t &err) {
   } else {
     message = JS_NewStringCopyZ(cx, MESSAGES[err.tag]);
   }
-  JS::RootedObject obj(cx, message ? fastedge::db_sql::new_error(cx, *sql_error_proto,
+  JS::RootedObject obj(cx, message ? fastedge::db::new_error(cx, *postgres_error_proto,
                                                                   KINDS[err.tag], message)
                                    : nullptr);
   bool ok = obj != nullptr;
@@ -343,7 +344,7 @@ bool batch_to_js(JSContext *cx, gcore_db_postgres_list_query_result_t &ret, bool
 }
 
 // A started query/batch. Holds the host future; settles `promise_` once its pollable is ready.
-class SqlTask final : public api::AsyncTask {
+class PostgresTask final : public api::AsyncTask {
   JS::Heap<JSObject *> promise_;
   int32_t future_;
   bool batch_;
@@ -364,7 +365,7 @@ class SqlTask final : public api::AsyncTask {
         JS_ReportErrorUTF8(cx, "database result not ready");
         return false;
       }
-      if (res.is_err) return throw_sql_error(cx, res.val.err);
+      if (res.is_err) return throw_postgres_error(cx, res.val.err);
       return batch_to_js(cx, res.val.ok, rows_as_arrays_, out);
     }
     gcore_db_postgres_result_query_result_error_t res{};
@@ -372,12 +373,12 @@ class SqlTask final : public api::AsyncTask {
       JS_ReportErrorUTF8(cx, "database result not ready");
       return false;
     }
-    if (res.is_err) return throw_sql_error(cx, res.val.err);
+    if (res.is_err) return throw_postgres_error(cx, res.val.err);
     return query_to_js(cx, res.val.ok, rows_as_arrays_, out);
   }
 
 public:
-  SqlTask(JS::HandleObject promise, int32_t future, bool batch, bool rows_as_arrays)
+  PostgresTask(JS::HandleObject promise, int32_t future, bool batch, bool rows_as_arrays)
       : promise_(promise), future_(future), batch_(batch), rows_as_arrays_(rows_as_arrays) {
     handle_ = batch ? gcore_db_postgres_method_future_batch_result_subscribe({future}).__handle
                     : gcore_db_postgres_method_future_query_result_subscribe({future}).__handle;
@@ -403,7 +404,7 @@ public:
     return true;
   }
 
-  void trace(JSTracer *trc) override { JS::TraceEdge(trc, &promise_, "SqlTask promise"); }
+  void trace(JSTracer *trc) override { JS::TraceEdge(trc, &promise_, "PostgresTask promise"); }
 };
 
 // Queues a task for host future `future` and returns its Promise in `args.rval()`.
@@ -418,7 +419,7 @@ bool start(JSContext *cx, JS::CallArgs &args, int32_t future, bool batch, bool r
     }
     return false;
   }
-  api::Engine::queue_async_task(new SqlTask(promise, future, batch, rows_as_arrays));
+  api::Engine::queue_async_task(new PostgresTask(promise, future, batch, rows_as_arrays));
   args.rval().setObject(*promise);
   return true;
 }
@@ -499,67 +500,9 @@ bool start_batch(JSContext *cx, JS::CallArgs &args) {
   return start(cx, args, future.__handle, true, rows_as_arrays);
 }
 
-// `new PostgresError(...)` / `new KvError(...)` are not supported; instances come from the host.
-bool error_ctor(JSContext *cx, unsigned argc, JS::Value *vp) {
-  JS_ReportErrorUTF8(cx, "Illegal constructor");
-  return false;
-}
-
 } // namespace
 
-namespace fastedge::db_sql {
-
-JSObject *new_error(JSContext *cx, JS::HandleObject proto, const char *kind,
-                    JS::HandleString message) {
-  JS::RootedObject error_ctor(cx);
-  if (!JS_GetClassObject(cx, JSProto_Error, &error_ctor)) return nullptr;
-  JS::RootedValue ctor_val(cx, JS::ObjectValue(*error_ctor));
-  JS::RootedValueArray<1> ctor_args(cx);
-  ctor_args[0].setString(message);
-  JS::RootedObject err(cx);
-  if (!JS::Construct(cx, ctor_val, ctor_args, &err)) return nullptr;
-  if (!JS_SetPrototype(cx, err, proto)) return nullptr;
-  JS::RootedString kind_str(cx, JS_NewStringCopyZ(cx, kind));
-  if (!kind_str) return nullptr;
-  JS::RootedValue kind_val(cx, JS::StringValue(kind_str));
-  if (!JS_SetProperty(cx, err, "kind", kind_val)) return nullptr;
-  return err;
-}
-
-bool settle(JSContext *cx, JS::CallArgs &args, bool ok, JS::HandleValue value) {
-  JS::RootedObject promise(cx);
-  if (ok) {
-    promise = JS::CallOriginalPromiseResolve(cx, value);
-  } else {
-    JS::RootedValue exc(cx);
-    if (!JS_GetPendingException(cx, &exc)) return false; // uncatchable (e.g. OOM)
-    JS_ClearPendingException(cx);
-    promise = JS::CallOriginalPromiseReject(cx, exc);
-  }
-  if (!promise) return false;
-  args.rval().setObject(*promise);
-  return true;
-}
-
-// `instanceof <name>` and `instanceof Error` both hold for host errors.
-bool define_error_class(api::Engine *engine, const char *name,
-                        JS::PersistentRooted<JSObject *> **out) {
-  JSContext *cx = engine->cx();
-  JS::RootedObject error_proto(cx, JS::GetRealmErrorPrototype(cx));
-  JS::RootedObject proto(cx, JS_NewObjectWithGivenProto(cx, nullptr, error_proto));
-  JSFunction *fn = JS_NewFunction(cx, error_ctor, 0, JSFUN_CONSTRUCTOR, name);
-  if (!error_proto || !proto || !fn) return false;
-  JS::RootedObject ctor(cx, JS_GetFunctionObject(fn));
-  JS::RootedValue name_val(cx, JS::StringValue(JS_NewStringCopyZ(cx, name)));
-  if (!JS_DefineProperty(cx, ctor, "prototype", proto, 0) ||
-      !JS_DefineProperty(cx, proto, "constructor", ctor, 0) ||
-      !JS_DefineProperty(cx, proto, "name", name_val, 0) ||
-      !JS_DefineProperty(cx, engine->global(), name, ctor, 0)) {
-    return false;
-  }
-  *out = new JS::PersistentRooted<JSObject *>(cx, proto);
-  return true;
-}
+namespace fastedge::db_postgres {
 
 const JSClass PostgresDatabase::class_ = {"PostgresDatabase", JSCLASS_HAS_RESERVED_SLOTS(1)};
 
@@ -585,7 +528,7 @@ bool PostgresDatabase::open(JSContext *cx, unsigned argc, JS::Value *vp) {
   bindings_string_t name_ws{(uint8_t *)name.ptr.get(), name.len};
   gcore_db_postgres_own_database_t db{};
   gcore_db_postgres_error_t err{};
-  if (!gcore_db_postgres_static_database_open(&name_ws, &db, &err)) return throw_sql_error(cx, err);
+  if (!gcore_db_postgres_static_database_open(&name_ws, &db, &err)) return throw_postgres_error(cx, err);
 
   JS::RootedObject obj(cx, JS_NewObjectWithGivenProto(cx, &PostgresDatabase::class_, nullptr));
   if (!obj || !JS_DefineFunctions(cx, obj, PostgresDatabase::methods)) return false;
@@ -617,7 +560,7 @@ bool install(api::Engine *engine) {
       !JS_DefineProperty(cx, engine->global(), "PostgresDatabase", ctor, 0)) {
     return false;
   }
-  return define_error_class(engine, "PostgresError", &sql_error_proto);
+  return db::define_error_class(engine, "PostgresError", &postgres_error_proto);
 }
 
-} // namespace fastedge::db_sql
+} // namespace fastedge::db_postgres

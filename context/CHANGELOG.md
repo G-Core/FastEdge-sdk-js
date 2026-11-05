@@ -19,8 +19,10 @@ follow the WIT. Still `0.1.0` (unreleased). Behaviour unchanged.
 - Module `fastedge::db/sql` → `fastedge::db/postgres`; globals `SqlDatabase` / `SqlError` →
   `PostgresDatabase` / `PostgresError`; types `Sql*` → `Postgres*`
   (`types/fastedge-db-postgres.d.ts`, `src/componentize/es-bundle.ts`)
-- `runtime/fastedge/builtins/db-sql.{h,cpp}` — new binding names and JS class names; file names,
-  `fastedge::db_sql` namespace and `SqlTask` kept (internal)
+- `runtime/fastedge/builtins/db-sql.{h,cpp}` → `db-postgres.{h,cpp}` (builtin `fastedge::db_postgres`,
+  `PostgresTask`); the helpers shared with `db-kv.cpp` (`define_error_class`, `new_error`,
+  `settle`) move to header-only `db-common.h` (`fastedge::db`), so neither builtin depends on the other
+- POC binding secret `FASTEDGE_DB_SQL_<name>` → `FASTEDGE_DB_POSTGRES_<name>` (engine), example READMEs
 - `examples/db-sql/` → `examples/db-postgres/`
 
 ## [2026-10-27] — db: async `fastedge::db/kv` over `gcore:db/kv` (branch `feat/db-interface-kv-async`)
