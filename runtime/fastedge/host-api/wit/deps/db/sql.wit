@@ -25,7 +25,8 @@ interface sql {
     /// `sql` must contain exactly one statement.
     query: func(sql: string, params: list<value>) -> future-query-result;
 
-    /// Start several statements in one transaction. Either all commit or none do.
+    /// Start several statements in one transaction. Either all commit or none do (see `sql-sync`
+    /// `batch`, including when the outcome is unknown).
     batch: func(statements: list<statement>) -> future-batch-result;
   }
 

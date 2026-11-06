@@ -64,8 +64,10 @@ interface kv-sync {
     ///
     /// Operations see the effects of earlier operations in the same batch.
     /// A `set` whose condition is not met is not a failure: it returns `set(false)` and the batch
-    /// continues. Any other failing operation aborts the whole batch with `error::operation`,
-    /// whose `op-index` identifies the operation.
+    /// continues. Any other failing operation aborts the whole batch, and nothing is applied:
+    /// usually with `error::operation`, whose `op-index` identifies the operation, or with
+    /// `error::limit` (e.g. a non-UTF-8 value). After `error::timeout` (or `error::connection`
+    /// once the batch was sent) the batch may or may not have been applied.
     batch: func(ops: list<op>) -> result<list<op-result>, error>;
   }
 }

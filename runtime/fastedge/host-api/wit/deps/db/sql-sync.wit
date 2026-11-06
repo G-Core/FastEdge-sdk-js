@@ -31,8 +31,10 @@ interface sql-sync {
 
     /// Run several statements in one transaction. Either all commit or none do.
     ///
-    /// Returns one `query-result` per statement, in order. On failure nothing is committed
-    /// and the error of the failing statement is returned.
+    /// Returns one `query-result` per statement, in order. If a statement fails, nothing is
+    /// committed and its error is returned. Other errors are possible too: after
+    /// `error::timeout` (or `error::connection` once the batch was sent) the transaction may or
+    /// may not have committed.
     batch: func(statements: list<statement>) -> result<list<query-result>, error>;
   }
 }
