@@ -1,0 +1,94 @@
+package gcore:db@0.1.0;
+
+/// Shared types for the SQL interfaces.
+///
+/// The interfaces are dialect-neutral: the SQL text, its placeholders and its error codes are those
+/// of the database the binding points at. The host chooses the backend from the binding's
+/// configuration; nothing in these interfaces names a dialect.
+interface sql-types {
+  /// A parameter or result value.
+  ///
+  /// Results use the narrowest variant that holds the column's type without loss:
+  /// - 16- and 32-bit integers → `int32`; 64-bit integers → `int64`
+  /// - floating point → `float64`
+  /// - exact decimals → `numeric` (decimal text, e.g. "12345678901234567890.123")
+  /// - booleans → `boolean`
+  /// - JSON → `json` (JSON text)
+  /// - binary → `bytes`
+  /// - everything else (text, UUIDs, dates and times, arrays, ...) → `text`, in the database's
+  ///   own text format. Use `column.type-name` to interpret it.
+  /// - SQL `NULL` → `null`
+  ///
+  /// How each database's types map onto these variants is documented per backend. Parameters are
+  /// converted to the target column type by the database, as its dialect does.
+  variant value {
+    null,
+    boolean(bool),
+    int32(s32),
+    int64(s64),
+    float64(f64),
+    numeric(string),
+    text(string),
+    bytes(list<u8>),
+    json(string),
+  }
+
+  /// A result column.
+  record column {
+    /// Column name or alias.
+    name: string,
+    /// The database's name for the column's type, in lower case (e.g. "int4", "timestamptz",
+    /// "int4[]" for PostgreSQL; the declared type, e.g. "integer", for SQLite). Empty when the
+    /// backend does not report a type the host can name.
+    type-name: string,
+  }
+
+  /// The result of one statement.
+  record query-result {
+    columns: list<column>,
+    /// Rows in column order. Empty for statements that return no rows.
+    rows: list<list<value>>,
+    /// Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE).
+    row-count: u64,
+  }
+
+  /// One statement in a batch.
+  record statement {
+    sql: string,
+    params: list<value>,
+  }
+
+  /// Error details reported by the database. Fields are set when the database reports them.
+  record db-error {
+    /// The database's own error code: the SQLSTATE for PostgreSQL (e.g. "23505", unique
+    /// violation), the extended result code name for SQLite (e.g. "SQLITE_CONSTRAINT_UNIQUE").
+    code: option<string>,
+    message: string,
+    detail: option<string>,
+    hint: option<string>,
+    /// Name of the violated constraint, for constraint errors.
+    constraint: option<string>,
+  }
+
+  /// The set of errors which may be raised by the SQL interfaces.
+  variant error {
+    /// The host does not recognize the database binding requested.
+    no-such-database,
+    /// The requesting component does not have access to the specified database
+    /// (which may or may not exist).
+    access-denied,
+    /// The binding is misconfigured: bad credentials, unknown database name, invalid connection
+    /// settings. Not retryable without a configuration change.
+    config(db-error),
+    /// The database could not be reached (network, DNS, TLS, backend unavailable).
+    connection(string),
+    /// The call exceeded the host's time limit. The statement may or may not have been applied.
+    timeout,
+    /// A host or backend limit was exceeded (e.g. response size, statements per batch).
+    limit(string),
+    /// The database rejected the statement (syntax, constraint, permission, ...).
+    query(db-error),
+    /// Some unexpected internal error has occurred.
+    internal-error,
+  }
+}

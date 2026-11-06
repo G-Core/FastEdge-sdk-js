@@ -1,0 +1,49 @@
+package gcore:db@0.1.0;
+
+/// FastEdge Database KV interface (asynchronous variant).
+///
+/// Same contract as `kv-sync`, but calls return at once with a future, so a guest can run several
+/// calls concurrently (`wasi:io/poll`) and keep doing other work while they run. The operations are
+/// the `op` variants of `kv-types`: `execute` runs one, `batch` runs several atomically.
+///
+/// Calls already started run independently: their order of execution is not guaranteed. Wait for a
+/// result before relying on its effects (read-your-writes holds for calls started after an earlier
+/// call's result is ready), and use `batch` for ordered or atomic work. Dropping a future before it
+/// resolves abandons the result; the operation may or may not have been applied.
+interface kv {
+  use wasi:io/poll@0.2.3.{pollable};
+  use kv-types.{op, op-result, error};
+
+  /// FastEdge Database KV resource.
+  resource database {
+    /// Open the database bound to `name`.
+    ///
+    /// `error::no-such-database` will be raised if the `name` is not recognized.
+    open: static func(name: string) -> result<database, error>;
+
+    /// Start one operation. Same semantics as the `kv-sync` method of the same name; the result is
+    /// the `op-result` case of `op`.
+    execute: func(op: op) -> future-op-result;
+
+    /// Start several operations, applied atomically (see `kv-sync` `batch`).
+    batch: func(ops: list<op>) -> future-batch-result;
+  }
+
+  /// The pending result of `database.execute`.
+  resource future-op-result {
+    /// Ready when the result is available.
+    subscribe: func() -> pollable;
+    /// The result, once ready; `none` before that. Returns the result only once: later calls
+    /// return `some(err(error::internal-error))`.
+    get: func() -> option<result<op-result, error>>;
+  }
+
+  /// The pending result of `database.batch`: one `op-result` per operation, in order.
+  resource future-batch-result {
+    /// Ready when the result is available.
+    subscribe: func() -> pollable;
+    /// The result, once ready; `none` before that. Returns the result only once: later calls
+    /// return `some(err(error::internal-error))`.
+    get: func() -> option<result<list<op-result>, error>>;
+  }
+}

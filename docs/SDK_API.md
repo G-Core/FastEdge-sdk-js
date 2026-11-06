@@ -644,6 +644,468 @@ addEventListener("fetch", event => event.respondWith(app(event)));
 
 ---
 
+## Databases
+
+A `gcore:db` database is a database the customer owns, bound to the application by name (for example `"main"`). The host holds the connection details; the application only knows the binding name and opens the database with that name. Two database types are available: SQL and key-value. SQL has two modules over the same classes: the dialect-neutral `fastedge::db/sql`, and `fastedge::db/postgres`, the same API under PostgreSQL names.
+
+| Database type | Module                                                           | Class                                                          |
+| ------------- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| SQL           | `fastedge::db/sql` (or `fastedge::db/postgres` for PostgreSQL)   | `SqlDatabase`, or `PostgresDatabase` for a PostgreSQL database |
+| KV            | `fastedge::db/kv`                                                | `KvDatabase` (regional, durable, writable)                     |
+
+All database calls return Promises. `open` is synchronous and throws on error. Calls start at once and run concurrently with each other and with `fetch`, so `Promise.all` of several calls takes about one round trip. Calls that are not awaited may run in any order: await a write before relying on it, and use `batch` for ordered or atomic work.
+
+### Choosing a Store
+
+| Store                    | Module            | Scope                    | Writable from the app | Use when                                                        |
+| ------------------------ | ----------------- | ------------------------ | --------------------- | --------------------------------------------------------------- |
+| `KvStore` (Edge Storage) | `fastedge::kv`    | Replicated to every edge | No                    | Read-only global configuration, lookup tables, sorted sets      |
+| `Cache`                  | `fastedge::cache` | POP-local                | Yes                   | Transient per-POP state: rate limits, counters, memoisation     |
+| `KvDatabase`             | `fastedge::db/kv` | Regional, durable        | Yes                   | Durable, writable state such as counters and rate-limit windows |
+
+### Binding a Database
+
+The application opens a database by name (for example `SqlDatabase.open("main")`). The name is bound to a database in the application's configuration, outside the code; the application never sees the connection details. Opening a name with no binding throws an error with `kind: 'config'`. Schema migrations are applied from outside the application (for example from a developer machine or CI), not from application code.
+
+---
+
+### SQL
+
+**Module:** `fastedge::db/sql`
+
+```typescript
+import { SqlDatabase, SqlError } from "fastedge::db/sql";
+```
+
+`SqlDatabase` is dialect-neutral: SQL text, placeholders, and error codes are those of the bound database (`$1`, `$2`, ... for PostgreSQL). The connection details stay with the host.
+
+```typescript
+class SqlDatabase {
+  static open(name: string): SqlDatabase;
+
+  query<T = Record<string, SqlValue>>(
+    sql: string,
+    params?: SqlParam[],
+    options?: SqlQueryOptions,
+  ): Promise<SqlResult<T>>;
+
+  batch(statements: SqlStatement[], options?: SqlQueryOptions): Promise<SqlResult[]>;
+}
+```
+
+- `open(name)` opens the database bound to `name`. It throws `SqlError` with `kind: 'config'` if no database is bound to `name`.
+- `query(sql, params?, options?)` runs one statement with positional parameters and auto-commits. `T` is not checked at runtime.
+- `batch(statements, options?)` runs several statements in one transaction: all commit or none do. It returns one result per statement, in order.
+
+`query` and `batch` start at once and run concurrently with each other and with `fetch`. Calls that are not awaited may run in any order: await a write before relying on it, and use `batch` for ordered or atomic work.
+
+#### Types
+
+```typescript
+type SqlParam = null | undefined | boolean | number | bigint | string | Uint8Array | Date | object;
+type SqlJson = null | boolean | number | string | SqlJson[] | { [key: string]: SqlJson };
+type SqlValue = SqlJson | Uint8Array;
+```
+
+`SqlParam` conversion:
+
+- `bigint` is sent as `int8`, `Uint8Array` as `bytea`.
+- `Date` is sent as ISO-8601 text, any other object as JSON text.
+- Everything else is sent as text and cast by the database.
+
+`SqlResult<T>`:
+
+| Field      | Type          | Description                                                |
+| ---------- | ------------- | ---------------------------------------------------------- |
+| `rows`     | `T[]`         | Rows as objects, or arrays with `rowMode: 'array'`.        |
+| `rowCount` | `number`      | Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE). |
+| `columns`  | `SqlColumn[]` | One descriptor per result column.                          |
+
+`SqlColumn`:
+
+| Field      | Type     | Description                                                                      |
+| ---------- | -------- | -------------------------------------------------------------------------------- |
+| `name`     | `string` | Column name or alias.                                                            |
+| `typeName` | `string` | Database type name, lower case, e.g. `'int4'`; empty if the host cannot name it. |
+
+`SqlStatement`:
+
+| Field    | Type         | Description                     |
+| -------- | ------------ | ------------------------------- |
+| `sql`    | `string`     | The statement text.             |
+| `params` | `SqlParam[]` | Optional positional parameters. |
+
+`SqlQueryOptions`:
+
+| Field     | Type                  | Description                                                 |
+| --------- | --------------------- | ----------------------------------------------------------- |
+| `rowMode` | `'object' \| 'array'` | `'array'` returns arrays in column order. Default: objects. |
+
+The result-value mapping for PostgreSQL is listed under [PostgreSQL](#postgresql).
+
+#### SqlError
+
+`SqlError` extends `Error` and has `name` `'SqlError'`. It is thrown by `open` and is the rejection reason for `query` and `batch`. `code`, `detail`, `hint`, and `constraint` are optional.
+
+| Property     | Type           | Description                                             |
+| ------------ | -------------- | ------------------------------------------------------- |
+| `kind`       | `SqlErrorKind` | Error category; see the table below.                    |
+| `code`       | `string`       | Database error code; the SQLSTATE for PostgreSQL.       |
+| `detail`     | `string`       | Additional detail from the database.                    |
+| `hint`       | `string`       | A hint from the database.                               |
+| `constraint` | `string`       | Name of the violated constraint, for constraint errors. |
+
+`code` is set for most `query` errors (for example `'23505'`, a unique violation in PostgreSQL).
+
+| Kind            | Meaning                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| `config`        | Unknown binding, bad credentials, or database name.                                       |
+| `access-denied` | Access to the database was denied.                                                        |
+| `connection`    | The database could not be reached.                                                        |
+| `timeout`       | The call exceeded the host's time limit; the statement may or may not have been applied.  |
+| `limit`         | A host or backend limit was exceeded (response size, statements per batch, sub-requests). |
+| `query`         | The database rejected the statement; see `code`.                                          |
+| `internal`      | Internal error.                                                                           |
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { SqlDatabase, SqlError } from "fastedge::db/sql";
+
+async function app(event) {
+  const db = SqlDatabase.open("main");
+  try {
+    const { rows } = await db.query("select id, email from users where id = $1", [42]);
+    return Response.json(rows[0] ?? null);
+  } catch (error) {
+    if (error instanceof SqlError && error.kind === "query") {
+      return new Response(`Query failed: ${error.code}`, { status: 500 });
+    }
+    throw error;
+  }
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+Use `batch` to run statements in one transaction, and `rowMode: "array"` to receive each row as an array in column order:
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { SqlDatabase } from "fastedge::db/sql";
+
+async function app(event) {
+  const db = SqlDatabase.open("main");
+
+  const [insert, count] = await db.batch(
+    [
+      { sql: "insert into users (email) values ($1)", params: ["ann@example.com"] },
+      { sql: "select count(*) from users" },
+    ],
+    { rowMode: "array" },
+  );
+
+  return Response.json({ inserted: insert.rowCount, total: count.rows[0][0] });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+---
+
+### PostgreSQL
+
+**Module:** `fastedge::db/postgres`
+
+```typescript
+import { PostgresDatabase, PostgresError, SQLSTATE } from "fastedge::db/postgres";
+```
+
+`PostgresDatabase` is the `fastedge::db/sql` API under PostgreSQL names. Write PostgreSQL (`$1` placeholders, `RETURNING`, `jsonb`). Use this module with a PostgreSQL database.
+
+The host does not check that the binding's database matches the module: `fastedge::db/postgres` names the dialect, it does not verify it. Bind a PostgreSQL database (for example Neon) to the name.
+
+`PostgresDatabase` and `PostgresError` are the same classes as `SqlDatabase` and `SqlError`, so `instanceof` matches either. The `name` of a `PostgresError` is `'SqlError'`.
+
+```typescript
+class PostgresDatabase {
+  static open(name: string): PostgresDatabase;
+
+  query<T = Record<string, PostgresValue>>(
+    sql: string,
+    params?: PostgresParam[],
+    options?: PostgresQueryOptions,
+  ): Promise<PostgresResult<T>>;
+
+  batch(
+    statements: PostgresStatement[],
+    options?: PostgresQueryOptions,
+  ): Promise<PostgresResult[]>;
+}
+```
+
+`open` throws `PostgresError` with `kind: 'config'` if no database is bound to `name`. `query` runs one statement and auto-commits. `batch` runs several statements in one transaction and returns one result per statement, in order. Calls that are not awaited may run in any order: await a write before relying on it, and use `batch` for ordered or atomic work.
+
+#### Type aliases
+
+| Alias                  | Equivalent in `fastedge::db/sql` |
+| ---------------------- | -------------------------------- |
+| `PostgresParam`        | `SqlParam`                       |
+| `PostgresValue`        | `SqlValue`                       |
+| `PostgresJson`         | `SqlJson`                        |
+| `PostgresColumn`       | `SqlColumn`                      |
+| `PostgresResult<T>`    | `SqlResult<T>`                   |
+| `PostgresStatement`    | `SqlStatement`                   |
+| `PostgresQueryOptions` | `SqlQueryOptions`                |
+| `PostgresErrorKind`    | `SqlErrorKind`                   |
+
+`PostgresSqlState` is the union of the `SQLSTATE` code values listed below.
+
+#### Value mapping
+
+Parameters follow `SqlParam`: `bigint` is sent as `int8`, `Uint8Array` as `bytea`, `Date` as ISO-8601 text, any other object as JSON text, and everything else as text cast by PostgreSQL.
+
+Result values:
+
+| PostgreSQL                                      | JavaScript                              |
+| ----------------------------------------------- | --------------------------------------- |
+| `int2`, `int4`, `float4`, `float8`              | `number`                                |
+| `int8`, `numeric`                               | `string` (no precision loss)            |
+| `bool`                                          | `boolean`                               |
+| `json`, `jsonb`                                 | parsed value                            |
+| `bytea`                                         | `Uint8Array`                            |
+| `timestamptz`                                   | `string`, PostgreSQL text format in UTC |
+| anything else (dates, uuid, arrays, enums, ...) | `string`, PostgreSQL text format        |
+| `NULL`                                          | `null`                                  |
+
+#### Extension and user-defined types
+
+Extension and user-defined types (pgvector `vector`, PostGIS `geometry`, enums, domains) work as text. Send them as text parameters, casting in SQL where PostgreSQL cannot infer the type (for example `order by embedding <-> $1::vector`). They come back as a `string` in PostgreSQL's text format (`"[0.1,0.2]"` for a vector). `SqlColumn.typeName` holds PostgreSQL's name for built-in types (for example `'int4'`, `'timestamptz'`, `'int4[]'`); it is empty for extension and user-defined types.
+
+#### PostgresError and SQLSTATE
+
+`PostgresError` has the same properties as `SqlError`. `code` holds the SQLSTATE; its type autocompletes the codes in `SQLSTATE` and accepts any other string.
+
+```typescript
+class PostgresError extends Error {
+  readonly name: 'SqlError';
+  readonly kind: PostgresErrorKind;
+  readonly code?: PostgresSqlState | (string & {});
+  readonly detail?: string;
+  readonly hint?: string;
+  readonly constraint?: string;
+}
+```
+
+`SQLSTATE` is a constant object of the codes applications commonly branch on (PostgreSQL `errcodes.txt`). Any other code still arrives in `PostgresError.code`.
+
+| Constant                       | Code    | Meaning                                                                           |
+| ------------------------------ | ------- | --------------------------------------------------------------------------------- |
+| `UNIQUE_VIOLATION`             | `23505` | A unique constraint or index rejected a duplicate.                                |
+| `FOREIGN_KEY_VIOLATION`        | `23503` | A foreign key points at a missing row.                                            |
+| `NOT_NULL_VIOLATION`           | `23502` | `NULL` in a `NOT NULL` column.                                                    |
+| `CHECK_VIOLATION`              | `23514` | A `CHECK` constraint failed.                                                      |
+| `EXCLUSION_VIOLATION`          | `23P01` | An exclusion constraint failed.                                                   |
+| `INVALID_TEXT_REPRESENTATION`  | `22P02` | Text could not be parsed as the column type (for example `'abc'` for an integer). |
+| `NUMERIC_VALUE_OUT_OF_RANGE`   | `22003` | A number out of the column type's range.                                          |
+| `STRING_DATA_RIGHT_TRUNCATION` | `22001` | A string longer than the column allows.                                           |
+| `DIVISION_BY_ZERO`             | `22012` | Division by zero.                                                                 |
+| `UNDEFINED_TABLE`              | `42P01` | The table does not exist (for example migrations not applied).                    |
+| `UNDEFINED_COLUMN`             | `42703` | The column does not exist.                                                        |
+| `UNDEFINED_FUNCTION`           | `42883` | No function matches the name and argument types.                                  |
+| `SYNTAX_ERROR`                 | `42601` | SQL syntax error (for example `?` placeholders instead of `$1`).                  |
+| `INSUFFICIENT_PRIVILEGE`       | `42501` | The database role lacks a privilege.                                              |
+| `SERIALIZATION_FAILURE`        | `40001` | Serialization failure; the transaction may be retried.                            |
+| `DEADLOCK_DETECTED`            | `40P01` | Deadlock detected; the transaction may be retried.                                |
+| `QUERY_CANCELED`               | `57014` | The statement was cancelled (for example `statement_timeout`).                    |
+| `INVALID_PASSWORD`             | `28P01` | Wrong password for the database role (`kind: 'config'`).                          |
+| `INVALID_CATALOG_NAME`         | `3D000` | The database does not exist (`kind: 'config'`).                                   |
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { PostgresDatabase, PostgresError, SQLSTATE } from "fastedge::db/postgres";
+
+async function app(event) {
+  const db = PostgresDatabase.open("main");
+  try {
+    await db.query("insert into users (email) values ($1)", ["ann@example.com"]);
+    return new Response("Created", { status: 201 });
+  } catch (error) {
+    if (error instanceof PostgresError && error.code === SQLSTATE.UNIQUE_VIOLATION) {
+      return new Response("Already registered", { status: 409 });
+    }
+    throw error;
+  }
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+---
+
+### Database KV
+
+**Module:** `fastedge::db/kv`
+
+```typescript
+import { KvDatabase, KvError } from "fastedge::db/kv";
+```
+
+`KvDatabase` is a key-value database bound to the application by name: regional, durable, and writable from the application. It is not Edge Storage (`fastedge::kv`, read-only, replicated to every edge) or the POP-local `Cache`. The connection details stay with the host.
+
+Every call is a round trip to the database. Calls start at once and run concurrently with each other and with `fetch`. Calls that are not awaited may run in any order: await a write before relying on it, and use `batch` for ordered or atomic work. Within one request, reads see the request's own writes. Other requests may see a write only after it has replicated (eventually, for a database with read replicas in other regions).
+
+```typescript
+class KvDatabase {
+  static open(name: string): KvDatabase;
+  get(key: string): Promise<KvEntry | null>;
+  exists(key: string): Promise<boolean>;
+  set(key: string, value: KvValue, options?: KvSetOptions): Promise<boolean>;
+  delete(key: string): Promise<boolean>;
+  incr(key: string, delta?: number): Promise<number>;
+  expire(key: string, options: KvExpiry): Promise<boolean>;
+  batch(ops: KvOp[]): Promise<KvOpResult[]>;
+}
+```
+
+- `open(name)` opens the database bound to `name`. It throws `KvError` with `kind: 'config'` if no database is bound to `name`.
+- `get(key)` resolves to the value of `key`, or `null` if it does not exist or has expired.
+- `exists(key)` resolves to whether `key` exists (and has not expired), without fetching its value.
+- `set(key, value, options?)` sets `key`. It resolves to `false` if `ifNotExists` / `ifExists` was not met, else `true`.
+- `delete(key)` deletes `key`. It resolves to `true` if it existed.
+- `incr(key, delta?)` adds `delta` (default `1`, may be negative) to the integer at `key`; a missing key counts as `0`. It keeps the key's expiry and resolves to the new value. Integers beyond `Number.MAX_SAFE_INTEGER` are not exact.
+- `expire(key, options)` sets the expiry of `key`. It resolves to `false` if the key does not exist.
+- `batch(ops)` runs several operations atomically; see [Atomic batches](#atomic-batches).
+
+#### Types
+
+```typescript
+type KvValue = string | ArrayBuffer | ArrayBufferView;
+```
+
+Strings are stored as UTF-8. Values must be valid UTF-8 for now: other bytes are rejected with `KvError` `kind: 'limit'`.
+
+`KvExpiry`: pass at most one of `ttl`, `ttlMs`, or `expiresAt`, as for `Cache`.
+
+| Field       | Type     | Description                          |
+| ----------- | -------- | ------------------------------------ |
+| `ttl`       | `number` | Relative TTL, seconds from now.      |
+| `ttlMs`     | `number` | Relative TTL, milliseconds from now. |
+| `expiresAt` | `number` | Absolute expiry, Unix epoch seconds. |
+
+`KvSetOptions` extends `KvExpiry`. Without an expiry the key never expires; any earlier expiry is removed.
+
+| Field         | Type      | Description                           |
+| ------------- | --------- | ------------------------------------- |
+| `ifNotExists` | `boolean` | Write only if the key does not exist. |
+| `ifExists`    | `boolean` | Write only if the key exists.         |
+
+`KvEntry` has the same shape as `CacheEntry` from `fastedge::cache`:
+
+| Method          | Signature                    | Description                                            |
+| --------------- | ---------------------------- | ------------------------------------------------------ |
+| `arrayBuffer()` | `() => Promise<ArrayBuffer>` | Value as an `ArrayBuffer`.                             |
+| `text()`        | `() => Promise<string>`      | Value decoded as UTF-8.                                |
+| `json()`        | `() => Promise<unknown>`     | Parsed as JSON; rejects with `SyntaxError` if invalid. |
+
+#### Atomic batches
+
+`batch` runs several operations atomically: all are applied or none are, and no other client sees a partial batch. Each operation sees the effects of earlier ones. An unmet `set` condition is not a failure (its result is `false`); any other failing operation rejects the whole batch with `KvError` `kind: 'operation'` and `opIndex`.
+
+```typescript
+type KvOp =
+  | { op: 'get'; key: string }
+  | { op: 'exists'; key: string }
+  | { op: 'set'; key: string; value: KvValue; options?: KvSetOptions }
+  | { op: 'delete'; key: string }
+  | { op: 'incr'; key: string; delta?: number }
+  | { op: 'expire'; key: string; options: KvExpiry };
+
+type KvOpResult = KvEntry | null | number | boolean;
+```
+
+Each operation has the same semantics as the method of the same name. Results are returned in order:
+
+| Operation                           | Result            |
+| ----------------------------------- | ----------------- |
+| `get`                               | `KvEntry \| null` |
+| `incr`                              | `number`          |
+| `exists`, `set`, `delete`, `expire` | `boolean`         |
+
+#### KvError
+
+`KvError` extends `Error` and has `name` `'KvError'`. It is thrown by `open` and is the rejection reason for the other methods. `code` and `opIndex` are optional.
+
+| Property  | Type          | Description                                                             |
+| --------- | ------------- | ----------------------------------------------------------------------- |
+| `kind`    | `KvErrorKind` | Error category; see the table below.                                    |
+| `code`    | `string`      | Backend error code (for example `'WRONGTYPE'`) for `kind: 'operation'`. |
+| `opIndex` | `number`      | Index of the failing operation in a `batch`.                            |
+
+| Kind            | Meaning                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| `config`        | Unknown binding, or the binding is misconfigured (for example bad credentials).             |
+| `access-denied` | Access to the database was denied.                                                          |
+| `connection`    | The database could not be reached.                                                          |
+| `timeout`       | The call exceeded the host's time limit; the operation may or may not have been applied.    |
+| `limit`         | A host or backend limit was exceeded (value size, operations per batch, calls per request). |
+| `operation`     | An operation failed, for example `incr` on a non-integer value; see `code`.                 |
+| `internal`      | Internal error.                                                                             |
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvDatabase } from "fastedge::db/kv";
+
+async function app(event) {
+  const db = KvDatabase.open("main");
+
+  const visits = await db.incr("visits");
+  await db.set("last-visit", new Date().toISOString(), { ttl: 3600 });
+
+  const last = await db.get("last-visit");
+  return Response.json({ visits, lastVisit: last === null ? null : await last.text() });
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+An atomic batch that counts a request in a 60-second window starting at the first request:
+
+```javascript
+/// <reference types="@gcoredev/fastedge-sdk-js" />
+
+import { KvDatabase, KvError } from "fastedge::db/kv";
+
+async function app(event) {
+  const db = KvDatabase.open("main");
+  const ip = event.client.address;
+
+  try {
+    const [, count] = await db.batch([
+      { op: "set", key: `rl:${ip}`, value: "0", options: { ttl: 60, ifNotExists: true } },
+      { op: "incr", key: `rl:${ip}` },
+    ]);
+
+    if (count > 5) {
+      return new Response("Too Many Requests", { status: 429 });
+    }
+    return Response.json({ requests: count });
+  } catch (error) {
+    if (error instanceof KvError && error.kind === "operation") {
+      return new Response(`Operation ${error.opIndex} failed: ${error.code}`, { status: 500 });
+    }
+    throw error;
+  }
+}
+
+addEventListener("fetch", event => event.respondWith(app(event)));
+```
+
+---
+
 ## Fetch Event
 
 Every FastEdge application handles incoming requests by registering a listener for the `"fetch"` event.

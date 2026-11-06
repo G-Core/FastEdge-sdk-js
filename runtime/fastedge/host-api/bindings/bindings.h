@@ -14,10 +14,453 @@ typedef struct bindings_string_t {
   size_t len;
 } bindings_string_t;
 
+typedef struct wasi_io_poll_own_pollable_t {
+  int32_t __handle;
+} wasi_io_poll_own_pollable_t;
+
+typedef struct wasi_io_poll_borrow_pollable_t {
+  int32_t __handle;
+} wasi_io_poll_borrow_pollable_t;
+
+typedef struct {
+  wasi_io_poll_borrow_pollable_t *ptr;
+  size_t len;
+} wasi_io_poll_list_borrow_pollable_t;
+
+typedef struct {
+  uint32_t *ptr;
+  size_t len;
+} bindings_list_u32_t;
+
+typedef struct {
+  uint8_t *ptr;
+  size_t len;
+} bindings_list_u8_t;
+
+// A parameter or result value.
+// 
+// Results use the narrowest variant that holds the column's type without loss:
+// - 16- and 32-bit integers → `int32`; 64-bit integers → `int64`
+// - floating point → `float64`
+// - exact decimals → `numeric` (decimal text, e.g. "12345678901234567890.123")
+// - booleans → `boolean`
+// - JSON → `json` (JSON text)
+// - binary → `bytes`
+// - everything else (text, UUIDs, dates and times, arrays, ...) → `text`, in the database's
+//   own text format. Use `column.type-name` to interpret it.
+// - SQL `NULL` → `null`
+// 
+// How each database's types map onto these variants is documented per backend. Parameters are
+// converted to the target column type by the database, as its dialect does.
+typedef struct gcore_db_sql_types_value_t {
+  uint8_t tag;
+  union {
+    bool     boolean;
+    int32_t     int32;
+    int64_t     int64;
+    double     float64;
+    bindings_string_t     numeric;
+    bindings_string_t     text;
+    bindings_list_u8_t     bytes;
+    bindings_string_t     json;
+  } val;
+} gcore_db_sql_types_value_t;
+
+#define GCORE_DB_SQL_TYPES_VALUE_NULL 0
+#define GCORE_DB_SQL_TYPES_VALUE_BOOLEAN 1
+#define GCORE_DB_SQL_TYPES_VALUE_INT32 2
+#define GCORE_DB_SQL_TYPES_VALUE_INT64 3
+#define GCORE_DB_SQL_TYPES_VALUE_FLOAT64 4
+#define GCORE_DB_SQL_TYPES_VALUE_NUMERIC 5
+#define GCORE_DB_SQL_TYPES_VALUE_TEXT 6
+#define GCORE_DB_SQL_TYPES_VALUE_BYTES 7
+#define GCORE_DB_SQL_TYPES_VALUE_JSON 8
+
+// A result column.
+typedef struct gcore_db_sql_types_column_t {
+  // Column name or alias.
+  bindings_string_t   name;
+  // The database's name for the column's type, in lower case (e.g. "int4", "timestamptz",
+  // "int4[]" for PostgreSQL; the declared type, e.g. "integer", for SQLite). Empty when the
+  // backend does not report a type the host can name.
+  bindings_string_t   type_name;
+} gcore_db_sql_types_column_t;
+
+typedef struct {
+  gcore_db_sql_types_column_t *ptr;
+  size_t len;
+} gcore_db_sql_types_list_column_t;
+
+typedef struct {
+  gcore_db_sql_types_value_t *ptr;
+  size_t len;
+} gcore_db_sql_types_list_value_t;
+
+typedef struct {
+  gcore_db_sql_types_list_value_t *ptr;
+  size_t len;
+} gcore_db_sql_types_list_list_value_t;
+
+// The result of one statement.
+typedef struct gcore_db_sql_types_query_result_t {
+  gcore_db_sql_types_list_column_t   columns;
+  // Rows in column order. Empty for statements that return no rows.
+  gcore_db_sql_types_list_list_value_t   rows;
+  // Rows returned (SELECT) or affected (INSERT/UPDATE/DELETE).
+  uint64_t   row_count;
+} gcore_db_sql_types_query_result_t;
+
+// One statement in a batch.
+typedef struct gcore_db_sql_types_statement_t {
+  bindings_string_t   sql;
+  gcore_db_sql_types_list_value_t   params;
+} gcore_db_sql_types_statement_t;
+
 typedef struct {
   bool is_some;
   bindings_string_t val;
 } bindings_option_string_t;
+
+// Error details reported by the database. Fields are set when the database reports them.
+typedef struct gcore_db_sql_types_db_error_t {
+  // The database's own error code: the SQLSTATE for PostgreSQL (e.g. "23505", unique
+  // violation), the extended result code name for SQLite (e.g. "SQLITE_CONSTRAINT_UNIQUE").
+  bindings_option_string_t   code;
+  bindings_string_t   message;
+  bindings_option_string_t   detail;
+  bindings_option_string_t   hint;
+  // Name of the violated constraint, for constraint errors.
+  bindings_option_string_t   constraint;
+} gcore_db_sql_types_db_error_t;
+
+// The set of errors which may be raised by the SQL interfaces.
+typedef struct gcore_db_sql_types_error_t {
+  uint8_t tag;
+  union {
+    gcore_db_sql_types_db_error_t     config;
+    bindings_string_t     connection;
+    bindings_string_t     limit;
+    gcore_db_sql_types_db_error_t     query;
+  } val;
+} gcore_db_sql_types_error_t;
+
+// The host does not recognize the database binding requested.
+#define GCORE_DB_SQL_TYPES_ERROR_NO_SUCH_DATABASE 0
+// The requesting component does not have access to the specified database
+// (which may or may not exist).
+#define GCORE_DB_SQL_TYPES_ERROR_ACCESS_DENIED 1
+// The binding is misconfigured: bad credentials, unknown database name, invalid connection
+// settings. Not retryable without a configuration change.
+#define GCORE_DB_SQL_TYPES_ERROR_CONFIG 2
+// The database could not be reached (network, DNS, TLS, backend unavailable).
+#define GCORE_DB_SQL_TYPES_ERROR_CONNECTION 3
+// The call exceeded the host's time limit. The statement may or may not have been applied.
+#define GCORE_DB_SQL_TYPES_ERROR_TIMEOUT 4
+// A host or backend limit was exceeded (e.g. response size, statements per batch).
+#define GCORE_DB_SQL_TYPES_ERROR_LIMIT 5
+// The database rejected the statement (syntax, constraint, permission, ...).
+#define GCORE_DB_SQL_TYPES_ERROR_QUERY 6
+// Some unexpected internal error has occurred.
+#define GCORE_DB_SQL_TYPES_ERROR_INTERNAL_ERROR 7
+
+typedef gcore_db_sql_types_value_t gcore_db_sql_value_t;
+
+typedef gcore_db_sql_types_query_result_t gcore_db_sql_query_result_t;
+
+typedef gcore_db_sql_types_statement_t gcore_db_sql_statement_t;
+
+typedef gcore_db_sql_types_error_t gcore_db_sql_error_t;
+
+typedef struct gcore_db_sql_own_database_t {
+  int32_t __handle;
+} gcore_db_sql_own_database_t;
+
+typedef struct gcore_db_sql_borrow_database_t {
+  int32_t __handle;
+} gcore_db_sql_borrow_database_t;
+
+typedef struct gcore_db_sql_own_future_query_result_t {
+  int32_t __handle;
+} gcore_db_sql_own_future_query_result_t;
+
+typedef struct gcore_db_sql_borrow_future_query_result_t {
+  int32_t __handle;
+} gcore_db_sql_borrow_future_query_result_t;
+
+typedef struct gcore_db_sql_own_future_batch_result_t {
+  int32_t __handle;
+} gcore_db_sql_own_future_batch_result_t;
+
+typedef struct gcore_db_sql_borrow_future_batch_result_t {
+  int32_t __handle;
+} gcore_db_sql_borrow_future_batch_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_own_database_t ok;
+    gcore_db_sql_error_t err;
+  } val;
+} gcore_db_sql_result_own_database_error_t;
+
+typedef struct {
+  gcore_db_sql_value_t *ptr;
+  size_t len;
+} gcore_db_sql_list_value_t;
+
+typedef struct {
+  gcore_db_sql_statement_t *ptr;
+  size_t len;
+} gcore_db_sql_list_statement_t;
+
+typedef wasi_io_poll_own_pollable_t gcore_db_sql_own_pollable_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_query_result_t ok;
+    gcore_db_sql_error_t err;
+  } val;
+} gcore_db_sql_result_query_result_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_db_sql_result_query_result_error_t val;
+} gcore_db_sql_option_result_query_result_error_t;
+
+typedef struct {
+  gcore_db_sql_query_result_t *ptr;
+  size_t len;
+} gcore_db_sql_list_query_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_list_query_result_t ok;
+    gcore_db_sql_error_t err;
+  } val;
+} gcore_db_sql_result_list_query_result_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_db_sql_result_list_query_result_error_t val;
+} gcore_db_sql_option_result_list_query_result_error_t;
+
+// Values are bytes, like `key-value.value` and `cache-types.payload`. Named `kv-value`, not
+// `value`: C bindings (wit-bindgen 0.52) name `option<value>` globally, so it would collide
+// with `key-value`'s.
+// 
+// v1 restriction: values must be valid UTF-8 (current backends can't store arbitrary bytes over
+// their HTTP APIs). Writing a non-UTF-8 value fails with `error::limit`. Lifting this
+// restriction later does not change the interface.
+typedef struct gcore_db_kv_types_kv_value_t {
+  uint8_t   *ptr;
+  size_t len;
+} gcore_db_kv_types_kv_value_t;
+
+// When `set` writes.
+typedef uint8_t gcore_db_kv_types_set_condition_t;
+
+// Always write.
+#define GCORE_DB_KV_TYPES_SET_CONDITION_ALWAYS 0
+// Write only if the key does not exist.
+#define GCORE_DB_KV_TYPES_SET_CONDITION_IF_NOT_EXISTS 1
+// Write only if the key exists.
+#define GCORE_DB_KV_TYPES_SET_CONDITION_IF_EXISTS 2
+
+typedef struct {
+  bool is_some;
+  uint64_t val;
+} bindings_option_u64_t;
+
+// Options for `set`.
+typedef struct gcore_db_kv_types_set_options_t {
+  // Expire the key after this many milliseconds. `none`: no expiry.
+  // A successful `set` always replaces the key's previous expiry.
+  bindings_option_u64_t   ttl_ms;
+  gcore_db_kv_types_set_condition_t   condition;
+} gcore_db_kv_types_set_options_t;
+
+typedef struct gcore_db_kv_types_set_op_t {
+  bindings_string_t   key;
+  gcore_db_kv_types_kv_value_t   value;
+  gcore_db_kv_types_set_options_t   options;
+} gcore_db_kv_types_set_op_t;
+
+typedef struct gcore_db_kv_types_incr_op_t {
+  bindings_string_t   key;
+  int64_t   delta;
+} gcore_db_kv_types_incr_op_t;
+
+typedef struct gcore_db_kv_types_expire_op_t {
+  bindings_string_t   key;
+  uint64_t   ttl_ms;
+} gcore_db_kv_types_expire_op_t;
+
+// One operation in a batch. Same semantics as the method of the same name.
+typedef struct gcore_db_kv_types_op_t {
+  uint8_t tag;
+  union {
+    bindings_string_t     get;
+    bindings_string_t     exists;
+    gcore_db_kv_types_set_op_t     set;
+    bindings_string_t     delete_;
+    gcore_db_kv_types_incr_op_t     incr;
+    gcore_db_kv_types_expire_op_t     expire;
+  } val;
+} gcore_db_kv_types_op_t;
+
+#define GCORE_DB_KV_TYPES_OP_GET 0
+#define GCORE_DB_KV_TYPES_OP_EXISTS 1
+#define GCORE_DB_KV_TYPES_OP_SET 2
+#define GCORE_DB_KV_TYPES_OP_DELETE 3
+#define GCORE_DB_KV_TYPES_OP_INCR 4
+#define GCORE_DB_KV_TYPES_OP_EXPIRE 5
+
+typedef struct {
+  bool is_some;
+  gcore_db_kv_types_kv_value_t val;
+} bindings_option_kv_value_t;
+
+// Result of one batch operation, in the same order as the operations.
+typedef struct gcore_db_kv_types_op_result_t {
+  uint8_t tag;
+  union {
+    bindings_option_kv_value_t     get;
+    bool     exists;
+    bool     set;
+    bool     delete_;
+    int64_t     incr;
+    bool     expire;
+  } val;
+} gcore_db_kv_types_op_result_t;
+
+#define GCORE_DB_KV_TYPES_OP_RESULT_GET 0
+#define GCORE_DB_KV_TYPES_OP_RESULT_EXISTS 1
+#define GCORE_DB_KV_TYPES_OP_RESULT_SET 2
+#define GCORE_DB_KV_TYPES_OP_RESULT_DELETE 3
+#define GCORE_DB_KV_TYPES_OP_RESULT_INCR 4
+#define GCORE_DB_KV_TYPES_OP_RESULT_EXPIRE 5
+
+typedef struct {
+  bool is_some;
+  uint32_t val;
+} bindings_option_u32_t;
+
+// Error details reported by the backend.
+typedef struct gcore_db_kv_types_op_error_t {
+  // Index of the failing operation in a batch. `none` outside `batch`.
+  bindings_option_u32_t   op_index;
+  // Backend error code when one is available (e.g. Redis "WRONGTYPE", "ERR").
+  bindings_option_string_t   code;
+  bindings_string_t   message;
+} gcore_db_kv_types_op_error_t;
+
+// The set of errors which may be raised by functions in this interface
+typedef struct gcore_db_kv_types_error_t {
+  uint8_t tag;
+  union {
+    bindings_string_t     config;
+    bindings_string_t     connection;
+    bindings_string_t     limit;
+    gcore_db_kv_types_op_error_t     operation;
+  } val;
+} gcore_db_kv_types_error_t;
+
+// The host does not recognize the database binding requested.
+#define GCORE_DB_KV_TYPES_ERROR_NO_SUCH_DATABASE 0
+// The requesting component does not have access to the specified database or operation
+// (which may or may not exist), e.g. a write through a read-only binding.
+#define GCORE_DB_KV_TYPES_ERROR_ACCESS_DENIED 1
+// The binding is misconfigured (e.g. bad credentials). Not retryable without a configuration
+// change.
+#define GCORE_DB_KV_TYPES_ERROR_CONFIG 2
+// The database could not be reached (network, DNS, TLS, backend unavailable).
+#define GCORE_DB_KV_TYPES_ERROR_CONNECTION 3
+// The call exceeded the host's time limit. The operation may or may not have been applied.
+#define GCORE_DB_KV_TYPES_ERROR_TIMEOUT 4
+// A host or backend limit was exceeded (e.g. key/value size, operations per batch).
+#define GCORE_DB_KV_TYPES_ERROR_LIMIT 5
+// An operation failed (e.g. `incr` on a non-integer value).
+#define GCORE_DB_KV_TYPES_ERROR_OPERATION 6
+// Some unexpected internal error has occurred.
+#define GCORE_DB_KV_TYPES_ERROR_INTERNAL_ERROR 7
+
+typedef gcore_db_kv_types_op_t gcore_db_kv_op_t;
+
+typedef gcore_db_kv_types_op_result_t gcore_db_kv_op_result_t;
+
+typedef gcore_db_kv_types_error_t gcore_db_kv_error_t;
+
+typedef struct gcore_db_kv_own_database_t {
+  int32_t __handle;
+} gcore_db_kv_own_database_t;
+
+typedef struct gcore_db_kv_borrow_database_t {
+  int32_t __handle;
+} gcore_db_kv_borrow_database_t;
+
+typedef struct gcore_db_kv_own_future_op_result_t {
+  int32_t __handle;
+} gcore_db_kv_own_future_op_result_t;
+
+typedef struct gcore_db_kv_borrow_future_op_result_t {
+  int32_t __handle;
+} gcore_db_kv_borrow_future_op_result_t;
+
+typedef struct gcore_db_kv_own_future_batch_result_t {
+  int32_t __handle;
+} gcore_db_kv_own_future_batch_result_t;
+
+typedef struct gcore_db_kv_borrow_future_batch_result_t {
+  int32_t __handle;
+} gcore_db_kv_borrow_future_batch_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_kv_own_database_t ok;
+    gcore_db_kv_error_t err;
+  } val;
+} gcore_db_kv_result_own_database_error_t;
+
+typedef struct {
+  gcore_db_kv_op_t *ptr;
+  size_t len;
+} gcore_db_kv_list_op_t;
+
+typedef wasi_io_poll_own_pollable_t gcore_db_kv_own_pollable_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_kv_op_result_t ok;
+    gcore_db_kv_error_t err;
+  } val;
+} gcore_db_kv_result_op_result_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_db_kv_result_op_result_error_t val;
+} gcore_db_kv_option_result_op_result_error_t;
+
+typedef struct {
+  gcore_db_kv_op_result_t *ptr;
+  size_t len;
+} gcore_db_kv_list_op_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_kv_list_op_result_t ok;
+    gcore_db_kv_error_t err;
+  } val;
+} gcore_db_kv_result_list_op_result_error_t;
+
+typedef struct {
+  bool is_some;
+  gcore_db_kv_result_list_op_result_error_t val;
+} gcore_db_kv_option_result_list_op_result_error_t;
 
 // The set of errors which may be raised by functions in this interface
 typedef struct gcore_fastedge_secret_error_t {
@@ -173,11 +616,6 @@ typedef struct {
 } gcore_fastedge_cache_sync_result_option_payload_error_t;
 
 typedef struct {
-  bool is_some;
-  uint64_t val;
-} bindings_option_u64_t;
-
-typedef struct {
   bool is_err;
   union {
     gcore_fastedge_cache_sync_error_t err;
@@ -208,6 +646,129 @@ typedef struct {
   } val;
 } gcore_fastedge_cache_sync_result_u64_error_t;
 
+typedef gcore_db_sql_types_value_t gcore_db_sql_sync_value_t;
+
+typedef gcore_db_sql_types_query_result_t gcore_db_sql_sync_query_result_t;
+
+typedef gcore_db_sql_types_statement_t gcore_db_sql_sync_statement_t;
+
+typedef gcore_db_sql_types_error_t gcore_db_sql_sync_error_t;
+
+typedef struct gcore_db_sql_sync_own_database_t {
+  int32_t __handle;
+} gcore_db_sql_sync_own_database_t;
+
+typedef struct gcore_db_sql_sync_borrow_database_t {
+  int32_t __handle;
+} gcore_db_sql_sync_borrow_database_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_sync_own_database_t ok;
+    gcore_db_sql_sync_error_t err;
+  } val;
+} gcore_db_sql_sync_result_own_database_error_t;
+
+typedef struct {
+  gcore_db_sql_sync_value_t *ptr;
+  size_t len;
+} gcore_db_sql_sync_list_value_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_sync_query_result_t ok;
+    gcore_db_sql_sync_error_t err;
+  } val;
+} gcore_db_sql_sync_result_query_result_error_t;
+
+typedef struct {
+  gcore_db_sql_sync_statement_t *ptr;
+  size_t len;
+} gcore_db_sql_sync_list_statement_t;
+
+typedef struct {
+  gcore_db_sql_sync_query_result_t *ptr;
+  size_t len;
+} gcore_db_sql_sync_list_query_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_sql_sync_list_query_result_t ok;
+    gcore_db_sql_sync_error_t err;
+  } val;
+} gcore_db_sql_sync_result_list_query_result_error_t;
+
+typedef gcore_db_kv_types_kv_value_t gcore_db_kv_sync_kv_value_t;
+
+typedef gcore_db_kv_types_set_options_t gcore_db_kv_sync_set_options_t;
+
+typedef gcore_db_kv_types_op_t gcore_db_kv_sync_op_t;
+
+typedef gcore_db_kv_types_op_result_t gcore_db_kv_sync_op_result_t;
+
+typedef gcore_db_kv_types_error_t gcore_db_kv_sync_error_t;
+
+typedef struct gcore_db_kv_sync_own_database_t {
+  int32_t __handle;
+} gcore_db_kv_sync_own_database_t;
+
+typedef struct gcore_db_kv_sync_borrow_database_t {
+  int32_t __handle;
+} gcore_db_kv_sync_borrow_database_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_kv_sync_own_database_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_own_database_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bindings_option_kv_value_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_option_kv_value_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    bool ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_bool_error_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    int64_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_s64_error_t;
+
+typedef struct {
+  gcore_db_kv_sync_op_t *ptr;
+  size_t len;
+} gcore_db_kv_sync_list_op_t;
+
+typedef struct {
+  gcore_db_kv_sync_op_result_t *ptr;
+  size_t len;
+} gcore_db_kv_sync_list_op_result_t;
+
+typedef struct {
+  bool is_err;
+  union {
+    gcore_db_kv_sync_list_op_result_t ok;
+    gcore_db_kv_sync_error_t err;
+  } val;
+} gcore_db_kv_sync_result_list_op_result_error_t;
+
 typedef struct {
   bindings_string_t f0;
   bindings_string_t f1;
@@ -229,24 +790,6 @@ typedef struct wasi_io_error_own_error_t {
 typedef struct wasi_io_error_borrow_error_t {
   int32_t __handle;
 } wasi_io_error_borrow_error_t;
-
-typedef struct wasi_io_poll_own_pollable_t {
-  int32_t __handle;
-} wasi_io_poll_own_pollable_t;
-
-typedef struct wasi_io_poll_borrow_pollable_t {
-  int32_t __handle;
-} wasi_io_poll_borrow_pollable_t;
-
-typedef struct {
-  wasi_io_poll_borrow_pollable_t *ptr;
-  size_t len;
-} wasi_io_poll_list_borrow_pollable_t;
-
-typedef struct {
-  uint32_t *ptr;
-  size_t len;
-} bindings_list_u32_t;
 
 typedef wasi_io_error_own_error_t wasi_io_streams_own_error_t;
 
@@ -275,11 +818,6 @@ typedef struct wasi_io_streams_own_output_stream_t {
 typedef struct wasi_io_streams_borrow_output_stream_t {
   int32_t __handle;
 } wasi_io_streams_borrow_output_stream_t;
-
-typedef struct {
-  uint8_t *ptr;
-  size_t len;
-} bindings_list_u8_t;
 
 typedef struct {
   bool is_err;
@@ -1072,11 +1610,6 @@ typedef struct wasi_http_types_tls_alert_received_payload_t {
   bindings_option_string_t   alert_message;
 } wasi_http_types_tls_alert_received_payload_t;
 
-typedef struct {
-  bool is_some;
-  uint32_t val;
-} bindings_option_u32_t;
-
 // Defines the case payload type for `HTTP-response-{header,trailer}-size` above:
 typedef struct wasi_http_types_field_size_payload_t {
   bindings_option_string_t   field_name;
@@ -1466,6 +1999,55 @@ typedef wasi_http_types_own_incoming_request_t exports_wasi_http_incoming_handle
 
 typedef wasi_http_types_own_response_outparam_t exports_wasi_http_incoming_handler_own_response_outparam_t;
 
+// Imported Functions from `wasi:io/poll@0.2.3`
+extern bool wasi_io_poll_method_pollable_ready(wasi_io_poll_borrow_pollable_t self);
+extern void wasi_io_poll_method_pollable_block(wasi_io_poll_borrow_pollable_t self);
+extern void wasi_io_poll_poll(wasi_io_poll_list_borrow_pollable_t *in, bindings_list_u32_t *ret);
+
+// Imported Functions from `gcore:db/sql@0.1.0`
+// Open the database bound to `name`.
+// 
+// `error::no-such-database` will be raised if the `name` is not recognized.
+extern bool gcore_db_sql_static_database_open(bindings_string_t *name, gcore_db_sql_own_database_t *ret, gcore_db_sql_error_t *err);
+// Start one statement with positional parameters, in the database's placeholder syntax.
+// Auto-commits.
+// 
+// `sql` must contain exactly one statement.
+extern gcore_db_sql_own_future_query_result_t gcore_db_sql_method_database_query(gcore_db_sql_borrow_database_t self, bindings_string_t *sql, gcore_db_sql_list_value_t *params);
+// Start several statements in one transaction. Either all commit or none do.
+extern gcore_db_sql_own_future_batch_result_t gcore_db_sql_method_database_batch(gcore_db_sql_borrow_database_t self, gcore_db_sql_list_statement_t *statements);
+// Ready when the result is available.
+extern gcore_db_sql_own_pollable_t gcore_db_sql_method_future_query_result_subscribe(gcore_db_sql_borrow_future_query_result_t self);
+// The result, once ready; `none` before that. Returns the result only once: later calls
+// return `some(err(error::internal-error))`.
+extern bool gcore_db_sql_method_future_query_result_get(gcore_db_sql_borrow_future_query_result_t self, gcore_db_sql_result_query_result_error_t *ret);
+// Ready when the result is available.
+extern gcore_db_sql_own_pollable_t gcore_db_sql_method_future_batch_result_subscribe(gcore_db_sql_borrow_future_batch_result_t self);
+// The result, once ready; `none` before that. Returns the result only once: later calls
+// return `some(err(error::internal-error))`.
+extern bool gcore_db_sql_method_future_batch_result_get(gcore_db_sql_borrow_future_batch_result_t self, gcore_db_sql_result_list_query_result_error_t *ret);
+
+// Imported Functions from `gcore:db/kv@0.1.0`
+// Open the database bound to `name`.
+// 
+// `error::no-such-database` will be raised if the `name` is not recognized.
+extern bool gcore_db_kv_static_database_open(bindings_string_t *name, gcore_db_kv_own_database_t *ret, gcore_db_kv_error_t *err);
+// Start one operation. Same semantics as the `kv-sync` method of the same name; the result is
+// the `op-result` case of `op`.
+extern gcore_db_kv_own_future_op_result_t gcore_db_kv_method_database_execute(gcore_db_kv_borrow_database_t self, gcore_db_kv_op_t *op);
+// Start several operations, applied atomically (see `kv-sync` `batch`).
+extern gcore_db_kv_own_future_batch_result_t gcore_db_kv_method_database_batch(gcore_db_kv_borrow_database_t self, gcore_db_kv_list_op_t *ops);
+// Ready when the result is available.
+extern gcore_db_kv_own_pollable_t gcore_db_kv_method_future_op_result_subscribe(gcore_db_kv_borrow_future_op_result_t self);
+// The result, once ready; `none` before that. Returns the result only once: later calls
+// return `some(err(error::internal-error))`.
+extern bool gcore_db_kv_method_future_op_result_get(gcore_db_kv_borrow_future_op_result_t self, gcore_db_kv_result_op_result_error_t *ret);
+// Ready when the result is available.
+extern gcore_db_kv_own_pollable_t gcore_db_kv_method_future_batch_result_subscribe(gcore_db_kv_borrow_future_batch_result_t self);
+// The result, once ready; `none` before that. Returns the result only once: later calls
+// return `some(err(error::internal-error))`.
+extern bool gcore_db_kv_method_future_batch_result_get(gcore_db_kv_borrow_future_batch_result_t self, gcore_db_kv_result_list_op_result_error_t *ret);
+
 // Imported Functions from `gcore:fastedge/dictionary`
 // Get the value associated with the specified `key`
 // 
@@ -1577,6 +2159,60 @@ extern bool gcore_fastedge_cache_sync_purge(uint64_t *ret, gcore_fastedge_cache_
 // operation fails.
 extern bool gcore_fastedge_cache_sync_purge_prefix(bindings_string_t *prefix, uint64_t *ret, gcore_fastedge_cache_sync_error_t *err);
 
+// Imported Functions from `gcore:db/sql-sync@0.1.0`
+// Open the database bound to `name`.
+// 
+// `error::no-such-database` will be raised if the `name` is not recognized.
+extern bool gcore_db_sql_sync_static_database_open(bindings_string_t *name, gcore_db_sql_sync_own_database_t *ret, gcore_db_sql_sync_error_t *err);
+// Run one statement with positional parameters, in the database's placeholder syntax
+// (`$1`, `$2`, ... for PostgreSQL; `?` for SQLite). Auto-commits.
+// 
+// `sql` must contain exactly one statement.
+extern bool gcore_db_sql_sync_method_database_query(gcore_db_sql_sync_borrow_database_t self, bindings_string_t *sql, gcore_db_sql_sync_list_value_t *params, gcore_db_sql_sync_query_result_t *ret, gcore_db_sql_sync_error_t *err);
+// Run several statements in one transaction. Either all commit or none do.
+// 
+// Returns one `query-result` per statement, in order. On failure nothing is committed
+// and the error of the failing statement is returned.
+extern bool gcore_db_sql_sync_method_database_batch(gcore_db_sql_sync_borrow_database_t self, gcore_db_sql_sync_list_statement_t *statements, gcore_db_sql_sync_list_query_result_t *ret, gcore_db_sql_sync_error_t *err);
+
+// Imported Functions from `gcore:db/kv-sync@0.1.0`
+// Open the database bound to `name`.
+// 
+// `error::no-such-database` will be raised if the `name` is not recognized.
+extern bool gcore_db_kv_sync_static_database_open(bindings_string_t *name, gcore_db_kv_sync_own_database_t *ret, gcore_db_kv_sync_error_t *err);
+// Get the value of `key`.
+// 
+// Returns `ok(none)` if the key does not exist or has expired.
+extern bool gcore_db_kv_sync_method_database_get(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, bindings_option_kv_value_t *ret, gcore_db_kv_sync_error_t *err);
+// Check whether `key` exists (and has not expired), without fetching its value.
+extern bool gcore_db_kv_sync_method_database_exists(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, bool *ret, gcore_db_kv_sync_error_t *err);
+// Set `key` to `value`, subject to `options.condition`.
+// 
+// Returns `ok(true)` if the value was written, `ok(false)` if the condition was not met.
+extern bool gcore_db_kv_sync_method_database_set(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, gcore_db_kv_sync_kv_value_t *value, gcore_db_kv_sync_set_options_t *options, bool *ret, gcore_db_kv_sync_error_t *err);
+// Delete `key`.
+// 
+// Returns `ok(true)` if the key existed, `ok(false)` otherwise.
+extern bool gcore_db_kv_sync_method_database_delete(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, bool *ret, gcore_db_kv_sync_error_t *err);
+// Add `delta` to the integer stored at `key`. `delta` may be negative.
+// 
+// A missing key is treated as `0`. Does not change the key's expiry.
+// Returns the new value. Fails with `error::operation` if the stored value is not a decimal
+// 64-bit integer or the result would overflow.
+extern bool gcore_db_kv_sync_method_database_incr(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, int64_t delta, int64_t *ret, gcore_db_kv_sync_error_t *err);
+// Set the expiry of `key` to `ttl-ms` milliseconds from now.
+// 
+// Returns `ok(true)` if the key exists and the expiry was set, `ok(false)` if it does not exist.
+extern bool gcore_db_kv_sync_method_database_expire(gcore_db_kv_sync_borrow_database_t self, bindings_string_t *key, uint64_t ttl_ms, bool *ret, gcore_db_kv_sync_error_t *err);
+// Run several operations atomically: all are applied or none are, and no other client
+// observes or interleaves with a partial batch.
+// 
+// Operations see the effects of earlier operations in the same batch.
+// A `set` whose condition is not met is not a failure: it returns `set(false)` and the batch
+// continues. Any other failing operation aborts the whole batch with `error::operation`,
+// whose `op-index` identifies the operation.
+extern bool gcore_db_kv_sync_method_database_batch(gcore_db_kv_sync_borrow_database_t self, gcore_db_kv_sync_list_op_t *ops, gcore_db_kv_sync_list_op_result_t *ret, gcore_db_kv_sync_error_t *err);
+
 // Imported Functions from `wasi:cli/environment@0.2.3`
 // Get the POSIX-style environment variables.
 // 
@@ -1599,11 +2235,6 @@ extern void wasi_cli_exit_exit(wasi_cli_exit_result_void_void_t *status);
 
 // Imported Functions from `wasi:io/error@0.2.3`
 extern void wasi_io_error_method_error_to_debug_string(wasi_io_error_borrow_error_t self, bindings_string_t *ret);
-
-// Imported Functions from `wasi:io/poll@0.2.3`
-extern bool wasi_io_poll_method_pollable_ready(wasi_io_poll_borrow_pollable_t self);
-extern void wasi_io_poll_method_pollable_block(wasi_io_poll_borrow_pollable_t self);
-extern void wasi_io_poll_poll(wasi_io_poll_list_borrow_pollable_t *in, bindings_list_u32_t *ret);
 
 // Imported Functions from `wasi:io/streams@0.2.3`
 extern bool wasi_io_streams_method_input_stream_read(wasi_io_streams_borrow_input_stream_t self, uint64_t len, bindings_list_u8_t *ret, wasi_io_streams_stream_error_t *err);
@@ -2089,7 +2720,141 @@ void exports_wasi_http_incoming_handler_handle(exports_wasi_http_incoming_handle
 
 // Helper Functions
 
+extern void wasi_io_poll_pollable_drop_own(wasi_io_poll_own_pollable_t handle);
+
+extern void wasi_io_poll_pollable_drop_borrow(wasi_io_poll_borrow_pollable_t handle);
+
+extern wasi_io_poll_borrow_pollable_t wasi_io_poll_borrow_pollable(wasi_io_poll_own_pollable_t handle);
+
+void wasi_io_poll_list_borrow_pollable_free(wasi_io_poll_list_borrow_pollable_t *ptr);
+
+void bindings_list_u32_free(bindings_list_u32_t *ptr);
+
+void bindings_list_u8_free(bindings_list_u8_t *ptr);
+
+void gcore_db_sql_types_value_free(gcore_db_sql_types_value_t *ptr);
+
+void gcore_db_sql_types_column_free(gcore_db_sql_types_column_t *ptr);
+
+void gcore_db_sql_types_list_column_free(gcore_db_sql_types_list_column_t *ptr);
+
+void gcore_db_sql_types_list_value_free(gcore_db_sql_types_list_value_t *ptr);
+
+void gcore_db_sql_types_list_list_value_free(gcore_db_sql_types_list_list_value_t *ptr);
+
+void gcore_db_sql_types_query_result_free(gcore_db_sql_types_query_result_t *ptr);
+
+void gcore_db_sql_types_statement_free(gcore_db_sql_types_statement_t *ptr);
+
 void bindings_option_string_free(bindings_option_string_t *ptr);
+
+void gcore_db_sql_types_db_error_free(gcore_db_sql_types_db_error_t *ptr);
+
+void gcore_db_sql_types_error_free(gcore_db_sql_types_error_t *ptr);
+
+void gcore_db_sql_value_free(gcore_db_sql_value_t *ptr);
+
+void gcore_db_sql_query_result_free(gcore_db_sql_query_result_t *ptr);
+
+void gcore_db_sql_statement_free(gcore_db_sql_statement_t *ptr);
+
+void gcore_db_sql_error_free(gcore_db_sql_error_t *ptr);
+
+extern void gcore_db_sql_database_drop_own(gcore_db_sql_own_database_t handle);
+
+extern void gcore_db_sql_database_drop_borrow(gcore_db_sql_borrow_database_t handle);
+
+extern gcore_db_sql_borrow_database_t gcore_db_sql_borrow_database(gcore_db_sql_own_database_t handle);
+
+extern void gcore_db_sql_future_query_result_drop_own(gcore_db_sql_own_future_query_result_t handle);
+
+extern void gcore_db_sql_future_query_result_drop_borrow(gcore_db_sql_borrow_future_query_result_t handle);
+
+extern gcore_db_sql_borrow_future_query_result_t gcore_db_sql_borrow_future_query_result(gcore_db_sql_own_future_query_result_t handle);
+
+extern void gcore_db_sql_future_batch_result_drop_own(gcore_db_sql_own_future_batch_result_t handle);
+
+extern void gcore_db_sql_future_batch_result_drop_borrow(gcore_db_sql_borrow_future_batch_result_t handle);
+
+extern gcore_db_sql_borrow_future_batch_result_t gcore_db_sql_borrow_future_batch_result(gcore_db_sql_own_future_batch_result_t handle);
+
+void gcore_db_sql_result_own_database_error_free(gcore_db_sql_result_own_database_error_t *ptr);
+
+void gcore_db_sql_list_value_free(gcore_db_sql_list_value_t *ptr);
+
+void gcore_db_sql_list_statement_free(gcore_db_sql_list_statement_t *ptr);
+
+void gcore_db_sql_result_query_result_error_free(gcore_db_sql_result_query_result_error_t *ptr);
+
+void gcore_db_sql_option_result_query_result_error_free(gcore_db_sql_option_result_query_result_error_t *ptr);
+
+void gcore_db_sql_list_query_result_free(gcore_db_sql_list_query_result_t *ptr);
+
+void gcore_db_sql_result_list_query_result_error_free(gcore_db_sql_result_list_query_result_error_t *ptr);
+
+void gcore_db_sql_option_result_list_query_result_error_free(gcore_db_sql_option_result_list_query_result_error_t *ptr);
+
+void gcore_db_kv_types_kv_value_free(gcore_db_kv_types_kv_value_t *ptr);
+
+void bindings_option_u64_free(bindings_option_u64_t *ptr);
+
+void gcore_db_kv_types_set_options_free(gcore_db_kv_types_set_options_t *ptr);
+
+void gcore_db_kv_types_set_op_free(gcore_db_kv_types_set_op_t *ptr);
+
+void gcore_db_kv_types_incr_op_free(gcore_db_kv_types_incr_op_t *ptr);
+
+void gcore_db_kv_types_expire_op_free(gcore_db_kv_types_expire_op_t *ptr);
+
+void gcore_db_kv_types_op_free(gcore_db_kv_types_op_t *ptr);
+
+void bindings_option_kv_value_free(bindings_option_kv_value_t *ptr);
+
+void gcore_db_kv_types_op_result_free(gcore_db_kv_types_op_result_t *ptr);
+
+void bindings_option_u32_free(bindings_option_u32_t *ptr);
+
+void gcore_db_kv_types_op_error_free(gcore_db_kv_types_op_error_t *ptr);
+
+void gcore_db_kv_types_error_free(gcore_db_kv_types_error_t *ptr);
+
+void gcore_db_kv_op_free(gcore_db_kv_op_t *ptr);
+
+void gcore_db_kv_op_result_free(gcore_db_kv_op_result_t *ptr);
+
+void gcore_db_kv_error_free(gcore_db_kv_error_t *ptr);
+
+extern void gcore_db_kv_database_drop_own(gcore_db_kv_own_database_t handle);
+
+extern void gcore_db_kv_database_drop_borrow(gcore_db_kv_borrow_database_t handle);
+
+extern gcore_db_kv_borrow_database_t gcore_db_kv_borrow_database(gcore_db_kv_own_database_t handle);
+
+extern void gcore_db_kv_future_op_result_drop_own(gcore_db_kv_own_future_op_result_t handle);
+
+extern void gcore_db_kv_future_op_result_drop_borrow(gcore_db_kv_borrow_future_op_result_t handle);
+
+extern gcore_db_kv_borrow_future_op_result_t gcore_db_kv_borrow_future_op_result(gcore_db_kv_own_future_op_result_t handle);
+
+extern void gcore_db_kv_future_batch_result_drop_own(gcore_db_kv_own_future_batch_result_t handle);
+
+extern void gcore_db_kv_future_batch_result_drop_borrow(gcore_db_kv_borrow_future_batch_result_t handle);
+
+extern gcore_db_kv_borrow_future_batch_result_t gcore_db_kv_borrow_future_batch_result(gcore_db_kv_own_future_batch_result_t handle);
+
+void gcore_db_kv_result_own_database_error_free(gcore_db_kv_result_own_database_error_t *ptr);
+
+void gcore_db_kv_list_op_free(gcore_db_kv_list_op_t *ptr);
+
+void gcore_db_kv_result_op_result_error_free(gcore_db_kv_result_op_result_error_t *ptr);
+
+void gcore_db_kv_option_result_op_result_error_free(gcore_db_kv_option_result_op_result_error_t *ptr);
+
+void gcore_db_kv_list_op_result_free(gcore_db_kv_list_op_result_t *ptr);
+
+void gcore_db_kv_result_list_op_result_error_free(gcore_db_kv_result_list_op_result_error_t *ptr);
+
+void gcore_db_kv_option_result_list_op_result_error_free(gcore_db_kv_option_result_list_op_result_error_t *ptr);
 
 void gcore_fastedge_secret_error_free(gcore_fastedge_secret_error_t *ptr);
 
@@ -2135,8 +2900,6 @@ void bindings_option_payload_free(bindings_option_payload_t *ptr);
 
 void gcore_fastedge_cache_sync_result_option_payload_error_free(gcore_fastedge_cache_sync_result_option_payload_error_t *ptr);
 
-void bindings_option_u64_free(bindings_option_u64_t *ptr);
-
 void gcore_fastedge_cache_sync_result_void_error_free(gcore_fastedge_cache_sync_result_void_error_t *ptr);
 
 void gcore_fastedge_cache_sync_result_bool_error_free(gcore_fastedge_cache_sync_result_bool_error_t *ptr);
@@ -2144,6 +2907,62 @@ void gcore_fastedge_cache_sync_result_bool_error_free(gcore_fastedge_cache_sync_
 void gcore_fastedge_cache_sync_result_s64_error_free(gcore_fastedge_cache_sync_result_s64_error_t *ptr);
 
 void gcore_fastedge_cache_sync_result_u64_error_free(gcore_fastedge_cache_sync_result_u64_error_t *ptr);
+
+void gcore_db_sql_sync_value_free(gcore_db_sql_sync_value_t *ptr);
+
+void gcore_db_sql_sync_query_result_free(gcore_db_sql_sync_query_result_t *ptr);
+
+void gcore_db_sql_sync_statement_free(gcore_db_sql_sync_statement_t *ptr);
+
+void gcore_db_sql_sync_error_free(gcore_db_sql_sync_error_t *ptr);
+
+extern void gcore_db_sql_sync_database_drop_own(gcore_db_sql_sync_own_database_t handle);
+
+extern void gcore_db_sql_sync_database_drop_borrow(gcore_db_sql_sync_borrow_database_t handle);
+
+extern gcore_db_sql_sync_borrow_database_t gcore_db_sql_sync_borrow_database(gcore_db_sql_sync_own_database_t handle);
+
+void gcore_db_sql_sync_result_own_database_error_free(gcore_db_sql_sync_result_own_database_error_t *ptr);
+
+void gcore_db_sql_sync_list_value_free(gcore_db_sql_sync_list_value_t *ptr);
+
+void gcore_db_sql_sync_result_query_result_error_free(gcore_db_sql_sync_result_query_result_error_t *ptr);
+
+void gcore_db_sql_sync_list_statement_free(gcore_db_sql_sync_list_statement_t *ptr);
+
+void gcore_db_sql_sync_list_query_result_free(gcore_db_sql_sync_list_query_result_t *ptr);
+
+void gcore_db_sql_sync_result_list_query_result_error_free(gcore_db_sql_sync_result_list_query_result_error_t *ptr);
+
+void gcore_db_kv_sync_kv_value_free(gcore_db_kv_sync_kv_value_t *ptr);
+
+void gcore_db_kv_sync_set_options_free(gcore_db_kv_sync_set_options_t *ptr);
+
+void gcore_db_kv_sync_op_free(gcore_db_kv_sync_op_t *ptr);
+
+void gcore_db_kv_sync_op_result_free(gcore_db_kv_sync_op_result_t *ptr);
+
+void gcore_db_kv_sync_error_free(gcore_db_kv_sync_error_t *ptr);
+
+extern void gcore_db_kv_sync_database_drop_own(gcore_db_kv_sync_own_database_t handle);
+
+extern void gcore_db_kv_sync_database_drop_borrow(gcore_db_kv_sync_borrow_database_t handle);
+
+extern gcore_db_kv_sync_borrow_database_t gcore_db_kv_sync_borrow_database(gcore_db_kv_sync_own_database_t handle);
+
+void gcore_db_kv_sync_result_own_database_error_free(gcore_db_kv_sync_result_own_database_error_t *ptr);
+
+void gcore_db_kv_sync_result_option_kv_value_error_free(gcore_db_kv_sync_result_option_kv_value_error_t *ptr);
+
+void gcore_db_kv_sync_result_bool_error_free(gcore_db_kv_sync_result_bool_error_t *ptr);
+
+void gcore_db_kv_sync_result_s64_error_free(gcore_db_kv_sync_result_s64_error_t *ptr);
+
+void gcore_db_kv_sync_list_op_free(gcore_db_kv_sync_list_op_t *ptr);
+
+void gcore_db_kv_sync_list_op_result_free(gcore_db_kv_sync_list_op_result_t *ptr);
+
+void gcore_db_kv_sync_result_list_op_result_error_free(gcore_db_kv_sync_result_list_op_result_error_t *ptr);
 
 void bindings_tuple2_string_string_free(bindings_tuple2_string_string_t *ptr);
 
@@ -2156,16 +2975,6 @@ extern void wasi_io_error_error_drop_own(wasi_io_error_own_error_t handle);
 extern void wasi_io_error_error_drop_borrow(wasi_io_error_borrow_error_t handle);
 
 extern wasi_io_error_borrow_error_t wasi_io_error_borrow_error(wasi_io_error_own_error_t handle);
-
-extern void wasi_io_poll_pollable_drop_own(wasi_io_poll_own_pollable_t handle);
-
-extern void wasi_io_poll_pollable_drop_borrow(wasi_io_poll_borrow_pollable_t handle);
-
-extern wasi_io_poll_borrow_pollable_t wasi_io_poll_borrow_pollable(wasi_io_poll_own_pollable_t handle);
-
-void wasi_io_poll_list_borrow_pollable_free(wasi_io_poll_list_borrow_pollable_t *ptr);
-
-void bindings_list_u32_free(bindings_list_u32_t *ptr);
 
 void wasi_io_streams_stream_error_free(wasi_io_streams_stream_error_t *ptr);
 
@@ -2180,8 +2989,6 @@ extern void wasi_io_streams_output_stream_drop_own(wasi_io_streams_own_output_st
 extern void wasi_io_streams_output_stream_drop_borrow(wasi_io_streams_borrow_output_stream_t handle);
 
 extern wasi_io_streams_borrow_output_stream_t wasi_io_streams_borrow_output_stream(wasi_io_streams_own_output_stream_t handle);
-
-void bindings_list_u8_free(bindings_list_u8_t *ptr);
 
 void wasi_io_streams_result_list_u8_stream_error_free(wasi_io_streams_result_list_u8_stream_error_t *ptr);
 
@@ -2368,10 +3175,6 @@ void wasi_http_types_dns_error_payload_free(wasi_http_types_dns_error_payload_t 
 void bindings_option_u8_free(bindings_option_u8_t *ptr);
 
 void wasi_http_types_tls_alert_received_payload_free(wasi_http_types_tls_alert_received_payload_t *ptr);
-
-void bindings_option_u32_free(bindings_option_u32_t *ptr);
-
-void wasi_http_types_field_size_payload_free(wasi_http_types_field_size_payload_t *ptr);
 
 void wasi_http_types_option_field_size_payload_free(wasi_http_types_option_field_size_payload_t *ptr);
 

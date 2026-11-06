@@ -1,0 +1,40 @@
+package gcore:db@0.1.0;
+
+/// FastEdge SQL interface (synchronous variant).
+///
+/// Dialect-neutral: SQL text, placeholders and error codes are those of the bound database (see
+/// `sql-types`). Applications name a binding (e.g. "main"); the host maps it to a backend.
+/// Location and credentials are invisible to the application, so a binding can move to another
+/// provider of the same SQL dialect (e.g. between PostgreSQL services) without code changes.
+/// Moving it to a database of another dialect means changing the application's SQL.
+///
+/// Every call is a network round trip to a regional database. There is no session state between
+/// calls: each `query` auto-commits and each `batch` is its own transaction.
+///
+/// Calls are subject to host limits (timeout, response size, statements per batch). Exceeding
+/// them returns `error::timeout` or `error::limit`.
+interface sql-sync {
+  use sql-types.{value, query-result, statement, error};
+
+  /// FastEdge SQL database resource.
+  resource database {
+    /// Open the database bound to `name`.
+    ///
+    /// `error::no-such-database` will be raised if the `name` is not recognized.
+    open: static func(name: string) -> result<database, error>;
+
+    /// Run one statement with positional parameters, in the database's placeholder syntax
+    /// (`$1`, `$2`, ... for PostgreSQL; `?` for SQLite). Auto-commits.
+    ///
+    /// `sql` must contain exactly one statement.
+    query: func(sql: string, params: list<value>) -> result<query-result, error>;
+
+    /// Run several statements in one transaction. Either all commit or none do.
+    ///
+    /// Returns one `query-result` per statement, in order. If a statement fails, nothing is
+    /// committed and its error is returned. Other errors are possible too: after
+    /// `error::timeout` (or `error::connection` once the batch was sent) the transaction may or
+    /// may not have committed.
+    batch: func(statements: list<statement>) -> result<list<query-result>, error>;
+  }
+}
