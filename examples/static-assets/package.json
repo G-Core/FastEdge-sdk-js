@@ -15,10 +15,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@gcoredev/fastedge-sdk-js": "^2.3.0",
-    "hono": "^4.13.5"
+    "@gcoredev/fastedge-sdk-js": "^2.7.0",
+    "hono": "^4.13.18"
   },
   "devDependencies": {
-    "npm-run-all2": "^9.0.2"
+    "npm-run-all2": "^9.0.4"
   }
 }
