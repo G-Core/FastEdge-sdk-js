@@ -29,7 +29,7 @@ npx fastedge-assets --help
 npx fastedge-assets --version
 ```
 
-Running `fastedge-assets` with no arguments prints the usage information and exits with status 0. On success, the CLI prints the output path as it was given on the command line (or taken from the config file) and exits with status 0.
+Running `fastedge-assets` with no arguments prints the usage information and exits with status 0. If the arguments cannot be parsed (for example a flag that requires a value is given none), usage information is also printed and the process exits with status 0. On success, the CLI prints the output path as it was given on the command line (or taken from the config file) and exits with status 0.
 
 ## Flags
 
@@ -45,10 +45,10 @@ Running `fastedge-assets` with no arguments prints the usage information and exi
 
 - `--input` must be an existing, non-empty directory.
 - `--output` must resolve to a file path (not a directory). The output file does not need to pre-exist; parent directories are created automatically.
-- Input and output paths are resolved relative to the current working directory. Use paths relative to the directory the command is run from.
-- Two positional arguments are interpreted as `<input-directory> <output-file>` and take precedence over `--input` and `--output`.
+- Input and output paths are resolved relative to the current working directory. Use paths relative to the directory the command is run from; absolute paths are not supported.
+- Two positional arguments are interpreted as `<input-directory> <output-file>` and take precedence over `--input` and `--output`. Any other number of positional arguments is ignored.
 - When `--config` is provided, `publicDir` and `assetManifestPath` from the config file serve as defaults if `--input` or `--output` are not specified on the command line (or as positional arguments).
-- If the `--config` file does not exist, or the config contains no fields, usage information is printed and the process exits with status 1. If the config file exists but fails to import, the error is thrown and usage information is not printed.
+- If the `--config` file does not exist, has no named `config` export, or the config contains no fields, usage information is printed and the process exits with status 1. If the config file exists but fails to import, the error is thrown and usage information is not printed.
 - If the output path does not end with `.js`, `.ts`, `.cjs`, or `.mjs`, a warning is printed and a `.js` extension is appended automatically.
 - If the input is not an existing non-empty directory or the output is not a file path, an error is printed, followed by usage information, and the process exits with status 1.
 - All other settings (`contentTypes`, `ignoreDotFiles`, `ignorePaths`, `ignoreWellKnown`) can only be set through the config file.
@@ -148,10 +148,10 @@ interface StaticAssetMetadata {
 }
 
 interface FileInfo {
-  hash:             string;
   size:             number;
-  assetPath:        string;
+  hash:             string;
   lastModifiedTime: number;
+  assetPath:        string;
 }
 ```
 
