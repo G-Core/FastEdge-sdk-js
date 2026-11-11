@@ -16,13 +16,13 @@
     "build"
   ],
   "dependencies": {
-    "@gcoredev/fastedge-sdk-js": "^2.3.0",
+    "@gcoredev/fastedge-sdk-js": "^2.7.0",
     "@hono/mcp": "^0.2.5",
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "hono": "^4.13.5",
-    "zod": "^4.3.6"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "hono": "^4.13.18",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }

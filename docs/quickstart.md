@@ -62,7 +62,7 @@ The wizard prompts for:
 | Is your site a single page application? | No                             |
 | Path to your SPA entrypoint (SPA only)  | `./index.html`                 |
 
-The public directory must exist and must not be empty; otherwise the wizard exits with an error. The wizard writes these files and does not touch the project's root `package.json`:
+The public directory must exist and must not be empty; otherwise the wizard exits with an error. If the SPA entrypoint does not exist inside the public directory, the wizard prints a warning and continues without an SPA entrypoint. The wizard writes these files and does not touch the project's root `package.json`:
 
 | File                        | Purpose                                                    |
 | --------------------------- | ---------------------------------------------------------- |

@@ -60,10 +60,13 @@ addEventListener('fetch', (event) => {
 
 ## Build Types
 
-| Type       | Description                         | CLI                                                 |
-| ---------- | ----------------------------------- | --------------------------------------------------- |
-| **HTTP**   | Standard request handler            | `fastedge-build src/index.js output.wasm`           |
-| **Static** | Serve static files embedded in WASM | `fastedge-build --config .fastedge/build-config.js` |
+| Type       | Description                         |
+| ---------- | ----------------------------------- |
+| **HTTP**   | Standard request handler            |
+| **Static** | Serve static files embedded in WASM |
+
+See [BUILD_CLI.md](BUILD_CLI.md) for build commands and [STATIC_SITES.md](STATIC_SITES.md) for
+static site builds.
 
 ## Runtime APIs
 

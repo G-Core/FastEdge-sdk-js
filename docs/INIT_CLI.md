@@ -96,11 +96,11 @@ npx fastedge-build --config .fastedge/build-config.js
 
 ### Prompts
 
-| Prompt                                   | Default                        | Validation                                                                    |
-| ---------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------- |
-| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                                         |
-| Path to your public directory            | `./build`                      | Directory must exist and not be empty                                         |
-| Is your site a single page application?  | `No`                           | —                                                                             |
+| Prompt                                   | Default                        | Validation                                                                   |
+| ---------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------- |
+| Path to your output file                 | `.fastedge/dist/fastedge.wasm` | Must end with `.wasm`                                                        |
+| Path to your public directory            | `./build`                      | Directory must exist and not be empty                                        |
+| Is your site a single page application?  | `No`                           | —                                                                            |
 | Path to your SPA entrypoint _(SPA only)_ | `./index.html`                 | Warns if the file is not found in, or resolves outside, the public directory |
 
 For a single page application, the entered path is resolved against the public directory. The file must exist and must lie inside the public directory, both as typed and after symbolic links are resolved. If it does not, a warning is printed and `spaEntrypoint` is left unset (written as `null`). Otherwise `spaEntrypoint` is set to the asset key of the file: its path relative to the public directory, normalized with a leading `/` (for example, `./index.html` becomes `/index.html`).
@@ -116,7 +116,7 @@ For a single page application, the entered path is resolved against the public d
 
 ### Generated Entry File
 
-`.fastedge/static-index.js` is generated automatically and should not be edited manually:
+`.fastedge/static-index.js` is generated and is overwritten each time the static website setup runs:
 
 ```js
 /*
